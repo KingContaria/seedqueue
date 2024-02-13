@@ -155,10 +155,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Numbers.TextField
     public int benchmarkResets = 0;
 
-    @Config.Category("debug")
-    @Config.Description.None
-    public boolean timeResetAll = false;
-
     @Config.Category("misc")
     @Config.Name("seedqueue.menu.keys")
     @Config.Description.None

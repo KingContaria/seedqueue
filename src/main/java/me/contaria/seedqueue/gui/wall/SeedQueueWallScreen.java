@@ -35,8 +35,6 @@ public class SeedQueueWallScreen extends Screen {
     private final long benchmarkStart = System.currentTimeMillis();
     private int benchmarkedSeeds;
 
-    private long pressedResetAll;
-
     public SeedQueueWallScreen(Screen createWorldScreen, int rows, int columns) {
         super(LiteralText.EMPTY);
         this.createWorldScreen = createWorldScreen;
@@ -49,10 +47,8 @@ public class SeedQueueWallScreen extends Screen {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         this.frame++;
-        this.debugResetAll("New frame");
 
         this.updatePreviews();
-        this.debugResetAll("Updated Previews");
         Set<SeedQueueLevelLoadingScreen> instancesToRender = Arrays.stream(this.loadingScreens).filter(Objects::nonNull).collect(Collectors.toSet());
         if (instancesToRender.isEmpty()) {
             this.renderBackground(matrices);
@@ -98,14 +94,10 @@ public class SeedQueueWallScreen extends Screen {
         } finally {
             RenderSystem.viewport(0, 0, this.client.getWindow().getWidth(), this.client.getWindow().getHeight());
         }
-        this.debugResetAll("Rendered Previews");
 
         for (SeedQueueLevelLoadingScreen backupInstance : this.backupLoadingScreens) {
             backupInstance.buildChunks();
         }
-        this.debugResetAll("Built Background Previews");
-        this.debugResetAll("Done");
-        this.pressedResetAll = 0;
     }
 
     @Override
@@ -282,19 +274,8 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void resetAllInstances() {
-        if (SeedQueue.config.timeResetAll) {
-            this.pressedResetAll = System.currentTimeMillis();
-        }
-        this.debugResetAll("Pressed");
         for (SeedQueueLevelLoadingScreen instance : this.loadingScreens) {
             this.resetInstance(instance);
-        }
-        this.debugResetAll("Instances are reset");
-    }
-
-    private void debugResetAll(String action) {
-        if (this.pressedResetAll != 0) {
-            SeedQueue.LOGGER.info("DEBUG | Reset All - {} at {}ms.", action, System.currentTimeMillis() - this.pressedResetAll);
         }
     }
 
