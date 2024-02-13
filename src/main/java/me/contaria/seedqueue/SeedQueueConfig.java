@@ -160,9 +160,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean timeResetAll = false;
 
     @Config.Category("misc")
-    public boolean skipIntermissionScreens = true;
-
-    @Config.Category("misc")
     @Config.Name("seedqueue.menu.keys")
     @Config.Description.None
     public final SeedQueueMultiKeyBinding[] keyBindings = new SeedQueueMultiKeyBinding[]{

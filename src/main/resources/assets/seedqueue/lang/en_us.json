@@ -78,8 +78,6 @@
   "speedrunapi.config.seedqueue.option.executorPriority_locked": "Locked Priority",
   "speedrunapi.config.seedqueue.option.useBackgroundExecutorThreads": "Use Background Executor Threads",
   "speedrunapi.config.seedqueue.option.useBackgroundExecutorThreads.description": "Makes seeds generating in the background use a separate worker pool with lower priority.",
-  "speedrunapi.config.seedqueue.option.skipIntermissionScreens": "Skip Intermission Screens",
-  "speedrunapi.config.seedqueue.option.skipIntermissionScreens.description": "Skips rendering of a few redundant intermission screens to let you join the world faster.",
   "speedrunapi.config.seedqueue.option.doNotWaitForChunksToBuild": "Allow Void Previews",
   "speedrunapi.config.seedqueue.option.useWatchdog": "Watchdog",
   "speedrunapi.config.seedqueue.option.useWatchdog.description": "Launches an extra thread that prints out the main threads stacktrace every 10 seconds to diagnose freezing issues.\n§cTo update this option restart the game.",

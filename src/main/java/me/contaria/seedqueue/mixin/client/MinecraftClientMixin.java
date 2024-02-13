@@ -430,10 +430,16 @@ public abstract class MinecraftClientMixin {
             )
     )
     private boolean skipIntermissionScreens(MinecraftClient instance, boolean tick) {
-        return !(SeedQueue.isActive() && SeedQueue.config.skipIntermissionScreens);
+        return SeedQueue.currentEntry == null;
     }
 
-    @ModifyExpressionValue(method = "disconnect(Lnet/minecraft/client/gui/screen/Screen;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/integrated/IntegratedServer;isStopping()Z"))
+    @ModifyExpressionValue(
+            method = "disconnect(Lnet/minecraft/client/gui/screen/Screen;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/server/integrated/IntegratedServer;isStopping()Z"
+            )
+    )
     private boolean fastQuit(boolean value) {
         return value || SeedQueue.isActive();
     }

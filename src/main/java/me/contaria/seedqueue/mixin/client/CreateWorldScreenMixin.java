@@ -35,7 +35,7 @@ public abstract class CreateWorldScreenMixin {
             )
     )
     private void skipIntermissionScreen(MinecraftClient client, Screen screen, Operation<Void> original) {
-        if (SeedQueue.isActive() && SeedQueue.currentEntry != null && SeedQueue.config.skipIntermissionScreens) {
+        if (SeedQueue.currentEntry != null) {
             client.openScreen(screen);
         } else {
             original.call(client, screen);
