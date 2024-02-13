@@ -1,0 +1,91 @@
+plugins {
+	id 'fabric-loom' version '1.4-SNAPSHOT'
+	id 'maven-publish'
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+	maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+	// To change the versions see the gradle.properties file
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	// SpeedrunAPI
+	// check for the latest versions at https://jitpack.io/#kingcontaria/speedrunapi
+	modImplementation "com.github.KingContaria:SpeedrunAPI:1d6ca1ffcd"
+	implementation(annotationProcessor "com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.1.1")
+	modImplementation "net.fabricmc.fabric-api:fabric-key-binding-api-v1:1.0.36+fb8d95da77"
+
+	// check for the latest versions at https://jitpack.io/#kingcontaria/atum-rewrite
+	modImplementation "com.github.KingContaria:atum-rewrite:489a341c7b"
+
+	modCompileOnly files("libs/antiresourcereload-1.16.1-5.0.0.jar")
+	modCompileOnly files("libs/fast-reset-rev.8df2ca7+1.16.1.jar")
+	modCompileOnly files("libs/worldpreview-6.0.0-beta.2+1.16.1.jar")
+	modCompileOnly files("libs/sodium-1.16.1-rev.3cb42ad.jar")
+	modCompileOnly files("libs/standardsettings-1.2.2+1.16.1.jar")
+}
+
+loom {
+	accessWidenerPath = file("src/main/resources/seedqueue.accesswidener")
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.encoding = "UTF-8"
+
+	def targetVersion = 8
+	if (JavaVersion.current().isJava9Compatible()) {
+		it.options.release = targetVersion
+	}
+}
+
+java {
+	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+	// if it is present.
+	// If you remove this line, sources will not be generated.
+	withSourcesJar()
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${project.base.archivesName.get()}"}
+	}
+}
+
+// configure the maven publication
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+		}
+	}
+
+	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+	repositories {
+		// Add repositories to publish to here.
+		// Notice: This block does NOT have the same function as the block in the top level.
+		// The repositories here will be used for publishing your artifact, not for
+		// retrieving dependencies.
+	}
+}

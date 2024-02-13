@@ -1,0 +1,39 @@
+{
+  "required": true,
+  "package": "me.contaria.seedqueue.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+    "accessor.MinecraftClientAccessor",
+    "accessor.MinecraftServerAccessor",
+    "accessor.UtilAccessor",
+    "accessor.WorldRendererAccessor",
+    "client.CreateWorldScreenMixin",
+    "client.MinecraftClientMixin",
+    "client.render.LevelLoadingScreenMixin",
+    "client.render.MinecraftClientMixin",
+    "client.render.WorldRendererMixin",
+    "compat.antiresourcereload.MinecraftClientMixin",
+    "compat.atum.AtumMixin",
+    "compat.atum.CreateWorldScreenMixin",
+    "compat.atum.KeyboardMixin",
+    "compat.sodium.ChunkBuilderMixin",
+    "compat.speedrunigt.MinecraftClientMixin",
+    "compat.standardsettings.CreateWorldScreenMixin",
+    "compat.worldpreview.ClientWorldMixin",
+    "compat.worldpreview.MinecraftServerMixin",
+    "compat.worldpreview.ServerChunkManagerMixin",
+    "debug.ServerTickSchedulerMixin",
+    "misc.WorldGenerationProgressListenerMixin",
+    "misc.WorldGenerationProgressLoggerMixin",
+    "misc.WorldGenerationProgressTrackerMixin",
+    "server.MinecraftServerMixin",
+    "server.UtilMixin",
+    "server.synchronization.BiomeMixin",
+    "server.synchronization.DirectionTransformationMixin",
+    "server.synchronization.WeightedBlockStateProviderMixin"
+  ],
+  "plugin": "org.mcsr.speedrunapi.mixin_plugin.SpeedrunMixinConfigPlugin"
+}
