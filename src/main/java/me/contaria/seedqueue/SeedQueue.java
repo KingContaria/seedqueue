@@ -29,10 +29,13 @@ public class SeedQueue {
         synchronized (LOCK) {
             if (selectedEntry != null) {
                 currentEntry = selectedEntry;
-                SEED_QUEUE.remove(selectedEntry);
+                remove(selectedEntry);
                 selectedEntry = null;
             } else {
                 currentEntry = SEED_QUEUE.poll();
+            }
+            if (thread != null) {
+                thread.ping();
             }
             if (currentEntry != null) {
                 WorldPreviewProperties worldPreviewProperties = currentEntry.getWorldPreviewProperties();
@@ -53,12 +56,15 @@ public class SeedQueue {
     public static void add(SeedQueueEntry seedQueueEntry) {
         synchronized (LOCK) {
             SEED_QUEUE.add(seedQueueEntry);
+            thread.ping();
         }
     }
 
     public static boolean remove(SeedQueueEntry seedQueueEntry) {
         synchronized (LOCK) {
-            return SEED_QUEUE.remove(seedQueueEntry);
+            boolean result = SEED_QUEUE.remove(seedQueueEntry);
+            thread.ping();
+            return result;
         }
     }
 
@@ -90,6 +96,7 @@ public class SeedQueue {
         LOGGER.info("Stopping SeedQueue...");
 
         thread.stopQueue();
+        thread.ping();
         try {
             thread.join();
         } catch (InterruptedException e) {
@@ -115,6 +122,8 @@ public class SeedQueue {
             ((MinecraftClientAccessor) MinecraftClient.getInstance()).seedQueue$render(false);
             SEED_QUEUE.removeIf(entry -> entry.getServer().isStopping());
         }
+
+        SeedQueueExecutorWrapper.shutdownExecutors();
 
         System.gc();
 

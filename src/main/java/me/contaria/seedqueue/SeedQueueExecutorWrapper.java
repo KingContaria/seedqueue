@@ -4,13 +4,14 @@ import me.contaria.seedqueue.mixin.accessor.UtilAccessor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 
 public class SeedQueueExecutorWrapper implements Executor {
 
-    private static Executor BACKGROUND_EXECUTOR;
-    private static Executor BEFORE_PREVIEW_EXECUTOR;
-    private static Executor AFTER_PREVIEW_EXECUTOR;
-    private static Executor LOCKED_EXECUTOR;
+    public static final Executor SEEDQUEUE_EXECUTOR = command -> (SeedQueue.isOnWall() ? getWallExecutor() : getBackgroundExecutor()).execute(command);
+
+    private static ExecutorService SEEDQUEUE_BACKGROUND_EXECUTOR;
+    private static ExecutorService SEEDQUEUE_WALL_EXECUTOR;
 
     private final Executor originalExecutor;
     private Executor executor;
@@ -33,30 +34,27 @@ public class SeedQueueExecutorWrapper implements Executor {
     }
 
     public static Executor getBackgroundExecutor() {
-        if (BACKGROUND_EXECUTOR == null) {
-            BACKGROUND_EXECUTOR = UtilAccessor.seedQueue$createWorkerExecutor("SeedQueue Background");
+        if (SEEDQUEUE_BACKGROUND_EXECUTOR == null) {
+            SEEDQUEUE_BACKGROUND_EXECUTOR = UtilAccessor.seedQueue$createWorkerExecutor("SeedQueue");
         }
-        return BACKGROUND_EXECUTOR;
+        return SEEDQUEUE_BACKGROUND_EXECUTOR;
     }
 
-    public static Executor getBeforePreviewExecutor() {
-        if (BEFORE_PREVIEW_EXECUTOR == null) {
-            BEFORE_PREVIEW_EXECUTOR = UtilAccessor.seedQueue$createWorkerExecutor("SeedQueue Before Preview");
+    public static Executor getWallExecutor() {
+        if (SEEDQUEUE_WALL_EXECUTOR == null) {
+            SEEDQUEUE_WALL_EXECUTOR = UtilAccessor.seedQueue$createWorkerExecutor("SeedQueue Wall");
         }
-        return BEFORE_PREVIEW_EXECUTOR;
+        return SEEDQUEUE_WALL_EXECUTOR;
     }
 
-    public static Executor getAfterPreviewExecutor() {
-        if (AFTER_PREVIEW_EXECUTOR == null) {
-            AFTER_PREVIEW_EXECUTOR = UtilAccessor.seedQueue$createWorkerExecutor("SeedQueue After Preview");
+    public static void shutdownExecutors() {
+        if (SEEDQUEUE_BACKGROUND_EXECUTOR != null) {
+            UtilAccessor.seedQueue$shutdownWorkerExecutor(SEEDQUEUE_BACKGROUND_EXECUTOR);
+            SEEDQUEUE_BACKGROUND_EXECUTOR = null;
         }
-        return AFTER_PREVIEW_EXECUTOR;
-    }
-
-    public static Executor getLockedExecutor() {
-        if (LOCKED_EXECUTOR == null) {
-            LOCKED_EXECUTOR = UtilAccessor.seedQueue$createWorkerExecutor("SeedQueue Locked");
+        if (SEEDQUEUE_WALL_EXECUTOR != null) {
+            UtilAccessor.seedQueue$shutdownWorkerExecutor(SEEDQUEUE_WALL_EXECUTOR);
+            SEEDQUEUE_WALL_EXECUTOR = null;
         }
-        return LOCKED_EXECUTOR;
     }
 }

@@ -12,6 +12,7 @@ import com.mojang.datafixers.util.Function4;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.SeedQueueException;
+import me.contaria.seedqueue.SeedQueueExecutorWrapper;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
@@ -242,6 +243,7 @@ public abstract class MinecraftClientMixin {
     )
     private void queueServer(MinecraftClient client, IntegratedServer server, Operation<Void> original, @Local LevelStorage.Session session, @Local MinecraftClient.IntegratedResourceManager resourceManager, @Local YggdrasilAuthenticationService yggdrasilAuthenticationService, @Local MinecraftSessionService minecraftSessionService, @Local GameProfileRepository gameProfileRepository, @Local UserCache userCache) {
         if (SeedQueue.inQueue()) {
+            ((SQMinecraftServer) server).seedQueue$setExecutor(SeedQueueExecutorWrapper.SEEDQUEUE_EXECUTOR);
             SeedQueue.add(new SeedQueueEntry(server, session, resourceManager, yggdrasilAuthenticationService, minecraftSessionService, gameProfileRepository, userCache));
             return;
         }
@@ -430,7 +432,7 @@ public abstract class MinecraftClientMixin {
             )
     )
     private boolean skipIntermissionScreens(MinecraftClient instance, boolean tick) {
-        return SeedQueue.currentEntry == null;
+        return !SeedQueue.isActive();
     }
 
     @ModifyExpressionValue(

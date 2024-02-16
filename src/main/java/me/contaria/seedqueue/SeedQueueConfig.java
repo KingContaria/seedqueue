@@ -122,32 +122,20 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean lazyUserCache = false;
 
     @Config.Category("performance")
-    @Config.Numbers.Whole.Bounds(min = 7, max = 31, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    @Config.Access(setter = "setMaxServerExecutorThreads")
-    public int maxServerExecutorThreads = 7;
+    @Config.Numbers.Whole.Bounds(min = 1, max = 31, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    public int backgroundExecutorThreads = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
 
-    @Config.Category("executors")
-    public BackgroundExecutorMode backgroundExecutorMode = BackgroundExecutorMode.OFF;
-
-    @Config.Category("executors")
+    @Config.Category("performance")
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.MAX_PRIORITY)
-    @Config.Description.None
-    public int executorPriority_background = Thread.MIN_PRIORITY;
+    public int backgroundExecutorThreadPriority = Thread.NORM_PRIORITY;
 
-    @Config.Category("executors")
-    @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.MAX_PRIORITY)
-    @Config.Description.None
-    public int executorPriority_beforePreview = Thread.NORM_PRIORITY;
+    @Config.Category("performance")
+    @Config.Numbers.Whole.Bounds(min = 1, max = 31, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    public int wallExecutorThreads = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
 
-    @Config.Category("executors")
+    @Config.Category("performance")
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.MAX_PRIORITY)
-    @Config.Description.None
-    public int executorPriority_afterPreview = Thread.MIN_PRIORITY;
-
-    @Config.Category("executors")
-    @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.MAX_PRIORITY)
-    @Config.Description.None
-    public int executorPriority_locked = Thread.NORM_PRIORITY;
+    public int wallExecutorThreadPriority = Thread.NORM_PRIORITY;
 
     @Config.Category("debug")
     public boolean useWatchdog = false;
@@ -184,8 +172,8 @@ public class SeedQueueConfig implements SpeedrunConfig {
     }
 
     @SuppressWarnings("unused")
-    public void setMaxServerExecutorThreads(int maxServerExecutorThreads) {
-        this.maxServerExecutorThreads = Math.max(7, Math.min(Runtime.getRuntime().availableProcessors() - 1, maxServerExecutorThreads));
+    public void setBackgroundExecutorThreads(int backgroundExecutorThreads) {
+        this.backgroundExecutorThreads = Math.min(Runtime.getRuntime().availableProcessors(), backgroundExecutorThreads);
     }
 
     public boolean shouldUseWall() {
@@ -243,11 +231,5 @@ public class SeedQueueConfig implements SpeedrunConfig {
         TRUE,
         TRANSPARENT,
         FALSE
-    }
-
-    public enum BackgroundExecutorMode {
-        OFF,
-        SINGLE_EXECUTOR,
-        MULTI_EXECUTORS
     }
 }

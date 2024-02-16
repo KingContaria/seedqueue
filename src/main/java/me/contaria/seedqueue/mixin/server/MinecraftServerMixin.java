@@ -96,6 +96,7 @@ public abstract class MinecraftServerMixin implements SQMinecraftServer {
         }
 
         try {
+            SeedQueue.thread.ping();
             this.wait();
         } catch (InterruptedException e) {
             throw new SeedQueueException();

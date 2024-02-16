@@ -12,4 +12,9 @@ public interface UtilAccessor {
     static ExecutorService seedQueue$createWorkerExecutor(String string) {
         throw new UnsupportedOperationException();
     }
+
+    @Invoker("method_27957")
+    static void seedQueue$shutdownWorkerExecutor(ExecutorService executorService) {
+        throw new UnsupportedOperationException();
+    }
 }

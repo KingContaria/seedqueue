@@ -74,19 +74,19 @@ public class SeedQueueEntry {
         return this.userCache;
     }
 
-    public synchronized @Nullable WorldGenerationProgressTracker getWorldGenerationProgressTracker() {
+    public @Nullable WorldGenerationProgressTracker getWorldGenerationProgressTracker() {
         return this.worldGenerationProgressTracker;
     }
 
-    public synchronized void setWorldGenerationProgressTracker(@Nullable WorldGenerationProgressTracker worldGenerationProgressTracker) {
+    public void setWorldGenerationProgressTracker(@Nullable WorldGenerationProgressTracker worldGenerationProgressTracker) {
         this.worldGenerationProgressTracker = worldGenerationProgressTracker;
     }
 
-    public synchronized @Nullable WorldPreviewProperties getWorldPreviewProperties() {
+    public @Nullable WorldPreviewProperties getWorldPreviewProperties() {
         return this.worldPreviewProperties;
     }
 
-    public synchronized void setWorldPreviewProperties(@Nullable WorldPreviewProperties worldPreviewProperties) {
+    public void setWorldPreviewProperties(@Nullable WorldPreviewProperties worldPreviewProperties) {
         this.worldPreviewProperties = worldPreviewProperties;
     }
 
