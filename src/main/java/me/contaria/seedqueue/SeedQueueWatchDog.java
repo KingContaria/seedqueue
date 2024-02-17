@@ -11,9 +11,7 @@ public class SeedQueueWatchDog implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         if (SeedQueue.config.useWatchdog) {
-            new Thread(() -> {
-                Thread.currentThread().setDaemon(true);
-                Thread.currentThread().setName("SeedQueue WatchDog");
+            Thread watchDog = new Thread(() -> {
 
                 long last = 0;
                 while (true) {
@@ -25,7 +23,10 @@ public class SeedQueueWatchDog implements ClientModInitializer {
                         last = System.currentTimeMillis();
                     }
                 }
-            }).start();
+            });
+            watchDog.setDaemon(true);
+            watchDog.setName("SeedQueue WatchDog");
+            watchDog.start();
         }
     }
 }
