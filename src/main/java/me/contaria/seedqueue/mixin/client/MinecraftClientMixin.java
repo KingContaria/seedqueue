@@ -13,6 +13,7 @@ import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.SeedQueueException;
 import me.contaria.seedqueue.SeedQueueExecutorWrapper;
+import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
@@ -444,7 +445,7 @@ public abstract class MinecraftClientMixin {
             )
     )
     private boolean fastQuit(boolean value) {
-        return value || SeedQueue.isActive();
+        return value || (SeedQueue.isActive() && ModCompat.HAS_FASTRESET);
     }
 
     @Inject(
