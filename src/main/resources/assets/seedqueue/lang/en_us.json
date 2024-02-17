@@ -30,6 +30,8 @@
   "speedrunapi.config.seedqueue.option.maxConcurrently.description": "Maximum number of seeds that can be generating at the same time.",
   "speedrunapi.config.seedqueue.option.maxConcurrently_onWall": "Max Generating Seeds (Wall)",
   "speedrunapi.config.seedqueue.option.maxConcurrently_onWall.description": "Maximum number of seeds that can be generating at the same time while on the Wall Screen.",
+  "speedrunapi.config.seedqueue.option.maxWorldGenerationPercentage": "Max World Generation %",
+  "speedrunapi.config.seedqueue.option.maxWorldGenerationPercentage.description": "Stops generating a world at the set percentage unless it is locked.\nNote that it will still wait for WorldPreview to be configured before freezing the world.",
   "speedrunapi.config.seedqueue.option.chunkMapVisibility": "SeedQueue Chunkmaps",
   "speedrunapi.config.seedqueue.option.chunkMapVisibility.description": "Sets the rendering of chunkmaps of currently generating seeds.\nShow - Render an overlay with all the chunkmaps\nTransparent - Render a transparent overlay with all the chunkmaps\nHide - Do not render the chunkmaps",
   "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.TRUE": "Show",

@@ -6,6 +6,7 @@ import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
+import me.contaria.seedqueue.interfaces.SQMinecraftServer;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
@@ -13,8 +14,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.UserCache;
 import net.minecraft.world.level.storage.LevelStorage;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Optional;
 
 public class SeedQueueEntry {
 
@@ -90,6 +89,10 @@ public class SeedQueueEntry {
         this.worldPreviewProperties = worldPreviewProperties;
     }
 
+    public boolean isPaused() {
+        return ((SQMinecraftServer) this.server).seedQueue$isPaused();
+    }
+
     public boolean isReady() {
         return this.server.isLoading();
     }
@@ -100,6 +103,11 @@ public class SeedQueueEntry {
 
     public void lock() {
         this.locked = true;
+        synchronized (this.server) {
+            if (this.isPaused() && !this.isReady()) {
+                this.server.notify();
+            }
+        }
     }
 
     public boolean isDiscarded() {
@@ -118,7 +126,9 @@ public class SeedQueueEntry {
             if (!ModCompat.worldpreview$kill(this.server)) {
                 ((MinecraftServerAccessor) this.server).seedQueue$setRunning(false);
             }
-            this.server.notify();
+            if (this.isPaused()) {
+                this.server.notify();
+            }
             WorldPreviewProperties worldPreviewProperties = this.getWorldPreviewProperties();
             if (worldPreviewProperties != null && !(SeedQueue.config.lazilyClearWorldRenderers && SeedQueue.isActive())) {
                 SeedQueueWallScreen.clearWorldRenderer(worldPreviewProperties.getWorld());

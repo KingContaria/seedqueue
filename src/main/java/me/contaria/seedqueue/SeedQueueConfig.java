@@ -4,10 +4,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.gui.config.SeedQueueKeybindingsScreen;
 import me.contaria.seedqueue.keybindings.SeedQueueKeyBindings;
 import me.contaria.seedqueue.keybindings.SeedQueueMultiKeyBinding;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.InputUtil;
@@ -38,6 +38,10 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Numbers.Whole.Bounds(min = 1, max = 20, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public int maxConcurrently_onWall = 1;
 
+    @Config.Category("queue")
+    @Config.Numbers.Whole.Bounds(max = 100)
+    public int maxWorldGenerationPercentage = 100;
+
     @Config.Category("chunkmap")
     public ChunkMapVisibility chunkMapVisibility = ChunkMapVisibility.TRUE;
 
@@ -46,7 +50,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int chunkMapScale = 2;
 
     @Config.Ignored
-    public boolean canUseWall = FabricLoader.getInstance().isModLoaded("worldpreview");
+    public boolean canUseWall = ModCompat.HAS_WORLDPREVIEW;
 
     @Config.Category("wall")
     public boolean useWall = false;

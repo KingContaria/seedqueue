@@ -377,6 +377,7 @@ public abstract class MinecraftClientMixin {
     private void resetCurrentSeedQueueEntry(CallbackInfo ci) {
         if (!SeedQueue.inQueue() && SeedQueue.currentEntry != null) {
             SeedQueue.currentEntry = null;
+            SeedQueue.thread.ping();
         }
     }
 

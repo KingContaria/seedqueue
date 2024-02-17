@@ -47,11 +47,12 @@ public abstract class MinecraftClientMixin {
         if (this.currentScreen instanceof SeedQueueClearScreen || SeedQueue.isOnWall() || SeedQueue.config.chunkMapVisibility == SeedQueueConfig.ChunkMapVisibility.FALSE) {
             return;
         }
+
         int x = 3;
         int y = 3;
         int scale = SeedQueue.config.chunkMapScale;
         for (SeedQueueEntry seedQueueEntry : SeedQueue.SEED_QUEUE) {
-            if (seedQueueEntry.isReady()) {
+            if (seedQueueEntry.isPaused()) {
                 continue;
             }
             WorldGenerationProgressTracker worldGenerationProgressTracker = seedQueueEntry.getWorldGenerationProgressTracker();

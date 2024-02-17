@@ -24,7 +24,6 @@ public abstract class ServerChunkManagerMixin {
     @Final
     private ServerWorld world;
 
-
     @Dynamic
     @TargetHandler(
             mixin = "me.voidxwalker.worldpreview.mixin.server.ServerChunkManagerMixin",
@@ -41,7 +40,6 @@ public abstract class ServerChunkManagerMixin {
         return this.getWorldPreviewProperties().map(WorldPreviewProperties::getWorld).orElse(this.world.getServer() == MinecraftClient.getInstance().getServer() ? world : null);
     }
 
-
     @Dynamic
     @TargetHandler(
             mixin = "me.voidxwalker.worldpreview.mixin.server.ServerChunkManagerMixin",
@@ -57,7 +55,6 @@ public abstract class ServerChunkManagerMixin {
     private ClientPlayerEntity sendChunksToCorrectWorldPreviewWorld_inQueue(ClientPlayerEntity player) {
         return this.getWorldPreviewProperties().map(WorldPreviewProperties::getPlayer).orElse(this.world.getServer() == MinecraftClient.getInstance().getServer() ? player : null);
     }
-
 
     @Dynamic
     @TargetHandler(

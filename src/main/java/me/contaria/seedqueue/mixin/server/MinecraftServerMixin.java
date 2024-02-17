@@ -8,11 +8,13 @@ import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.SeedQueueException;
 import me.contaria.seedqueue.SeedQueueExecutorWrapper;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
-import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.WorldGenerationProgressListener;
+import net.minecraft.server.ServerTask;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.thread.ReentrantThreadExecutor;
 import net.minecraft.world.SaveProperties;
+import net.minecraft.world.level.ServerWorldProperties;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -26,7 +28,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.concurrent.Executor;
 
 @Mixin(MinecraftServer.class)
-public abstract class MinecraftServerMixin implements SQMinecraftServer {
+public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<ServerTask> implements SQMinecraftServer {
 
     @Shadow
     private volatile boolean loading;
@@ -38,6 +40,13 @@ public abstract class MinecraftServerMixin implements SQMinecraftServer {
     @Shadow
     @Final
     private Executor workerExecutor;
+
+    @Unique
+    private boolean paused;
+
+    public MinecraftServerMixin(String string) {
+        super(string);
+    }
 
     @ModifyExpressionValue(
             method = "<init>",
@@ -61,13 +70,26 @@ public abstract class MinecraftServerMixin implements SQMinecraftServer {
     }
 
     @Inject(
+            method = "setupSpawn",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/server/network/SpawnLocating;findServerSpawnPoint(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/math/ChunkPos;Z)Lnet/minecraft/util/math/BlockPos;"
+            )
+    )
+    private static void pauseServerDuringWorldSetup(ServerWorld serverWorld, ServerWorldProperties serverWorldProperties, boolean bl, boolean bl2, boolean bl3, CallbackInfo ci) {
+        ((SQMinecraftServer) serverWorld.getServer()).seedQueue$tryPausingServer();
+    }
+
+    @Inject(
             method = "prepareStartRegion",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/server/world/ServerChunkManager;getTotalChunksLoadedCount()I"
+                    target = "Lnet/minecraft/server/MinecraftServer;method_16208()V",
+                    shift = At.Shift.AFTER
             )
     )
-    private void test(WorldGenerationProgressListener worldGenerationProgressListener, CallbackInfo ci) throws InterruptedException {
+    private void pauseServerDuringWorldGen(CallbackInfo ci) {
+        this.seedQueue$tryPausingServer();
     }
 
     @WrapOperation(
@@ -84,23 +106,53 @@ public abstract class MinecraftServerMixin implements SQMinecraftServer {
         original.call(server, value);
 
         if (firstTick) {
-            this.tryPausingServer();
+            this.seedQueue$tryPausingServer();
         }
     }
 
     @Unique
-    private synchronized void tryPausingServer() {
+    private boolean shouldPauseServer() {
         SeedQueueEntry seedQueueEntry = SeedQueue.getEntry((MinecraftServer) (Object) this);
         if (seedQueueEntry == null || seedQueueEntry.isDiscarded()) {
+            return false;
+        }
+        if (seedQueueEntry.isReady()) {
+            return true;
+        }
+        if (seedQueueEntry.getWorldPreviewProperties() == null) {
+            return false;
+        }
+        if (!seedQueueEntry.isLocked() && SeedQueue.config.maxWorldGenerationPercentage < 100) {
+            WorldGenerationProgressTracker tracker = seedQueueEntry.getWorldGenerationProgressTracker();
+            return tracker != null && tracker.getProgressPercentage() >= SeedQueue.config.maxWorldGenerationPercentage;
+        }
+        return false;
+    }
+
+    @Override
+    public synchronized void seedQueue$tryPausingServer() {
+        if (!this.isOnThread()) {
+            throw new IllegalStateException("Tried to pause the server from another thread!");
+        }
+
+        if (!this.shouldPauseServer()) {
             return;
         }
 
         try {
+            this.paused = true;
             SeedQueue.thread.ping();
             this.wait();
         } catch (InterruptedException e) {
             throw new SeedQueueException();
+        } finally {
+            this.paused = false;
         }
+    }
+
+    @Override
+    public boolean seedQueue$isPaused() {
+        return this.paused;
     }
 
     @Override

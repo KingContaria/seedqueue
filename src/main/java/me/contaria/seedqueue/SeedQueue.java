@@ -34,17 +34,17 @@ public class SeedQueue {
             } else {
                 currentEntry = SEED_QUEUE.poll();
             }
-            if (thread != null) {
-                thread.ping();
-            }
-            if (currentEntry != null) {
-                WorldPreviewProperties worldPreviewProperties = currentEntry.getWorldPreviewProperties();
-                if (worldPreviewProperties != null) {
-                    SeedQueueWallScreen.clearWorldRenderer(worldPreviewProperties.getWorld());
-                }
-            }
-            return currentEntry != null;
         }
+        if (thread != null) {
+            thread.ping();
+        }
+        if (currentEntry != null) {
+            WorldPreviewProperties worldPreviewProperties = currentEntry.getWorldPreviewProperties();
+            if (worldPreviewProperties != null) {
+                SeedQueueWallScreen.clearWorldRenderer(worldPreviewProperties.getWorld());
+            }
+        }
+        return currentEntry != null;
     }
 
     public static Optional<SeedQueueEntry> getEntryMatching(Predicate<SeedQueueEntry> predicate) {
@@ -71,7 +71,7 @@ public class SeedQueue {
     public static boolean shouldGenerate() {
         synchronized (LOCK) {
             MinecraftServer currentServer = MinecraftClient.getInstance().getServer();
-            return SEED_QUEUE.stream().filter(entry -> !entry.isReady()).count() + (!isOnWall() && (currentServer == null || !currentServer.isLoading()) ? 1 : 0) < (isOnWall() ? config.maxConcurrently_onWall : config.maxConcurrently) && SEED_QUEUE.size() < config.maxCapacity;
+            return SEED_QUEUE.stream().filter(entry -> !entry.isPaused()).count() + (!isOnWall() && (currentServer == null || !currentServer.isLoading()) ? 1 : 0) < (isOnWall() ? config.maxConcurrently_onWall : config.maxConcurrently) && SEED_QUEUE.size() < config.maxCapacity;
         }
     }
 

@@ -192,7 +192,7 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
         WorldRenderer worldRenderer = this.getWorldRenderer();
         if (((WorldRendererAccessor) worldRenderer).seedQueue$getCompletedChunkCount() == 0) {
             // this checks for instances that are ready to be loaded but do not have any chunks built, to avoid keeping them invisible forever we have to flush them through the system
-            return this.seedQueueEntry.isReady() && worldRenderer.isTerrainRenderComplete() && this.worldPreviewProperties.getPacketQueue().isEmpty();
+            return this.seedQueueEntry.isPaused() && worldRenderer.isTerrainRenderComplete() && this.worldPreviewProperties.getPacketQueue().isEmpty();
         }
         return true;
     }

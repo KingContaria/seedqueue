@@ -5,14 +5,17 @@ import net.minecraft.server.MinecraftServer;
 
 public class ModCompat {
 
+    public static final boolean HAS_FASTRESET = FabricLoader.getInstance().isModLoaded("fast_reset");
+    public static final boolean HAS_WORLDPREVIEW = FabricLoader.getInstance().isModLoaded("worldpreview");
+
     public static void fastReset$fastReset(MinecraftServer server) {
-        if (FabricLoader.getInstance().isModLoaded("fast_reset")) {
+        if (HAS_FASTRESET) {
             FastResetCompat.fastReset(server);
         }
     }
 
     public static boolean worldpreview$kill(MinecraftServer server) {
-        if (FabricLoader.getInstance().isModLoaded("worldpreview")) {
+        if (HAS_WORLDPREVIEW) {
             return WorldPreviewCompat.kill(server);
         }
         return false;
