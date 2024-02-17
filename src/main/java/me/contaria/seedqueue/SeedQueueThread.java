@@ -4,6 +4,8 @@ import me.voidxwalker.autoreset.AtumCreateWorldScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 
+import java.util.Optional;
+
 public class SeedQueueThread extends Thread {
 
     private volatile boolean running;
@@ -23,6 +25,13 @@ public class SeedQueueThread extends Thread {
                         continue;
                     }
                 }
+
+                Optional<SeedQueueEntry> entryToUnpause = SeedQueue.getEntryMatching(entry -> entry.isPaused() && !entry.shouldPause());
+                if (entryToUnpause.isPresent()) {
+                    entryToUnpause.get().unpause();
+                    continue;
+                }
+
                 Screen atumCreateWorldScreen = new AtumCreateWorldScreen(null);
                 atumCreateWorldScreen.init(MinecraftClient.getInstance(), 0, 0);
             } catch (Exception e) {

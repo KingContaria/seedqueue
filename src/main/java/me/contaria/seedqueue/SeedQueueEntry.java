@@ -93,6 +93,16 @@ public class SeedQueueEntry {
         return ((SQMinecraftServer) this.server).seedQueue$isPaused();
     }
 
+    public boolean shouldPause() {
+        return ((SQMinecraftServer) this.server).seedQueue$shouldPause();
+    }
+
+    public void unpause() {
+        synchronized (this.server) {
+            this.server.notify();
+        }
+    }
+
     public boolean isReady() {
         return this.server.isLoading();
     }
@@ -103,11 +113,6 @@ public class SeedQueueEntry {
 
     public void lock() {
         this.locked = true;
-        synchronized (this.server) {
-            if (this.isPaused() && !this.isReady()) {
-                this.server.notify();
-            }
-        }
     }
 
     public boolean isDiscarded() {

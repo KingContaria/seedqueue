@@ -110,8 +110,8 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
         }
     }
 
-    @Unique
-    private boolean shouldPauseServer() {
+    @Override
+    public boolean seedQueue$shouldPause() {
         SeedQueueEntry seedQueueEntry = SeedQueue.getEntry((MinecraftServer) (Object) this);
         if (seedQueueEntry == null || seedQueueEntry.isDiscarded()) {
             return false;
@@ -135,7 +135,7 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
             throw new IllegalStateException("Tried to pause the server from another thread!");
         }
 
-        if (!this.shouldPauseServer()) {
+        if (!this.seedQueue$shouldPause()) {
             return;
         }
 

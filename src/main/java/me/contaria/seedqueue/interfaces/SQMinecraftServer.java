@@ -6,6 +6,8 @@ public interface SQMinecraftServer {
 
     void seedQueue$tryPausingServer();
 
+    boolean seedQueue$shouldPause();
+
     boolean seedQueue$isPaused();
 
     void seedQueue$setExecutor(Executor executor);
