@@ -56,16 +56,17 @@ public class SeedQueue {
     public static void add(SeedQueueEntry seedQueueEntry) {
         synchronized (LOCK) {
             SEED_QUEUE.add(seedQueueEntry);
-            thread.ping();
         }
+        thread.ping();
     }
 
     public static boolean remove(SeedQueueEntry seedQueueEntry) {
+        boolean result;
         synchronized (LOCK) {
-            boolean result = SEED_QUEUE.remove(seedQueueEntry);
-            thread.ping();
-            return result;
+            result = SEED_QUEUE.remove(seedQueueEntry);
         }
+        thread.ping();
+        return result;
     }
 
     public static boolean shouldGenerate() {

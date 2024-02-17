@@ -126,7 +126,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean lazyUserCache = false;
 
     @Config.Category("performance")
-    @Config.Numbers.Whole.Bounds(min = 1, max = 31, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    @Config.Numbers.Whole.Bounds(min = 0, max = 31, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public int backgroundExecutorThreads = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
 
     @Config.Category("performance")
