@@ -46,6 +46,8 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
     private int firstRenderFrame = Integer.MAX_VALUE;
     public int lastRenderFrame;
 
+    private boolean renderedLock;
+
     public SeedQueueLevelLoadingScreen(SeedQueueWallScreen wallScreen, SeedQueueEntry seedQueueEntry) {
         super(seedQueueEntry.getWorldGenerationProgressTracker());
         this.wallScreen = wallScreen;
@@ -79,8 +81,7 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
             super.render(matrices, mouseX, mouseY, delta);
 
             if (this.seedQueueEntry.isLocked()) {
-                this.client.getTextureManager().bindTexture(LOCK);
-                drawTexture(matrices, 5, 5, 0.0F, 0.0F, 128, 128, 128, 128);
+                this.renderLock(matrices);
             }
         } finally {
             WorldPreview.worldRenderer = worldPreviewRenderer;
@@ -92,6 +93,17 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
             this.firstRenderFrame = this.wallScreen.frame;
         }
         this.lastRenderFrame = this.wallScreen.frame;
+    }
+
+    public void renderLock(MatrixStack matrices) {
+        assert this.client != null;
+        this.client.getTextureManager().bindTexture(LOCK);
+        drawTexture(matrices, 5, 5, 0.0F, 0.0F, 128, 128, 128, 128);
+        this.renderedLock = true;
+    }
+
+    public boolean hasRenderedLock() {
+        return this.renderedLock;
     }
 
     public void renderChunkMap(MatrixStack matrices) {

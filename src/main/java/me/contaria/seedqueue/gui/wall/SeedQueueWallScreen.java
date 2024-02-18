@@ -82,13 +82,18 @@ public class SeedQueueWallScreen extends Screen {
                     if (!instancesToRender.contains(instance)) {
                         if (!instance.hasBeenRendered()) {
                             instance.renderBackground(matrices);
-                        } else if (SeedQueue.config.alwaysRenderChunkMap) {
-                            instance.renderChunkMap(matrices);
+                        } else {
+                            if (SeedQueue.config.alwaysRenderChunkMap) {
+                                instance.renderChunkMap(matrices);
+                            }
+                            if (instance.getSeedQueueEntry().isLocked() && !instance.hasRenderedLock()) {
+                                instance.renderLock(matrices);
+                            }
                         }
                         instance.buildChunks();
-                    } else {
-                        instance.render(matrices, 0, 0, delta);
+                        continue;
                     }
+                    instance.render(matrices, 0, 0, delta);
                 }
             }
         } finally {
