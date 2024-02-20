@@ -8,12 +8,12 @@ import java.util.concurrent.ExecutorService;
 
 @Mixin(Util.class)
 public interface UtilAccessor {
-    @Invoker("method_28122")
+    @Invoker("createWorker")
     static ExecutorService seedQueue$createWorkerExecutor(String string) {
         throw new UnsupportedOperationException();
     }
 
-    @Invoker("method_27957")
+    @Invoker("attemptShutdown")
     static void seedQueue$shutdownWorkerExecutor(ExecutorService executorService) {
         throw new UnsupportedOperationException();
     }

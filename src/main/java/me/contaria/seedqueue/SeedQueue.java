@@ -112,7 +112,7 @@ public class SeedQueue {
         LOGGER.info("Clearing SeedQueue...");
 
         SeedQueueClearScreen seedQueueClearScreen = new SeedQueueClearScreen(MinecraftClient.getInstance().currentScreen);
-        MinecraftClient.getInstance().method_29970(seedQueueClearScreen);
+        MinecraftClient.getInstance().setScreenAndRender(seedQueueClearScreen);
 
         currentEntry = null;
         selectedEntry = null;
