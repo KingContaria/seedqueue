@@ -15,7 +15,7 @@ import java.util.concurrent.ForkJoinWorkerThread;
 public abstract class UtilMixin {
 
     @ModifyExpressionValue(
-            method = "method_28122",
+            method = "createWorker",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/util/math/MathHelper;clamp(III)I"

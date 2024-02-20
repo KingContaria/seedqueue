@@ -80,7 +80,7 @@ public abstract class BiomeMixin {
         if (this.threadSafeSurfaceBuilder != null) {
             if (this.threadSafeSurfaceBuilder.get() == null) {
                 try {
-                    this.threadSafeSurfaceBuilder.set(ConfiguredSurfaceBuilder.class.getConstructor(SurfaceBuilder.class, SurfaceConfig.class).newInstance(this.surfaceBuilder.surfaceBuilder.getClass().getConstructor(Codec.class).newInstance(this.surfaceBuilder.surfaceBuilder.method_29003()), this.surfaceBuilder.config));
+                    this.threadSafeSurfaceBuilder.set(ConfiguredSurfaceBuilder.class.getConstructor(SurfaceBuilder.class, SurfaceConfig.class).newInstance(this.surfaceBuilder.surfaceBuilder.getClass().getConstructor(Codec.class).newInstance(this.surfaceBuilder.surfaceBuilder.configuredCodec()), this.surfaceBuilder.config));
                 } catch (ReflectiveOperationException e) {
                     SeedQueue.LOGGER.warn("Failed to construct per thread surface builder for " + Registry.SURFACE_BUILDER.getId(this.surfaceBuilder.surfaceBuilder) + ", falling back to synchronized building.");
                     this.threadSafeSurfaceBuilder = null;

@@ -65,7 +65,7 @@ public abstract class MinecraftClientMixin {
     @Shadow @Nullable public Screen currentScreen;
 
     @Inject(
-            method = "method_29607",
+            method = "createWorld",
             at = @At("TAIL")
     )
     private void startSeedQueue(CallbackInfo ci) {
@@ -92,7 +92,7 @@ public abstract class MinecraftClientMixin {
             method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/MinecraftClient;method_29604(Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/world/level/storage/LevelStorage$Session;)Lnet/minecraft/client/MinecraftClient$IntegratedResourceManager;"
+                    target = "Lnet/minecraft/client/MinecraftClient;createIntegratedResourceManager(Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/world/level/storage/LevelStorage$Session;)Lnet/minecraft/client/MinecraftClient$IntegratedResourceManager;"
             )
     )
     private MinecraftClient.IntegratedResourceManager loadIntegratedResourceManager(MinecraftClient client, RegistryTracker.Modifiable modifiable, Function<LevelStorage.Session, DataPackSettings> function, Function4<LevelStorage.Session, RegistryTracker.Modifiable, ResourceManager, DataPackSettings, SaveProperties> function4, boolean bl, LevelStorage.Session session, Operation<MinecraftClient.IntegratedResourceManager> original) {
@@ -320,7 +320,7 @@ public abstract class MinecraftClientMixin {
             method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/level/storage/LevelStorage$Session;method_27425(Lnet/minecraft/util/registry/RegistryTracker;Lnet/minecraft/world/SaveProperties;)V"
+                    target = "Lnet/minecraft/world/level/storage/LevelStorage$Session;backupLevelDataFile(Lnet/minecraft/util/registry/RegistryTracker;Lnet/minecraft/world/SaveProperties;)V"
             )
     )
     private boolean cancelSessionLevelDatInit(LevelStorage.Session instance, RegistryTracker registryTracker, SaveProperties saveProperties) {
@@ -413,7 +413,7 @@ public abstract class MinecraftClientMixin {
     }
 
     @WrapWithCondition(
-            method = "method_29604",
+            method = "createIntegratedResourceManager",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/MinecraftClient;runTasks(Ljava/util/function/BooleanSupplier;)V"
@@ -426,7 +426,7 @@ public abstract class MinecraftClientMixin {
     @WrapWithCondition(
             method = {
                     "reset",
-                    "method_29970"
+                    "setScreenAndRender"
             },
             at = @At(
                     value = "INVOKE",

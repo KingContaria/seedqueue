@@ -20,7 +20,7 @@ public abstract class CreateWorldScreenMixin {
             method = "createLevel",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/MinecraftClient;method_29970(Lnet/minecraft/client/gui/screen/Screen;)V"
+                    target = "Lnet/minecraft/client/MinecraftClient;setScreenAndRender(Lnet/minecraft/client/gui/screen/Screen;)V"
             )
     )
     private boolean cancelRenderingScreen(MinecraftClient client, Screen screen) {
@@ -31,7 +31,7 @@ public abstract class CreateWorldScreenMixin {
             method = "createLevel",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/MinecraftClient;method_29970(Lnet/minecraft/client/gui/screen/Screen;)V"
+                    target = "Lnet/minecraft/client/MinecraftClient;setScreenAndRender(Lnet/minecraft/client/gui/screen/Screen;)V"
             )
     )
     private void skipIntermissionScreen(MinecraftClient client, Screen screen, Operation<Void> original) {
