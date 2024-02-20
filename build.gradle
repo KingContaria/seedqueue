@@ -25,25 +25,33 @@ dependencies {
 
 	// SpeedrunAPI
 	// check for the latest versions at https://jitpack.io/#kingcontaria/speedrunapi
-	modImplementation "com.github.KingContaria:SpeedrunAPI:fc34b56d2d"
+	modImplementation "com.github.KingContaria:SpeedrunAPI:f4763c6227"
 	implementation(annotationProcessor "com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.1.1")
 	modImplementation "net.fabricmc.fabric-api:fabric-key-binding-api-v1:1.0.36+fb8d95da77"
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/atum-rewrite
-	modImplementation "com.github.KingContaria:atum-rewrite:489a341c7b"
+	modImplementation ("com.github.KingContaria:atum-rewrite:d1e97f215d") {
+		transitive = false
+	}
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/mcsr-worldpreview-1.16.1
 	// note: this is not the same build we use at runtime, at runtime we use a custom build that adds a packet limit per frame
-	modCompileOnly "com.github.KingContaria:mcsr-worldpreview-1.16.1:affb8a442c"
+	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:147564f957") {
+		transitive = false
+	}
 
 	// check for the latest versions at https://jitpack.io/#Minecraft-Java-Edition-Speedrunning/sodium
 	modCompileOnly "com.github.Minecraft-Java-Edition-Speedrunning:sodium:7e4905f134"
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/mcsr-antiresourcereload-1.16.1
-	modCompileOnly "com.github.KingContaria:mcsr-antiresourcereload-1.16.1:7e0b0405d9"
+	modCompileOnly ("com.github.KingContaria:mcsr-antiresourcereload-1.16.1:7e0b0405d9") {
+		transitive = false
+	}
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/fastreset
-	modCompileOnly "com.github.KingContaria:fastreset:2f808d376e"
+	modCompileOnly ("com.github.KingContaria:fastreset:28dc7634e0") {
+		transitive = false
+	}
 
 	// not necessary for building since all the MixinSquared mixins do not reference any StandardSettings classes directly
 	//modCompileOnly files("libs/standardsettings-1.2.2+1.16.1.jar")
