@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.4-SNAPSHOT'
+	id 'fabric-loom' version '1.5-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -25,18 +25,28 @@ dependencies {
 
 	// SpeedrunAPI
 	// check for the latest versions at https://jitpack.io/#kingcontaria/speedrunapi
-	modImplementation "com.github.KingContaria:SpeedrunAPI:1d6ca1ffcd"
+	modImplementation "com.github.KingContaria:SpeedrunAPI:fc34b56d2d"
 	implementation(annotationProcessor "com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.1.1")
 	modImplementation "net.fabricmc.fabric-api:fabric-key-binding-api-v1:1.0.36+fb8d95da77"
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/atum-rewrite
 	modImplementation "com.github.KingContaria:atum-rewrite:489a341c7b"
 
-	modCompileOnly files("libs/antiresourcereload-1.16.1-5.0.0.jar")
-	modCompileOnly files("libs/fast-reset-rev.8df2ca7+1.16.1.jar")
-	modCompileOnly files("libs/worldpreview-6.0.0-beta.2+1.16.1.jar")
-	modCompileOnly files("libs/sodium-1.16.1-rev.3cb42ad.jar")
-	modCompileOnly files("libs/standardsettings-1.2.2+1.16.1.jar")
+	// check for the latest versions at https://jitpack.io/#kingcontaria/mcsr-worldpreview-1.16.1
+	// note: this is not the same build we use at runtime, at runtime we use a custom build that adds a packet limit per frame
+	modCompileOnly "com.github.KingContaria:mcsr-worldpreview-1.16.1:affb8a442c"
+
+	// check for the latest versions at https://jitpack.io/#Minecraft-Java-Edition-Speedrunning/sodium
+	modCompileOnly "com.github.Minecraft-Java-Edition-Speedrunning:sodium:7e4905f134"
+
+	// check for the latest versions at https://jitpack.io/#kingcontaria/mcsr-antiresourcereload-1.16.1
+	modCompileOnly "com.github.KingContaria:mcsr-antiresourcereload-1.16.1:7e0b0405d9"
+
+	// check for the latest versions at https://jitpack.io/#kingcontaria/fastreset
+	modCompileOnly "com.github.KingContaria:fastreset:2f808d376e"
+
+	// not necessary for building since all the MixinSquared mixins do not reference any StandardSettings classes directly
+	//modCompileOnly files("libs/standardsettings-1.2.2+1.16.1.jar")
 }
 
 loom {
