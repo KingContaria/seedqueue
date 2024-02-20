@@ -25,7 +25,6 @@
     "compat.worldpreview.ClientWorldMixin",
     "compat.worldpreview.MinecraftServerMixin",
     "compat.worldpreview.ServerChunkManagerMixin",
-    "debug.ServerTickSchedulerMixin",
     "misc.WorldGenerationProgressListenerMixin",
     "misc.WorldGenerationProgressLoggerMixin",
     "misc.WorldGenerationProgressTrackerMixin",
@@ -33,6 +32,7 @@
     "server.UtilMixin",
     "server.synchronization.BiomeMixin",
     "server.synchronization.DirectionTransformationMixin",
+    "server.synchronization.ScheduledTickMixin",
     "server.synchronization.WeightedBlockStateProviderMixin"
   ],
   "plugin": "org.mcsr.speedrunapi.mixin_plugin.SpeedrunMixinConfigPlugin"
