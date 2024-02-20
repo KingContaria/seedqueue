@@ -8,6 +8,7 @@ import java.util.Optional;
 
 public class SeedQueueThread extends Thread {
 
+    private final Object lock = new Object();
     private volatile boolean running;
 
     public SeedQueueThread() {
@@ -19,9 +20,9 @@ public class SeedQueueThread extends Thread {
         this.running = true;
         while (this.running) {
             try {
-                synchronized (this) {
+                synchronized (this.lock) {
                     if (!SeedQueue.shouldGenerate()) {
-                        this.wait();
+                        this.lock.wait();
                         continue;
                     }
                 }
@@ -41,8 +42,10 @@ public class SeedQueueThread extends Thread {
         }
     }
 
-    public synchronized void ping() {
-        this.notify();
+    public void ping() {
+        synchronized (this.lock) {
+            this.lock.notify();
+        }
     }
 
     public void stopQueue() {
