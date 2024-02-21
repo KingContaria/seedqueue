@@ -30,6 +30,7 @@ public class SeedQueueWallScreen extends Screen {
     private final int rows;
     private final int columns;
 
+    private boolean shouldRenderBackground;
     protected int frame;
 
     private final long benchmarkStart = System.currentTimeMillis();
@@ -45,14 +46,22 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     @Override
+    protected void init() {
+        this.shouldRenderBackground = true;
+    }
+
+    @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         this.frame++;
 
         this.updatePreviews();
-        Set<SeedQueueLevelLoadingScreen> instancesToRender = Arrays.stream(this.loadingScreens).filter(Objects::nonNull).collect(Collectors.toSet());
-        if (instancesToRender.isEmpty()) {
+
+        if (this.shouldRenderBackground) {
             this.renderBackground(matrices);
+            this.shouldRenderBackground = false;
         }
+
+        Set<SeedQueueLevelLoadingScreen> instancesToRender = Arrays.stream(this.loadingScreens).filter(Objects::nonNull).collect(Collectors.toSet());
         if (SeedQueue.config.previewRenderLimit > 0) {
             instancesToRender = instancesToRender.stream().filter(instance -> instance.hasBeenRendered() || instance.shouldRender()).sorted(Comparator.comparingInt(e1 -> e1.lastRenderFrame)).limit(SeedQueue.config.previewRenderLimit).collect(Collectors.toSet());
         }
