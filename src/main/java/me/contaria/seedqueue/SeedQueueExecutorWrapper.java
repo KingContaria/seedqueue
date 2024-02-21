@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService;
 
 public class SeedQueueExecutorWrapper implements Executor {
 
-    public static final Executor SEEDQUEUE_EXECUTOR = command -> (SeedQueue.isOnWall() ? getWallExecutor() : getBackgroundExecutor()).execute(command);
+    public static final Executor SEEDQUEUE_EXECUTOR = command -> getSeedqueueExecutor().execute(command);
 
     private static ExecutorService SEEDQUEUE_BACKGROUND_EXECUTOR;
     private static ExecutorService SEEDQUEUE_WALL_EXECUTOR;
@@ -33,18 +33,33 @@ public class SeedQueueExecutorWrapper implements Executor {
         this.setExecutor(this.originalExecutor);
     }
 
-    public static Executor getBackgroundExecutor() {
+    private static Executor getSeedqueueExecutor() {
+        if (SeedQueue.isOnWall() || SeedQueue.config.maxConcurrently == 0) {
+            return getWallExecutor();
+        }
+        return getBackgroundExecutor();
+    }
+
+    private static Executor getBackgroundExecutor() {
         if (SEEDQUEUE_BACKGROUND_EXECUTOR == null) {
-            SEEDQUEUE_BACKGROUND_EXECUTOR = UtilAccessor.seedQueue$createWorkerExecutor("SeedQueue");
+            SEEDQUEUE_BACKGROUND_EXECUTOR = createBackgroundExecutor();
         }
         return SEEDQUEUE_BACKGROUND_EXECUTOR;
     }
 
-    public static Executor getWallExecutor() {
+    private static synchronized ExecutorService createBackgroundExecutor() {
+        return SEEDQUEUE_BACKGROUND_EXECUTOR != null ? SEEDQUEUE_BACKGROUND_EXECUTOR : UtilAccessor.seedQueue$createWorkerExecutor("SeedQueue");
+    }
+
+    private static Executor getWallExecutor() {
         if (SEEDQUEUE_WALL_EXECUTOR == null) {
-            SEEDQUEUE_WALL_EXECUTOR = UtilAccessor.seedQueue$createWorkerExecutor("SeedQueue Wall");
+            SEEDQUEUE_WALL_EXECUTOR = createWallExecutor();
         }
         return SEEDQUEUE_WALL_EXECUTOR;
+    }
+
+    private static synchronized ExecutorService createWallExecutor() {
+        return SEEDQUEUE_WALL_EXECUTOR != null ? SEEDQUEUE_WALL_EXECUTOR : UtilAccessor.seedQueue$createWorkerExecutor("SeedQueue Wall");
     }
 
     public static void shutdownExecutors() {
