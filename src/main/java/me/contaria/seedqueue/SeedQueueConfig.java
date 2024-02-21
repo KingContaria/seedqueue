@@ -57,12 +57,10 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("wall")
     @Config.Numbers.Whole.Bounds(min = 1, max = 10, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    @Config.Description.None
     public int rows = 2;
 
     @Config.Category("wall")
     @Config.Numbers.Whole.Bounds(min = 1, max = 10, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    @Config.Description.None
     public int columns = 2;
 /*
     @Config.Category("wall")
@@ -145,7 +143,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean useWatchdog = false;
 
     @Config.Category("debug")
-    @Config.Description.None
     public boolean doNotWaitForChunksToBuild = false;
 
     @Config.Category("debug")
@@ -155,7 +152,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("misc")
     @Config.Name("seedqueue.menu.keys")
-    @Config.Description.None
     public final SeedQueueMultiKeyBinding[] keyBindings = new SeedQueueMultiKeyBinding[]{
             SeedQueueKeyBindings.play,
             SeedQueueKeyBindings.focusReset,
