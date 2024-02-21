@@ -89,17 +89,32 @@ public class SeedQueueEntry {
         this.worldPreviewProperties = worldPreviewProperties;
     }
 
-    public boolean isPaused() {
-        return ((SQMinecraftServer) this.server).seedQueue$isPaused();
-    }
-
     public boolean shouldPause() {
         return ((SQMinecraftServer) this.server).seedQueue$shouldPause();
     }
 
+    public boolean isPaused() {
+        return ((SQMinecraftServer) this.server).seedQueue$isPaused();
+    }
+
+    public boolean isScheduledToPause() {
+        return ((SQMinecraftServer) this.server).seedQueue$isScheduledToPause();
+    }
+
+    public void schedulePause() {
+        ((SQMinecraftServer) this.server).seedQueue$schedulePause();
+    }
+
     public void unpause() {
+        ((SQMinecraftServer) this.server).seedQueue$unpause();
+    }
+
+    public void tryToUnpause() {
         synchronized (this.server) {
-            this.server.notify();
+            if (this.isPaused() && this.shouldPause()) {
+                return;
+            }
+            ((SQMinecraftServer) this.server).seedQueue$unpause();
         }
     }
 
@@ -127,19 +142,17 @@ public class SeedQueueEntry {
 
             SeedQueue.LOGGER.info("Discarding \"{}\"...", this.server.getSaveProperties().getLevelName());
 
+            this.discarded = true;
+
             if (!ModCompat.worldpreview$kill(this.server)) {
                 ModCompat.fastReset$fastReset(this.server);
                 ((MinecraftServerAccessor) this.server).seedQueue$setRunning(false);
             }
-            if (this.isPaused()) {
-                this.server.notify();
-            }
+            this.unpause();
             WorldPreviewProperties worldPreviewProperties = this.getWorldPreviewProperties();
             if (worldPreviewProperties != null && !(SeedQueue.config.lazilyClearWorldRenderers && SeedQueue.isActive())) {
                 SeedQueueWallScreen.clearWorldRenderer(worldPreviewProperties.getWorld());
             }
-
-            this.discarded = true;
         }
     }
 }

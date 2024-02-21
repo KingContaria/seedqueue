@@ -31,7 +31,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int maxCapacity = 0;
 
     @Config.Category("queue")
-    @Config.Numbers.Whole.Bounds(min = 1, max = 20, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    @Config.Numbers.Whole.Bounds(min = 0, max = 20, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public int maxConcurrently = 1;
 
     @Config.Category("queue")

@@ -42,7 +42,10 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     private Executor workerExecutor;
 
     @Unique
-    private boolean paused;
+    private volatile boolean pauseScheduled;
+
+    @Unique
+    private volatile boolean paused;
 
     public MinecraftServerMixin(String string) {
         super(string);
@@ -116,6 +119,9 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
         if (seedQueueEntry == null || seedQueueEntry.isDiscarded()) {
             return false;
         }
+        if (this.pauseScheduled) {
+            return true;
+        }
         if (seedQueueEntry.isReady()) {
             return true;
         }
@@ -141,6 +147,7 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
 
         try {
             this.paused = true;
+            this.pauseScheduled = false;
             SeedQueue.thread.ping();
             this.wait();
         } catch (InterruptedException e) {
@@ -153,6 +160,27 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     @Override
     public boolean seedQueue$isPaused() {
         return this.paused;
+    }
+
+    @Override
+    public boolean seedQueue$isScheduledToPause() {
+        return this.pauseScheduled;
+    }
+
+    @Override
+    public void seedQueue$schedulePause() {
+        if (!this.paused) {
+            this.pauseScheduled = true;
+        }
+    }
+
+    @Override
+    public synchronized void seedQueue$unpause() {
+        this.pauseScheduled = false;
+        if (this.paused) {
+            this.notify();
+            this.paused = false;
+        }
     }
 
     @Override

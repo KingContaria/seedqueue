@@ -10,6 +10,12 @@ public interface SQMinecraftServer {
 
     boolean seedQueue$isPaused();
 
+    boolean seedQueue$isScheduledToPause();
+
+    void seedQueue$schedulePause();
+
+    void seedQueue$unpause();
+
     void seedQueue$setExecutor(Executor executor);
 
     void seedQueue$resetExecutor();

@@ -71,9 +71,30 @@ public class SeedQueue {
 
     public static boolean shouldGenerate() {
         synchronized (LOCK) {
-            MinecraftServer currentServer = MinecraftClient.getInstance().getServer();
-            return SEED_QUEUE.stream().filter(entry -> !entry.isPaused()).count() + (!isOnWall() && (currentServer == null || !currentServer.isLoading()) ? 1 : 0) < (isOnWall() ? config.maxConcurrently_onWall : config.maxConcurrently) && SEED_QUEUE.size() < config.maxCapacity;
+            return getGeneratingCount() < getMaxGeneratingCount() && SEED_QUEUE.size() < config.maxCapacity;
         }
+    }
+
+    public static boolean shouldStopGenerating() {
+        synchronized (LOCK) {
+            return getGeneratingCount() > getMaxGeneratingCount();
+        }
+    }
+
+    private static long getGeneratingCount() {
+        long count = SEED_QUEUE.stream().filter(entry -> !entry.isPaused()).count();
+
+        // add 1 when not using wall and the main world is currently generating
+        MinecraftServer currentServer = MinecraftClient.getInstance().getServer();
+        if (!SeedQueue.config.shouldUseWall() && (currentServer == null || !currentServer.isLoading())) {
+            count++;
+        }
+
+        return count;
+    }
+
+    private static int getMaxGeneratingCount() {
+        return isOnWall() ? config.maxConcurrently_onWall : config.maxConcurrently;
     }
 
     public static void start() {

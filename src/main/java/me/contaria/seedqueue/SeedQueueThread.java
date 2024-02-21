@@ -20,6 +20,10 @@ public class SeedQueueThread extends Thread {
         this.running = true;
         while (this.running) {
             try {
+                if (!SeedQueue.getEntryMatching(SeedQueueEntry::isScheduledToPause).isPresent() && SeedQueue.shouldStopGenerating()) {
+                    SeedQueue.getEntryMatching(entry -> !entry.isPaused()).ifPresent(SeedQueueEntry::schedulePause);
+                    continue;
+                }
                 synchronized (this.lock) {
                     if (!SeedQueue.shouldGenerate()) {
                         this.lock.wait();
@@ -27,9 +31,9 @@ public class SeedQueueThread extends Thread {
                     }
                 }
 
-                Optional<SeedQueueEntry> entryToUnpause = SeedQueue.getEntryMatching(entry -> entry.isPaused() && !entry.shouldPause());
+                Optional<SeedQueueEntry> entryToUnpause = SeedQueue.getEntryMatching(entry -> entry.isScheduledToPause() || (entry.isPaused() && !entry.shouldPause()));
                 if (entryToUnpause.isPresent()) {
-                    entryToUnpause.get().unpause();
+                    entryToUnpause.get().tryToUnpause();
                     continue;
                 }
 
