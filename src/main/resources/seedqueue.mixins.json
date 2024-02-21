@@ -28,6 +28,7 @@
     "misc.WorldGenerationProgressListenerMixin",
     "misc.WorldGenerationProgressLoggerMixin",
     "misc.WorldGenerationProgressTrackerMixin",
+    "server.IntegratedServerMixin",
     "server.MinecraftServerMixin",
     "server.UtilMixin",
     "server.synchronization.BiomeMixin",
