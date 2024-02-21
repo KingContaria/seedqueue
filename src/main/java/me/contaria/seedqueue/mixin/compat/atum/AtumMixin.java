@@ -33,9 +33,7 @@ public abstract class AtumMixin {
                     return screen;
                 }
             }
-            SeedQueueWallScreen wallScreen = new SeedQueueWallScreen(screen, SeedQueue.config.rows, SeedQueue.config.columns);
-            SeedQueue.thread.ping();
-            return wallScreen;
+            return new SeedQueueWallScreen(screen, SeedQueue.config.rows, SeedQueue.config.columns);
         }
         return screen;
     }

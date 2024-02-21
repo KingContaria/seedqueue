@@ -476,6 +476,16 @@ public abstract class MinecraftClientMixin {
     }
 
     @Inject(
+            method = "openScreen",
+            at = @At("RETURN")
+    )
+    private void pingSeedQueueThreadOnOpeningWall(Screen screen, CallbackInfo ci) {
+        if (screen instanceof SeedQueueWallScreen) {
+            SeedQueue.thread.ping();
+        }
+    }
+
+    @Inject(
             method = "stop",
             at = @At(
                     value = "INVOKE",
