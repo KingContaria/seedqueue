@@ -127,8 +127,8 @@ public class SeedQueueEntry {
 
             SeedQueue.LOGGER.info("Discarding \"{}\"...", this.server.getSaveProperties().getLevelName());
 
-            ModCompat.fastReset$fastReset(this.server);
             if (!ModCompat.worldpreview$kill(this.server)) {
+                ModCompat.fastReset$fastReset(this.server);
                 ((MinecraftServerAccessor) this.server).seedQueue$setRunning(false);
             }
             if (this.isPaused()) {
