@@ -49,7 +49,7 @@ dependencies {
 	}
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/fastreset
-	modCompileOnly ("com.github.KingContaria:fastreset:28dc7634e0") {
+	modCompileOnly ("com.github.KingContaria:fastreset:9b0ff67df2") {
 		transitive = false
 	}
 
