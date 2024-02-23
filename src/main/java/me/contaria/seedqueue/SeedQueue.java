@@ -38,12 +38,6 @@ public class SeedQueue {
         if (thread != null) {
             thread.ping();
         }
-        if (currentEntry != null) {
-            WorldPreviewProperties worldPreviewProperties = currentEntry.getWorldPreviewProperties();
-            if (worldPreviewProperties != null) {
-                SeedQueueWallScreen.clearWorldRenderer(worldPreviewProperties.getWorld());
-            }
-        }
         return currentEntry != null;
     }
 
@@ -146,6 +140,8 @@ public class SeedQueue {
         }
 
         SeedQueueExecutorWrapper.shutdownExecutors();
+
+        SeedQueueWallScreen.clearWorldRenderers();
 
         System.gc();
 

@@ -254,6 +254,9 @@ public class SeedQueueWallScreen extends Screen {
             return false;
         }
         SeedQueue.selectedEntry = seedQueueEntry;
+        if (!SeedQueue.config.lazilyClearWorldRenderers) {
+            clearWorldRenderer(getWorldRenderer(instance.getWorldPreviewProperties().getWorld()));
+        }
         this.client.openScreen(this.createWorldScreen);
         return true;
     }
@@ -283,6 +286,9 @@ public class SeedQueueWallScreen extends Screen {
             if (this.loadingScreens[i] == instance) {
                 this.loadingScreens[i] = null;
             }
+        }
+        if (!SeedQueue.config.lazilyClearWorldRenderers) {
+            clearWorldRenderer(getWorldRenderer(instance.getWorldPreviewProperties().getWorld()));
         }
         return true;
     }
@@ -342,6 +348,15 @@ public class SeedQueueWallScreen extends Screen {
                 return;
             }
         }
+
+        while (previewsSetup < previewSetupLimit) {
+            WorldRenderer worldRendererToClear = getClearableWorldRenderer();
+            if (worldRendererToClear == null) {
+                return;
+            }
+            worldRendererToClear.setWorld(null);
+            previewsSetup++;
+        }
     }
 
     public void tickBenchmark() {
@@ -363,38 +378,69 @@ public class SeedQueueWallScreen extends Screen {
         return this.benchmarkedSeeds < SeedQueue.config.benchmarkResets;
     }
 
-    static WorldRenderer getWorldRenderer(ClientWorld world) {
-        WorldRenderer unusedWorldRenderer = null;
-        for (WorldRenderer worldRenderer : WORLD_RENDERERS) {
-            ClientWorld worldRendererWorld = ((WorldRendererAccessor) worldRenderer).seedQueue$getWorld();
-            if (worldRendererWorld == world) {
-                return worldRenderer;
-            }
-            if (worldRendererWorld == null || !SeedQueue.getEntryMatching(entry -> {
-                WorldPreviewProperties worldPreviewProperties = entry.getWorldPreviewProperties();
-                if (worldPreviewProperties == null) {
-                    return false;
-                }
-                return worldRendererWorld == worldPreviewProperties.getWorld();
-            }).isPresent()) {
-                unusedWorldRenderer = worldRenderer;
-            }
+    public static WorldRenderer getOrCreateWorldRenderer(ClientWorld world) {
+        WorldRenderer worldRenderer = getWorldRenderer(world);
+        if (worldRenderer != null) {
+            return worldRenderer;
         }
-        WorldRenderer worldRenderer = unusedWorldRenderer;
-        if (worldRenderer == null) {
-            worldRenderer = new WorldRenderer(MinecraftClient.getInstance(), new BufferBuilderStorage());
-            WORLD_RENDERERS.add(worldRenderer);
+        worldRenderer = getClearableWorldRenderer();
+        if (worldRenderer != null) {
+            worldRenderer.setWorld(world);
+            return worldRenderer;
         }
+        worldRenderer = getClearedWorldRenderer();
+        if (worldRenderer != null) {
+            worldRenderer.setWorld(world);
+            return worldRenderer;
+        }
+        worldRenderer = new WorldRenderer(MinecraftClient.getInstance(), new BufferBuilderStorage());
+        WORLD_RENDERERS.add(worldRenderer);
         worldRenderer.setWorld(world);
         return worldRenderer;
     }
 
-    public static void clearWorldRenderer(ClientWorld world) {
+    public static void clearWorldRenderers() {
         for (WorldRenderer worldRenderer : WORLD_RENDERERS) {
-            ClientWorld worldRendererWorld = ((WorldRendererAccessor) worldRenderer).seedQueue$getWorld();
-            if (worldRendererWorld == world) {
-                worldRenderer.setWorld(null);
+            clearWorldRenderer(worldRenderer);
+        }
+    }
+
+    private static WorldRenderer getWorldRenderer(ClientWorld world) {
+        for (WorldRenderer worldRenderer : WORLD_RENDERERS) {
+            if (getWorld(worldRenderer) == world) {
+                return worldRenderer;
             }
         }
+        return null;
+    }
+
+    private static WorldRenderer getClearableWorldRenderer() {
+        for (WorldRenderer worldRenderer : WORLD_RENDERERS) {
+            ClientWorld worldRendererWorld = getWorld(worldRenderer);
+            if (!SeedQueue.getEntryMatching(entry -> {
+                WorldPreviewProperties worldPreviewProperties = entry.getWorldPreviewProperties();
+                if (worldPreviewProperties == null) {
+                    return false;
+                }
+                return worldPreviewProperties.getWorld() == worldRendererWorld;
+            }).isPresent()) {
+                return worldRenderer;
+            }
+        }
+        return null;
+    }
+
+    private static WorldRenderer getClearedWorldRenderer() {
+        return getWorldRenderer(null);
+    }
+
+    private static void clearWorldRenderer(WorldRenderer worldRenderer) {
+        if (worldRenderer != null) {
+            worldRenderer.setWorld(null);
+        }
+    }
+
+    private static ClientWorld getWorld(WorldRenderer worldRenderer) {
+        return ((WorldRendererAccessor) worldRenderer).seedQueue$getWorld();
     }
 }

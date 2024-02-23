@@ -223,7 +223,7 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
 
     public WorldRenderer getWorldRenderer() {
         if (this.worldRenderer == null) {
-            this.worldRenderer = SeedQueueWallScreen.getWorldRenderer(this.worldPreviewProperties.getWorld());
+            this.worldRenderer = SeedQueueWallScreen.getOrCreateWorldRenderer(this.worldPreviewProperties.getWorld());
         }
         return this.worldRenderer;
     }

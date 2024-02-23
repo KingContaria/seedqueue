@@ -149,10 +149,6 @@ public class SeedQueueEntry {
                 ((MinecraftServerAccessor) this.server).seedQueue$setRunning(false);
             }
             this.unpause();
-            WorldPreviewProperties worldPreviewProperties = this.getWorldPreviewProperties();
-            if (worldPreviewProperties != null && !(SeedQueue.config.lazilyClearWorldRenderers && SeedQueue.isActive())) {
-                SeedQueueWallScreen.clearWorldRenderer(worldPreviewProperties.getWorld());
-            }
         }
     }
 }
