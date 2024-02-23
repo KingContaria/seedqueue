@@ -20,8 +20,10 @@ public class SeedQueueThread extends Thread {
         this.running = true;
         while (this.running) {
             try {
-                if (!SeedQueue.getEntryMatching(SeedQueueEntry::isScheduledToPause).isPresent() && SeedQueue.shouldStopGenerating()) {
-                    SeedQueue.getEntryMatching(entry -> !entry.isPaused()).ifPresent(SeedQueueEntry::schedulePause);
+                if (SeedQueue.shouldStopGenerating()) {
+                    if (!SeedQueue.getEntryMatching(SeedQueueEntry::isScheduledToPause).isPresent()) {
+                        SeedQueue.getEntryMatching(entry -> !entry.isPaused()).ifPresent(SeedQueueEntry::schedulePause);
+                    }
                     continue;
                 }
                 synchronized (this.lock) {
