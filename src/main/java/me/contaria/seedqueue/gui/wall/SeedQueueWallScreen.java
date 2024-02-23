@@ -401,8 +401,10 @@ public class SeedQueueWallScreen extends Screen {
 
     public static void clearWorldRenderers() {
         for (WorldRenderer worldRenderer : WORLD_RENDERERS) {
-            clearWorldRenderer(worldRenderer);
+            worldRenderer.setWorld(null);
+            worldRenderer.close();
         }
+        WORLD_RENDERERS.clear();
     }
 
     private static WorldRenderer getWorldRenderer(ClientWorld world) {
