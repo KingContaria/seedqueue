@@ -9,7 +9,7 @@ import java.util.Optional;
 public class SeedQueueThread extends Thread {
 
     private final Object lock = new Object();
-    private volatile boolean running;
+    private volatile boolean running = true;
 
     public SeedQueueThread() {
         super("SeedQueue Thread");
@@ -17,7 +17,6 @@ public class SeedQueueThread extends Thread {
 
     @Override
     public void run() {
-        this.running = true;
         while (this.running) {
             try {
                 if (SeedQueue.shouldStopGenerating()) {

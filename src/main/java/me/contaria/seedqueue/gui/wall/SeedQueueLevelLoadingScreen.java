@@ -8,6 +8,7 @@ import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.interfaces.SQWorldRenderer;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.voidxwalker.worldpreview.WorldPreview;
+import me.voidxwalker.worldpreview.mixin.access.EntityAccessor;
 import me.voidxwalker.worldpreview.mixin.access.MinecraftClientAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
@@ -151,13 +152,35 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
 
                 int appliedPackets = 0;
                 for (Packet<?> packet : ImmutableSet.copyOf(WorldPreview.packetQueue)) {
-                    if (appliedPackets >= 50 && (packet instanceof ChunkDataS2CPacket || packet instanceof MobSpawnS2CPacket || packet instanceof EntitySpawnS2CPacket)) {
+                    if (WorldPreview.config.dataLimit < 100 && appliedPackets >= WorldPreview.config.dataLimit && (packet instanceof ChunkDataS2CPacket || packet instanceof MobSpawnS2CPacket || packet instanceof EntitySpawnS2CPacket)) {
                         break;
                     }
                     //noinspection unchecked
                     ((Packet<ClientPlayPacketListener>) packet).apply(WorldPreview.player.networkHandler);
                     appliedPackets++;
                     WorldPreview.packetQueue.remove(packet);
+                }
+
+                for (Entity entity : WorldPreview.world.getEntities()) {
+                    if (!((EntityAccessor) entity).isFirstUpdate() || entity.getVehicle() != null && ((EntityAccessor) entity.getVehicle()).isFirstUpdate()) {
+                        continue;
+                    }
+
+                    if (entity.getVehicle() != null) {
+                        entity.getVehicle().updatePassengerPosition(entity);
+                        entity.calculateDimensions();
+                        entity.updatePositionAndAngles(entity.getX(), entity.getY(), entity.getZ(), entity.yaw, entity.pitch);
+                    }
+                    entity.baseTick();
+
+                    for (Entity passenger : entity.getPassengersDeep()) {
+                        if (passenger.getVehicle() != null) {
+                            passenger.getVehicle().updatePassengerPosition(passenger);
+                            passenger.calculateDimensions();
+                            passenger.updatePositionAndAngles(passenger.getX(), passenger.getY(), passenger.getZ(), passenger.yaw, passenger.pitch);
+                        }
+                        passenger.baseTick();
+                    }
                 }
 
                 MatrixStack matrices = new MatrixStack();

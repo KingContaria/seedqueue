@@ -54,7 +54,8 @@ import java.util.function.Function;
 public abstract class MinecraftClientMixin {
 
     @Shadow
-    private @Nullable IntegratedServer server;
+    @Nullable
+    private IntegratedServer server;
     @Shadow
     @Final
     private AtomicReference<WorldGenerationProgressTracker> worldGenProgressTracker;
@@ -62,7 +63,9 @@ public abstract class MinecraftClientMixin {
     @Final
     private Window window;
 
-    @Shadow @Nullable public Screen currentScreen;
+    @Shadow
+    @Nullable
+    public Screen currentScreen;
 
     @Inject(
             method = "createWorld",

@@ -35,8 +35,7 @@ dependencies {
 	}
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/mcsr-worldpreview-1.16.1
-	// note: this is not the same build we use at runtime, at runtime we use a custom build that adds a packet limit per frame
-	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:147564f957") {
+	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:30a3b71303") {
 		transitive = false
 	}
 
