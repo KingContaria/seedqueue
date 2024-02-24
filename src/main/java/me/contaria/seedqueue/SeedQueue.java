@@ -34,7 +34,7 @@ public class SeedQueue {
                 currentEntry = SEED_QUEUE.poll();
             }
         }
-        if (thread != null) {
+        if (isActive()) {
             thread.ping();
         }
         return currentEntry != null;

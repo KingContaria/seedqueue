@@ -483,7 +483,7 @@ public abstract class MinecraftClientMixin {
             at = @At("RETURN")
     )
     private void pingSeedQueueThreadOnOpeningWall(Screen screen, CallbackInfo ci) {
-        if (screen instanceof SeedQueueWallScreen) {
+        if (screen instanceof SeedQueueWallScreen && SeedQueue.isActive()) {
             SeedQueue.thread.ping();
         }
     }
