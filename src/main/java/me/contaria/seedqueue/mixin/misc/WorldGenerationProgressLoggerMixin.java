@@ -1,6 +1,6 @@
 package me.contaria.seedqueue.mixin.misc;
 
-import com.llamalad7.mixinextras.injector.WrapWithCondition;
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.server.WorldGenerationProgressLogger;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;

@@ -28,7 +28,7 @@
 		"seedqueue.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.15.2",
+		"fabricloader": ">=0.15.7",
 		"minecraft": "1.16.1",
 		"atum": ">=2.0.0"
 	},

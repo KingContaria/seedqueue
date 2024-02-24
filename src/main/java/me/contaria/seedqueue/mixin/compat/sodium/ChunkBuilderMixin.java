@@ -1,7 +1,7 @@
 package me.contaria.seedqueue.mixin.compat.sodium;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
-import com.llamalad7.mixinextras.injector.WrapWithCondition;
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import me.contaria.seedqueue.SeedQueue;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuilder;
 import org.spongepowered.asm.mixin.Mixin;
