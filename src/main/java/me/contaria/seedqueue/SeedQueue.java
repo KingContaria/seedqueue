@@ -34,9 +34,7 @@ public class SeedQueue {
                 currentEntry = SEED_QUEUE.poll();
             }
         }
-        if (isActive()) {
-            thread.ping();
-        }
+        ping();
         return currentEntry != null;
     }
 
@@ -50,7 +48,7 @@ public class SeedQueue {
         synchronized (LOCK) {
             SEED_QUEUE.add(seedQueueEntry);
         }
-        thread.ping();
+        ping();
     }
 
     public static boolean remove(SeedQueueEntry seedQueueEntry) {
@@ -58,13 +56,19 @@ public class SeedQueue {
         synchronized (LOCK) {
             result = SEED_QUEUE.remove(seedQueueEntry);
         }
-        thread.ping();
+        ping();
         return result;
     }
 
     public static boolean shouldGenerate() {
         synchronized (LOCK) {
             return getGeneratingCount() < getMaxGeneratingCount() && SEED_QUEUE.size() < config.maxCapacity;
+        }
+    }
+
+    public static boolean shouldResumeGenerating() {
+        synchronized (LOCK) {
+            return getGeneratingCount() < getMaxGeneratingCount();
         }
     }
 
@@ -182,6 +186,12 @@ public class SeedQueue {
                 }
             }
             return null;
+        }
+    }
+
+    public static void ping() {
+        if (isActive()) {
+            thread.ping();
         }
     }
 }

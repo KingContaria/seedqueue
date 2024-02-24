@@ -376,17 +376,6 @@ public abstract class MinecraftClientMixin {
         return !SeedQueue.inQueue();
     }
 
-    @Inject(
-            method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
-            at = @At("TAIL")
-    )
-    private void resetCurrentSeedQueueEntry(CallbackInfo ci) {
-        if (!SeedQueue.inQueue() && SeedQueue.currentEntry != null) {
-            SeedQueue.currentEntry = null;
-            SeedQueue.thread.ping();
-        }
-    }
-
     @WrapWithCondition(
             method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
             at = @At(
@@ -426,6 +415,26 @@ public abstract class MinecraftClientMixin {
     )
     private boolean doNotRunTasksOnSeedQueueThread(MinecraftClient client, BooleanSupplier booleanSupplier) {
         return !SeedQueue.inQueue();
+    }
+
+    @Inject(
+            method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
+            at = @At("TAIL")
+    )
+    private void pingSeedQueueThreadOnLoadingWorld(CallbackInfo ci) {
+        if (!SeedQueue.inQueue()) {
+            SeedQueue.ping();
+        }
+    }
+
+    @Inject(
+            method = "openScreen",
+            at = @At("RETURN")
+    )
+    private void pingSeedQueueThreadOnOpeningWall(Screen screen, CallbackInfo ci) {
+        if (screen instanceof SeedQueueWallScreen) {
+            SeedQueue.ping();
+        }
     }
 
     @WrapWithCondition(
@@ -475,16 +484,6 @@ public abstract class MinecraftClientMixin {
     private void benchmarkResets(CallbackInfo ci) {
         if (this.currentScreen instanceof SeedQueueWallScreen) {
             ((SeedQueueWallScreen) this.currentScreen).tickBenchmark();
-        }
-    }
-
-    @Inject(
-            method = "openScreen",
-            at = @At("RETURN")
-    )
-    private void pingSeedQueueThreadOnOpeningWall(Screen screen, CallbackInfo ci) {
-        if (screen instanceof SeedQueueWallScreen && SeedQueue.isActive()) {
-            SeedQueue.thread.ping();
         }
     }
 

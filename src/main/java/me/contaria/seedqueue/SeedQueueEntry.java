@@ -126,7 +126,10 @@ public class SeedQueueEntry {
     }
 
     public void lock() {
-        this.locked = true;
+        if (!this.locked) {
+            SeedQueue.ping();
+            this.locked = true;
+        }
     }
 
     public boolean isDiscarded() {

@@ -148,7 +148,7 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
         try {
             this.paused = true;
             this.pauseScheduled = false;
-            SeedQueue.thread.ping();
+            SeedQueue.ping();
             this.wait();
         } catch (InterruptedException e) {
             throw new SeedQueueException();
