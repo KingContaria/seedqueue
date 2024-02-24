@@ -20,6 +20,7 @@
     "compat.atum.CreateWorldScreenMixin",
     "compat.atum.KeyboardMixin",
     "compat.sodium.ChunkBuilderMixin",
+    "compat.sodium.ChunkRenderManagerMixin",
     "compat.speedrunigt.MinecraftClientMixin",
     "compat.standardsettings.CreateWorldScreenMixin",
     "compat.worldpreview.ClientWorldMixin",
