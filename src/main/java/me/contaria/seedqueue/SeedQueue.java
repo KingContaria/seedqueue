@@ -1,6 +1,5 @@
 package me.contaria.seedqueue;
 
-import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.gui.SeedQueueClearScreen;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
@@ -94,7 +93,11 @@ public class SeedQueue {
     public static void start() {
         synchronized (LOCK) {
             if (thread != null) {
-                throw new SeedQueueException();
+                throw new IllegalStateException("Tried to start SeedQueue but a queue is already active!");
+            }
+
+            if (config.maxCapacity == 0) {
+                return;
             }
 
             LOGGER.info("Starting SeedQueue...");

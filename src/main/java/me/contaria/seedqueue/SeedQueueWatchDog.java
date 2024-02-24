@@ -12,19 +12,21 @@ public class SeedQueueWatchDog implements ClientModInitializer {
     public void onInitializeClient() {
         if (SeedQueue.config.useWatchdog) {
             Thread watchDog = new Thread(() -> {
-
-                long last = 0;
-                while (true) {
-                    if (System.currentTimeMillis() > last + 10000) {
+                try {
+                    while (true) {
                         Thread mainThread = MinecraftClient.getInstance() != null ? ((MinecraftClientAccessor) MinecraftClient.getInstance()).seedQueue$getThread() : null;
                         if (mainThread != null) {
                             SeedQueue.LOGGER.info("WATCHDOG | " + Arrays.toString(mainThread.getStackTrace()));
                         }
-                        last = System.currentTimeMillis();
+                        //noinspection BusyWait
+                        Thread.sleep(10000);
                     }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
             });
             watchDog.setDaemon(true);
+            watchDog.setPriority(3);
             watchDog.setName("SeedQueue WatchDog");
             watchDog.start();
         }
