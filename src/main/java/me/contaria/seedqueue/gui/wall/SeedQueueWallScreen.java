@@ -315,6 +315,13 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void updatePreviews() {
+        List<SeedQueueLevelLoadingScreen> readyInstances = this.backupLoadingScreens.stream().filter(SeedQueueLevelLoadingScreen::shouldRender).collect(Collectors.toList());
+        for (int i = 0; i < this.loadingScreens.length && !readyInstances.isEmpty(); i++) {
+            if (this.loadingScreens[i] == null) {
+                this.backupLoadingScreens.remove(this.loadingScreens[i] = readyInstances.remove(0));
+            }
+        }
+
         List<SeedQueueEntry> availableSeedQueueEntries = new ArrayList<>(SeedQueue.SEED_QUEUE);
         availableSeedQueueEntries.removeAll(Arrays.stream(this.loadingScreens).filter(Objects::nonNull).map(SeedQueueLevelLoadingScreen::getSeedQueueEntry).collect(Collectors.toList()));
         availableSeedQueueEntries.removeAll(this.backupLoadingScreens.stream().map(SeedQueueLevelLoadingScreen::getSeedQueueEntry).collect(Collectors.toList()));
@@ -322,43 +329,27 @@ public class SeedQueueWallScreen extends Screen {
         availableSeedQueueEntries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldPreviewProperties() == null);
 
         int previewsSetup = 0;
-        int previewSetupLimit = SeedQueue.config.previewSetupBuffer > 0 ? SeedQueue.config.previewSetupBuffer : Integer.MAX_VALUE;
-        for (int i = 0; i < this.loadingScreens.length && !(this.backupLoadingScreens.isEmpty() && availableSeedQueueEntries.isEmpty()); i++) {
-            if (this.loadingScreens[i] == null) {
-                if (!this.backupLoadingScreens.isEmpty()) {
-                    this.loadingScreens[i] = this.backupLoadingScreens.remove(0);
-                    continue;
-                }
-                this.loadingScreens[i] = new SeedQueueLevelLoadingScreen(this, availableSeedQueueEntries.remove(0));
-                previewsSetup++;
-
-                if (previewsSetup >= previewSetupLimit) {
-                    return;
-                }
+        int backgroundCapacity = SeedQueue.config.backgroundPreviews + (int) Arrays.stream(this.loadingScreens).filter(Objects::isNull).count();
+        for (SeedQueueEntry entry : availableSeedQueueEntries) {
+            if (this.backupLoadingScreens.size() >= backgroundCapacity) {
+                break;
             }
-        }
-
-        if (SeedQueue.config.renderPreviewsBeforeBackgroundSetup && Arrays.stream(this.loadingScreens).anyMatch(instance -> instance != null && !instance.hasBeenRendered())) {
-            return;
-        }
-
-        previewSetupLimit = SeedQueue.config.backgroundPreviewSetupBuffer > 0 ? SeedQueue.config.backgroundPreviewSetupBuffer : previewSetupLimit;
-        while (this.backupLoadingScreens.size() < SeedQueue.config.backgroundPreviews && !availableSeedQueueEntries.isEmpty()) {
-            this.backupLoadingScreens.add(new SeedQueueLevelLoadingScreen(this, availableSeedQueueEntries.remove(0)));
+            this.backupLoadingScreens.add(new SeedQueueLevelLoadingScreen(this, entry));
             previewsSetup++;
 
-            if (previewsSetup >= previewSetupLimit) {
+            if (previewsSetup >= SeedQueue.config.previewSetupBuffer) {
                 return;
             }
         }
 
-        while (previewsSetup < previewSetupLimit) {
-            WorldRenderer worldRendererToClear = getClearableWorldRenderer();
-            if (worldRendererToClear == null) {
-                return;
-            }
+        WorldRenderer worldRendererToClear;
+        while ((worldRendererToClear = getClearableWorldRenderer()) != null) {
             worldRendererToClear.setWorld(null);
             previewsSetup++;
+
+            if (previewsSetup >= SeedQueue.config.previewSetupBuffer) {
+                return;
+            }
         }
     }
 
