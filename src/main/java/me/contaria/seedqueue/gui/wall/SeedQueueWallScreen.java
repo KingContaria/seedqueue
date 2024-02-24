@@ -185,6 +185,9 @@ public class SeedQueueWallScreen extends Screen {
 
         if (keyCode == GLFW.GLFW_KEY_F3) {
             instance.printDebug();
+            if (Screen.hasShiftDown()) {
+                instance.printStacktrace();
+            }
         }
 
         if (SeedQueueKeyBindings.play.matchesKey(keyCode, scanCode)) {

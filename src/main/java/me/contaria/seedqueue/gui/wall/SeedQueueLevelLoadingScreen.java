@@ -33,6 +33,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
@@ -217,7 +218,11 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
 
     public void printDebug() {
         WorldRenderer worldRenderer = this.getWorldRenderer();
-        SeedQueue.LOGGER.info("SeedQueue-DEBUG | " + "Instance: " + this.seedQueueEntry.getSession().getDirectoryName() + ", Seed: " + this.seedQueueEntry.getServer().getOverworld().getSeed() + ", Chunks: " + worldRenderer.getChunksDebugString() + " (" + worldRenderer.isTerrainRenderComplete() + ")");
+        SeedQueue.LOGGER.info("SeedQueue-DEBUG | " + "Instance: " + this.seedQueueEntry.getSession().getDirectoryName() + ", Seed: " + this.seedQueueEntry.getServer().getOverworld().getSeed() + ", Chunks: " + worldRenderer.getChunksDebugString() + " (" + worldRenderer.isTerrainRenderComplete() + "), locked: " + this.seedQueueEntry.isLocked() + ", paused: " + this.seedQueueEntry.isPaused() + ", ready: " + this.seedQueueEntry.isReady());
+    }
+
+    public void printStacktrace() {
+        SeedQueue.LOGGER.info("SeedQueue-DEBUG | " + "Instance: " + this.seedQueueEntry.getSession().getDirectoryName() + ", Stacktrace: " + Arrays.toString(this.seedQueueEntry.getServer().getThread().getStackTrace()));
     }
 
     public boolean shouldRender() {
