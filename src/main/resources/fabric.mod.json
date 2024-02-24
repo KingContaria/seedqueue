@@ -5,7 +5,12 @@
 	"name": "SeedQueue",
 	"description": "Generates worlds in the background for faster resetting.",
 	"authors": [
-		"contaria"
+		{
+			"name": "contaria",
+			"contact": {
+				"homepage": "https://github.com/KingContaria/"
+			}
+		}
 	],
 	"contact": {
 		"homepage": "",
