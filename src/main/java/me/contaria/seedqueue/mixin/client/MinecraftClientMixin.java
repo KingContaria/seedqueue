@@ -46,6 +46,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.File;
 import java.net.Proxy;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -404,6 +405,20 @@ public abstract class MinecraftClientMixin {
             return true;
         }
         return false;
+    }
+
+    @ModifyExpressionValue(
+            method = "createIntegratedResourceManager",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/util/Util;getServerWorkerExecutor()Ljava/util/concurrent/Executor;"
+            )
+    )
+    private Executor useSeedQueueExecutorForCreatingResourcesInQueue(Executor serverWorkerExecutor) {
+        if (SeedQueue.inQueue()) {
+            return SeedQueueExecutorWrapper.SEEDQUEUE_EXECUTOR;
+        }
+        return serverWorkerExecutor;
     }
 
     @WrapWithCondition(
