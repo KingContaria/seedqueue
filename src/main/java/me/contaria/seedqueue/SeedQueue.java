@@ -168,6 +168,9 @@ public class SeedQueue {
     }
 
     public static @Nullable SeedQueueEntry getEntry(MinecraftServer server) {
+        if (MinecraftClient.getInstance().getServer() == server) {
+            return null;
+        }
         synchronized (LOCK) {
             for (SeedQueueEntry entry : SEED_QUEUE) {
                 if (server == entry.getServer()) {
@@ -179,6 +182,10 @@ public class SeedQueue {
     }
 
     public static @Nullable SeedQueueEntry getEntry(Thread serverThread) {
+        MinecraftServer server = MinecraftClient.getInstance().getServer();
+        if (server != null && server.getThread() == serverThread) {
+            return null;
+        }
         synchronized (LOCK) {
             for (SeedQueueEntry entry : SEED_QUEUE) {
                 if (serverThread == entry.getServer().getThread()) {
