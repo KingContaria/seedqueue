@@ -1,6 +1,5 @@
 package me.contaria.seedqueue.gui.wall;
 
-import com.google.common.collect.ImmutableSet;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
@@ -34,6 +33,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Matrix4f;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
 
 public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
@@ -152,7 +152,7 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
                 DiffuseLighting.disableGuiDepthLighting();
 
                 int appliedPackets = 0;
-                for (Packet<?> packet : ImmutableSet.copyOf(WorldPreview.packetQueue)) {
+                for (Packet<?> packet : new HashSet<>(WorldPreview.packetQueue)) {
                     if (WorldPreview.config.dataLimit < 100 && appliedPackets >= WorldPreview.config.dataLimit && (packet instanceof ChunkDataS2CPacket || packet instanceof MobSpawnS2CPacket || packet instanceof EntitySpawnS2CPacket)) {
                         break;
                     }
@@ -187,7 +187,9 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
                 MatrixStack matrices = new MatrixStack();
                 Matrix4f projectionMatrix = new Matrix4f();
                 this.client.gameRenderer.loadProjectionMatrix(projectionMatrix);
-                WorldPreview.camera.update(WorldPreview.world, WorldPreview.player, this.client.options.perspective > 0, this.client.options.perspective == 2, 0);
+                synchronized (WorldPreview.camera) {
+                    WorldPreview.camera.update(WorldPreview.world, WorldPreview.player, this.client.options.perspective > 0, this.client.options.perspective == 2, 0);
+                }
                 matrices.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(WorldPreview.camera.getPitch()));
                 matrices.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(WorldPreview.camera.getYaw() + 180.0f));
                 ((SQWorldRenderer) WorldPreview.worldRenderer).seedQueue$buildChunks(matrices, WorldPreview.camera, projectionMatrix);
