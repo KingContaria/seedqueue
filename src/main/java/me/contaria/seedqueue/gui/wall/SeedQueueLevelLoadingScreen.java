@@ -1,39 +1,21 @@
 package me.contaria.seedqueue.gui.wall;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
-import me.contaria.seedqueue.interfaces.SQWorldRenderer;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.voidxwalker.worldpreview.WorldPreview;
-import me.voidxwalker.worldpreview.mixin.access.EntityAccessor;
-import me.voidxwalker.worldpreview.mixin.access.MinecraftClientAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.LevelLoadingScreen;
 import net.minecraft.client.gui.widget.AbstractPressableButtonWidget;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.client.render.DiffuseLighting;
 import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.util.math.Vector3f;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
-import net.minecraft.network.Packet;
-import net.minecraft.network.listener.ClientPlayPacketListener;
-import net.minecraft.network.packet.s2c.play.ChunkDataS2CPacket;
-import net.minecraft.network.packet.s2c.play.EntitySpawnS2CPacket;
-import net.minecraft.network.packet.s2c.play.MobSpawnS2CPacket;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Matrix4f;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Objects;
 
 public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
@@ -80,6 +62,7 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
             // the suppressed call usually renders a light blue overlay over the entire screen,
             // instead we draw it onto the preview ourselves
             DrawableHelper.fill(matrices, 0, 0, this.width, this.height, -5323025);
+
             super.render(matrices, mouseX, mouseY, delta);
 
             if (this.seedQueueEntry.isLocked()) {
@@ -119,7 +102,6 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
         this.drawCenteredString(matrices, this.textRenderer, MathHelper.clamp(progressProvider.getProgressPercentage(), 0, 100) + "%", i, j - this.textRenderer.fontHeight / 2 - 30, 0xFFFFFF);
     }
 
-    @SuppressWarnings("deprecation")
     public void buildChunks() {
         assert this.client != null;
 
@@ -130,87 +112,11 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
         WorldPreview.inPreview = true;
 
         try {
-            WorldRenderer worldRenderer = this.client.worldRenderer;
-            ClientPlayerEntity player = this.client.player;
-            ClientWorld world = this.client.world;
-            Entity cameraEntity = this.client.cameraEntity;
-            ClientPlayerInteractionManager interactionManager = this.client.interactionManager;
-
-            try {
-                ((MinecraftClientAccessor) this.client).setWorldRenderer(WorldPreview.worldRenderer);
-                this.client.player = WorldPreview.player;
-                this.client.world = WorldPreview.world;
-                this.client.cameraEntity = WorldPreview.player;
-                this.client.interactionManager = WorldPreview.interactionManager;
-
-                Window window = this.client.getWindow();
-                RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
-                RenderSystem.loadIdentity();
-                RenderSystem.ortho(0.0, window.getFramebufferWidth(), window.getFramebufferHeight(), 0.0, 1000.0, 3000.0);
-                RenderSystem.loadIdentity();
-                RenderSystem.translatef(0.0F, 0.0F, 0.0F);
-                DiffuseLighting.disableGuiDepthLighting();
-
-                int appliedPackets = 0;
-                for (Packet<?> packet : new HashSet<>(WorldPreview.packetQueue)) {
-                    if (WorldPreview.config.dataLimit < 100 && appliedPackets >= WorldPreview.config.dataLimit && (packet instanceof ChunkDataS2CPacket || packet instanceof MobSpawnS2CPacket || packet instanceof EntitySpawnS2CPacket)) {
-                        break;
-                    }
-                    //noinspection unchecked
-                    ((Packet<ClientPlayPacketListener>) packet).apply(WorldPreview.player.networkHandler);
-                    appliedPackets++;
-                    WorldPreview.packetQueue.remove(packet);
-                }
-
-                for (Entity entity : WorldPreview.world.getEntities()) {
-                    if (!((EntityAccessor) entity).isFirstUpdate() || entity.getVehicle() != null && ((EntityAccessor) entity.getVehicle()).isFirstUpdate()) {
-                        continue;
-                    }
-
-                    if (entity.getVehicle() != null) {
-                        entity.getVehicle().updatePassengerPosition(entity);
-                        entity.calculateDimensions();
-                        entity.updatePositionAndAngles(entity.getX(), entity.getY(), entity.getZ(), entity.yaw, entity.pitch);
-                    }
-                    entity.baseTick();
-
-                    for (Entity passenger : entity.getPassengersDeep()) {
-                        if (passenger.getVehicle() != null) {
-                            passenger.getVehicle().updatePassengerPosition(passenger);
-                            passenger.calculateDimensions();
-                            passenger.updatePositionAndAngles(passenger.getX(), passenger.getY(), passenger.getZ(), passenger.yaw, passenger.pitch);
-                        }
-                        passenger.baseTick();
-                    }
-                }
-
-                MatrixStack matrices = new MatrixStack();
-                Matrix4f projectionMatrix = new Matrix4f();
-                this.client.gameRenderer.loadProjectionMatrix(projectionMatrix);
-                synchronized (WorldPreview.camera) {
-                    WorldPreview.camera.update(WorldPreview.world, WorldPreview.player, this.client.options.perspective > 0, this.client.options.perspective == 2, 0);
-                }
-                matrices.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(WorldPreview.camera.getPitch()));
-                matrices.multiply(Vector3f.POSITIVE_Y.getDegreesQuaternion(WorldPreview.camera.getYaw() + 180.0f));
-                ((SQWorldRenderer) WorldPreview.worldRenderer).seedQueue$buildChunks(matrices, WorldPreview.camera, projectionMatrix);
-
-                RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
-                RenderSystem.matrixMode(5889);
-                RenderSystem.loadIdentity();
-                RenderSystem.ortho(0.0, window.getFramebufferWidth() / window.getScaleFactor(), window.getFramebufferHeight() / window.getScaleFactor(), 0.0, 1000.0, 3000.0);
-                RenderSystem.matrixMode(5888);
-                RenderSystem.loadIdentity();
-                RenderSystem.translatef(0.0F, 0.0F, -2000.0F);
-                DiffuseLighting.enableGuiDepthLighting();
-                RenderSystem.defaultAlphaFunc();
-                RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
-            } finally {
-                ((MinecraftClientAccessor) this.client).setWorldRenderer(worldRenderer);
-                this.client.player = player;
-                this.client.world = world;
-                this.client.cameraEntity = cameraEntity;
-                this.client.interactionManager = interactionManager;
-            }
+            WorldPreview.runAsPreview(() -> {
+                WorldPreview.tickPackets();
+                WorldPreview.tickEntities();
+                this.worldPreviewProperties.buildChunks();
+            });
         } finally {
             WorldPreview.worldRenderer = worldPreviewRenderer;
             WorldPreview.clear();
