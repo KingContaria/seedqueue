@@ -35,7 +35,7 @@ dependencies {
 	}
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/mcsr-worldpreview-1.16.1
-	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:30a3b71303") {
+	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:07684096f6") {
 		transitive = false
 	}
 

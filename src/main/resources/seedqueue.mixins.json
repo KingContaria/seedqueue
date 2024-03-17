@@ -26,6 +26,7 @@
     "compat.worldpreview.ClientWorldMixin",
     "compat.worldpreview.MinecraftServerMixin",
     "compat.worldpreview.ServerChunkManagerMixin",
+    "compat.worldpreview.WorldPreviewMixin",
     "misc.WorldGenerationProgressListenerMixin",
     "misc.WorldGenerationProgressLoggerMixin",
     "misc.WorldGenerationProgressTrackerMixin",

@@ -7,6 +7,7 @@ import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.render.Camera;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.Packet;
 import net.minecraft.server.world.ServerChunkManager;
@@ -36,7 +37,7 @@ public abstract class ServerChunkManagerMixin {
                     target = "Lme/voidxwalker/worldpreview/WorldPreview;world:Lnet/minecraft/client/world/ClientWorld;"
             )
     )
-    private ClientWorld sendChunksToCorrectWorldPreviewWorld_inQueue(ClientWorld world) {
+    private ClientWorld sendChunksToCorrectWorldPreview_inQueue(ClientWorld world) {
         return this.getWorldPreviewProperties().map(WorldPreviewProperties::getWorld).orElse(this.world.getServer() == MinecraftClient.getInstance().getServer() ? world : null);
     }
 
@@ -52,8 +53,24 @@ public abstract class ServerChunkManagerMixin {
                     target = "Lme/voidxwalker/worldpreview/WorldPreview;player:Lnet/minecraft/client/network/ClientPlayerEntity;"
             )
     )
-    private ClientPlayerEntity sendChunksToCorrectWorldPreviewWorld_inQueue(ClientPlayerEntity player) {
+    private ClientPlayerEntity sendChunksToCorrectWorldPreview_inQueue(ClientPlayerEntity player) {
         return this.getWorldPreviewProperties().map(WorldPreviewProperties::getPlayer).orElse(this.world.getServer() == MinecraftClient.getInstance().getServer() ? player : null);
+    }
+
+    @Dynamic
+    @TargetHandler(
+            mixin = "me.voidxwalker.worldpreview.mixin.server.ServerChunkManagerMixin",
+            name = "getChunks"
+    )
+    @ModifyExpressionValue(
+            method = "@MixinSquared:Handler",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lme/voidxwalker/worldpreview/WorldPreview;camera:Lnet/minecraft/client/render/Camera;"
+            )
+    )
+    private Camera sendChunksToCorrectWorldPreview_inQueue(Camera camera) {
+        return this.getWorldPreviewProperties().map(WorldPreviewProperties::getCamera).orElse(this.world.getServer() == MinecraftClient.getInstance().getServer() ? camera : null);
     }
 
     @Dynamic
@@ -69,7 +86,7 @@ public abstract class ServerChunkManagerMixin {
             ),
             remap = false
     )
-    private Set<Packet<?>> sendChunksToCorrectWorldPreviewWorld_inQueue(Set<Packet<?>> packetQueue) {
+    private Set<Packet<?>> sendChunksToCorrectWorldPreview_inQueue(Set<Packet<?>> packetQueue) {
         return this.getWorldPreviewProperties().map(WorldPreviewProperties::getPacketQueue).orElse(this.world.getServer() == MinecraftClient.getInstance().getServer() ? packetQueue : null);
     }
 

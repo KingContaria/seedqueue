@@ -17,8 +17,6 @@ public class WorldPreviewProperties {
     private final Camera camera;
     private final Set<Packet<?>> packetQueue;
 
-    private boolean configured;
-
     public WorldPreviewProperties(ClientWorld world, ClientPlayerEntity player, ClientPlayerInteractionManager interactionManager, Camera camera, Set<Packet<?>> packetQueue) {
         this.world = world;
         this.player = player;
@@ -44,11 +42,6 @@ public class WorldPreviewProperties {
     }
 
     public void apply() {
-        if (this.configured) {
-            WorldPreview.set(this.world, this.player, this.interactionManager, this.camera, this.packetQueue);
-            return;
-        }
-        WorldPreview.configure(this.world, this.player, this.interactionManager, this.camera, this.packetQueue);
-        this.configured = true;
+        WorldPreview.set(this.world, this.player, this.interactionManager, this.camera, this.packetQueue);
     }
 }
