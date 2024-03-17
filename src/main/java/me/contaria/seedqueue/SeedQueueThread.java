@@ -13,6 +13,7 @@ public class SeedQueueThread extends Thread {
 
     public SeedQueueThread() {
         super("SeedQueue Thread");
+        this.setPriority(SeedQueue.config.seedQueueThreadPriority);
     }
 
     @Override
@@ -45,9 +46,10 @@ public class SeedQueueThread extends Thread {
         }
     }
 
+    // TODO: currently seedqueue only pauses one entry at a time because managing that is easier, in the future we probably want to change that
     public void pauseSeedQueueEntry() {
         if (!SeedQueue.getEntryMatching(SeedQueueEntry::isScheduledToPause).isPresent()) {
-            SeedQueue.getEntryMatching(entry -> !entry.isPaused()).ifPresent(SeedQueueEntry::schedulePause);
+            SeedQueue.getEntryMatching(entry -> !entry.isScheduledToPause() && !entry.isPaused()).ifPresent(SeedQueueEntry::schedulePause);
         }
     }
 
