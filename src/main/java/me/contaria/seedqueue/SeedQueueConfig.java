@@ -100,11 +100,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Numbers.Whole.Bounds(min = 0, max = 50, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public int previewRenderLimit = 0;
 
-    // this option might be removed in the future and just always set to true,
-    // it shouldn't hurt performance in any meaningful way and would make the use of previewRenderLimit feel much smoother
-    @Config.Category("performance")
-    public boolean alwaysRenderChunkMap = false;
-
     @Config.Category("performance")
     @Config.Numbers.Whole.Bounds(min = 0, max = 50, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public int backgroundPreviews = 0;

@@ -103,9 +103,7 @@ public class SeedQueueWallScreen extends Screen {
                         if (!instance.hasBeenRendered()) {
                             instance.renderBackground(matrices);
                         } else {
-                            if (SeedQueue.config.alwaysRenderChunkMap) {
-                                instance.renderChunkMap(matrices);
-                            }
+                            instance.renderChunkMap(matrices);
                             if (instance.getSeedQueueEntry().isLocked() && !instance.hasRenderedLock()) {
                                 instance.renderLock(matrices);
                             }

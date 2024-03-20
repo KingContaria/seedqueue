@@ -60,8 +60,6 @@
   "speedrunapi.config.seedqueue.option.previewRenderLimit": "Preview Render Limit",
   "speedrunapi.config.seedqueue.option.previewRenderLimit.description": "Limits the number of previews that can be rendered per frame on the Wall Screen.",
   "speedrunapi.config.seedqueue.option.previewRenderLimit.value.0": "No Limit",
-  "speedrunapi.config.seedqueue.option.alwaysRenderChunkMap": "Always Render Chunkmaps",
-  "speedrunapi.config.seedqueue.option.alwaysRenderChunkMap.description": "If enabled, chunkmaps will always be redrawn, even if the preview isn't.\nThis can help the preview feel smoother when using a low Preview Render Limit.",
   "speedrunapi.config.seedqueue.option.backgroundPreviews": "Background Previews",
   "speedrunapi.config.seedqueue.option.backgroundPreviews.description": "Builds previews in the background before they start being rendered, allowing for a smoother transition when loading a new preview onto the Wall Screen.",
   "speedrunapi.config.seedqueue.option.usePerThreadSurfaceBuilders": "Multi Surface Builders",
