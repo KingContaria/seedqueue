@@ -13,7 +13,6 @@ public class SeedQueueClearScreen extends SaveLevelScreen {
         this.parent = parent;
     }
 
-
     @Override
     public void onClose() {
         assert this.client != null;

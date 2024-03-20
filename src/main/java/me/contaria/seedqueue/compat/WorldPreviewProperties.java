@@ -16,7 +16,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.Packet;
 import net.minecraft.util.math.Matrix4f;
 
-import java.util.Set;
+import java.util.Queue;
 
 public class WorldPreviewProperties {
 
@@ -24,9 +24,11 @@ public class WorldPreviewProperties {
     private final ClientPlayerEntity player;
     private final ClientPlayerInteractionManager interactionManager;
     private final Camera camera;
-    private final Set<Packet<?>> packetQueue;
+    private final Queue<Packet<?>> packetQueue;
 
-    public WorldPreviewProperties(ClientWorld world, ClientPlayerEntity player, ClientPlayerInteractionManager interactionManager, Camera camera, Set<Packet<?>> packetQueue) {
+    private SeedQueueSettingsCache settingsCache;
+
+    public WorldPreviewProperties(ClientWorld world, ClientPlayerEntity player, ClientPlayerInteractionManager interactionManager, Camera camera, Queue<Packet<?>> packetQueue) {
         this.world = world;
         this.player = player;
         this.interactionManager = interactionManager;
@@ -46,8 +48,21 @@ public class WorldPreviewProperties {
         return this.camera;
     }
 
-    public Set<Packet<?>> getPacketQueue() {
+    public Queue<Packet<?>> getPacketQueue() {
         return this.packetQueue;
+    }
+
+    public SeedQueueSettingsCache getSettingsCache() {
+        return this.settingsCache;
+    }
+
+    public void setSettingsCache(SeedQueueSettingsCache settingsCache) {
+        this.settingsCache = settingsCache;
+        this.settingsCache.loadPlayerModelParts(this.player);
+    }
+
+    public int getPerspective() {
+        return this.camera.isThirdPerson() ? ((CameraAccessor) this.camera).seedQueue$isInverseView() ? 2 : 1 : 0;
     }
 
     public void apply() {

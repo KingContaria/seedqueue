@@ -2,6 +2,7 @@ package me.contaria.seedqueue.mixin.compat.atum;
 
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
+import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.gui.screen.Screen;
@@ -33,6 +34,7 @@ public abstract class AtumMixin {
                     return screen;
                 }
             }
+            ModCompat.standardsettings$cacheAndReset();
             return new SeedQueueWallScreen(screen, SeedQueue.config.rows, SeedQueue.config.columns);
         }
         return screen;

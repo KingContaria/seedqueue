@@ -3,6 +3,7 @@ package me.contaria.seedqueue.gui.wall;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
+import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.keybindings.SeedQueueKeyBindings;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
@@ -27,6 +28,9 @@ public class SeedQueueWallScreen extends Screen {
     private final List<SeedQueueLevelLoadingScreen> backupLoadingScreens;
     private final Screen createWorldScreen;
 
+    protected final SeedQueueSettingsCache settingsCache;
+    private SeedQueueSettingsCache lastSettingsCache;
+
     private final int rows;
     private final int columns;
 
@@ -43,6 +47,7 @@ public class SeedQueueWallScreen extends Screen {
         this.columns = columns;
         this.loadingScreens = new SeedQueueLevelLoadingScreen[rows * columns];
         this.backupLoadingScreens = new ArrayList<>(SeedQueue.config.backgroundPreviews);
+        this.lastSettingsCache = this.settingsCache = SeedQueueSettingsCache.create();
     }
 
     @Override
@@ -83,6 +88,9 @@ public class SeedQueueWallScreen extends Screen {
                         this.renderBackground(matrices);
                         continue;
                     }
+
+                    this.loadPreviewSettings(instance.getWorldPreviewProperties().getSettingsCache(), instance.getWorldPreviewProperties().getPerspective());
+
                     if (!instance.hasBeenRendered() && !instance.shouldRender()) {
                         instance.buildChunks();
                         instance.renderBackground(matrices);
@@ -110,8 +118,20 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         for (SeedQueueLevelLoadingScreen backupInstance : this.backupLoadingScreens) {
+            this.loadPreviewSettings(backupInstance.getWorldPreviewProperties().getSettingsCache(), backupInstance.getWorldPreviewProperties().getPerspective());
             backupInstance.buildChunks();
         }
+
+        this.loadPreviewSettings(this.settingsCache, 0);
+    }
+
+    private void loadPreviewSettings(SeedQueueSettingsCache settingsCache, int perspective) {
+        assert this.client != null;
+        if (settingsCache != this.lastSettingsCache) {
+            settingsCache.loadPreview();
+            this.lastSettingsCache = settingsCache;
+        }
+        this.client.options.perspective = perspective;
     }
 
     @Override
@@ -414,11 +434,8 @@ public class SeedQueueWallScreen extends Screen {
         for (WorldRenderer worldRenderer : WORLD_RENDERERS) {
             ClientWorld worldRendererWorld = getWorld(worldRenderer);
             if (!SeedQueue.getEntryMatching(entry -> {
-                WorldPreviewProperties worldPreviewProperties = entry.getWorldPreviewProperties();
-                if (worldPreviewProperties == null) {
-                    return false;
-                }
-                return worldPreviewProperties.getWorld() == worldRendererWorld;
+                WorldPreviewProperties wpProperties = entry.getWorldPreviewProperties();
+                return wpProperties != null && wpProperties.getWorld() == worldRendererWorld;
             }).isPresent()) {
                 return worldRenderer;
             }

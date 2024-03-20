@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.Optional;
-import java.util.Set;
+import java.util.Queue;
 
 @Mixin(value = ServerChunkManager.class, priority = 1500)
 public abstract class ServerChunkManagerMixin {
@@ -82,24 +82,16 @@ public abstract class ServerChunkManagerMixin {
             method = "@MixinSquared:Handler",
             at = @At(
                     value = "FIELD",
-                    target = "Lme/voidxwalker/worldpreview/WorldPreview;packetQueue:Ljava/util/Set;"
+                    target = "Lme/voidxwalker/worldpreview/WorldPreview;packetQueue:Ljava/util/Queue;"
             ),
             remap = false
     )
-    private Set<Packet<?>> sendChunksToCorrectWorldPreview_inQueue(Set<Packet<?>> packetQueue) {
+    private Queue<Packet<?>> sendChunksToCorrectWorldPreview_inQueue(Queue<Packet<?>> packetQueue) {
         return this.getWorldPreviewProperties().map(WorldPreviewProperties::getPacketQueue).orElse(this.world.getServer() == MinecraftClient.getInstance().getServer() ? packetQueue : null);
     }
 
     @Unique
     private Optional<WorldPreviewProperties> getWorldPreviewProperties() {
-        SeedQueueEntry entry = SeedQueue.getEntry(this.world.getServer());
-        if (entry == null) {
-            return Optional.empty();
-        }
-        WorldPreviewProperties worldPreviewProperties = entry.getWorldPreviewProperties();
-        if (worldPreviewProperties == null) {
-            return Optional.empty();
-        }
-        return Optional.of(worldPreviewProperties);
+        return Optional.ofNullable(SeedQueue.getEntry(this.world.getServer())).map(SeedQueueEntry::getWorldPreviewProperties);
     }
 }

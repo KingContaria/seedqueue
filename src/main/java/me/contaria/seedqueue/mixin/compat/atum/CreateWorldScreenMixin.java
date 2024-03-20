@@ -28,7 +28,7 @@ public abstract class CreateWorldScreenMixin {
     )
     private int doNotIncrementAtumAttemptTracker_whenLoadingQueue(AttemptTracker tracker, AttemptTracker.Type type, Operation<Integer> original) {
         if (!SeedQueue.inQueue() && SeedQueue.loadEntry()) {
-            return 0;
+            return Integer.parseInt(SeedQueue.currentEntry.getServer().getSaveProperties().getLevelName().split("#")[1]);
         }
         return original.call(tracker, type);
     }

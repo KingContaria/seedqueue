@@ -7,13 +7,17 @@ import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.voidxwalker.worldpreview.WorldPreview;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
+import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.LevelLoadingScreen;
-import net.minecraft.client.gui.widget.AbstractPressableButtonWidget;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.Text;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
+import org.mcsr.speedrunapi.config.SpeedrunConfigAPI;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -37,8 +41,35 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
         this.wallScreen = wallScreen;
         this.seedQueueEntry = seedQueueEntry;
         this.worldPreviewProperties = Objects.requireNonNull(seedQueueEntry.getWorldPreviewProperties());
-        this.init(MinecraftClient.getInstance(), wallScreen.width, wallScreen.height);
-        ((AbstractPressableButtonWidget) this.children.get(0)).onPress();
+
+        if (this.worldPreviewProperties.getSettingsCache() == null) {
+            this.worldPreviewProperties.setSettingsCache(this.wallScreen.settingsCache);
+        }
+
+        this.initScreen();
+    }
+
+    private void initScreen() {
+        try {
+            WorldPreview.inPreview = true;
+            this.init(MinecraftClient.getInstance(), this.wallScreen.width, this.wallScreen.height);
+
+            if (Boolean.TRUE.equals(SpeedrunConfigAPI.getConfigValue("standardsettings", "autoF3Esc"))) {
+                Text backToGame = new TranslatableText("menu.returnToGame");
+                for (Element e : this.children()) {
+                    if (!(e instanceof ButtonWidget)) {
+                        continue;
+                    }
+                    ButtonWidget button = (ButtonWidget) e;
+                    if (backToGame.equals(button.getMessage())) {
+                        button.onPress();
+                        break;
+                    }
+                }
+            }
+        } finally {
+            WorldPreview.inPreview = false;
+        }
     }
 
     @Override
@@ -48,14 +79,11 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
 
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        assert this.client != null;
-
         WorldRenderer worldPreviewRenderer = WorldPreview.worldRenderer;
 
         WorldPreview.worldRenderer = this.getWorldRenderer();
         this.worldPreviewProperties.apply();
         WorldPreview.inPreview = true;
-
 
         try {
             // related to WorldRendererMixin#doNotClearOnWallScreen
@@ -97,14 +125,12 @@ public class SeedQueueLevelLoadingScreen extends LevelLoadingScreen {
         }
         int i = 45;
         int j = this.height - 75;
-        WorldGenerationProgressTracker progressProvider = Objects.requireNonNull(this.seedQueueEntry.getWorldGenerationProgressTracker());
-        LevelLoadingScreen.drawChunkMap(matrices, progressProvider, i, j + 30, 2, 0);
-        this.drawCenteredString(matrices, this.textRenderer, MathHelper.clamp(progressProvider.getProgressPercentage(), 0, 100) + "%", i, j - this.textRenderer.fontHeight / 2 - 30, 0xFFFFFF);
+        WorldGenerationProgressTracker tracker = Objects.requireNonNull(this.seedQueueEntry.getWorldGenerationProgressTracker());
+        LevelLoadingScreen.drawChunkMap(matrices, tracker, i, j + 30, 2, 0);
+        this.drawCenteredString(matrices, this.textRenderer, MathHelper.clamp(tracker.getProgressPercentage(), 0, 100) + "%", i, j - this.textRenderer.fontHeight / 2 - 30, 0xFFFFFF);
     }
 
     public void buildChunks() {
-        assert this.client != null;
-
         WorldRenderer worldPreviewRenderer = WorldPreview.worldRenderer;
 
         WorldPreview.worldRenderer = this.getWorldRenderer();

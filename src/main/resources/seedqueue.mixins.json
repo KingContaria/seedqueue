@@ -23,7 +23,7 @@
     "compat.sodium.ChunkBuilderMixin",
     "compat.sodium.ChunkRenderManagerMixin",
     "compat.speedrunigt.MinecraftClientMixin",
-    "compat.standardsettings.CreateWorldScreenMixin",
+    "compat.standardsettings.MinecraftClientMixin",
     "compat.worldpreview.ClientWorldMixin",
     "compat.worldpreview.MinecraftServerMixin",
     "compat.worldpreview.ServerChunkManagerMixin",

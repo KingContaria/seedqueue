@@ -55,15 +55,15 @@ public abstract class MinecraftClientMixin {
             if (seedQueueEntry.isPaused()) {
                 continue;
             }
-            WorldGenerationProgressTracker worldGenerationProgressTracker = seedQueueEntry.getWorldGenerationProgressTracker();
-            if (worldGenerationProgressTracker != null) {
-                if (x + worldGenerationProgressTracker.getSize() * scale > this.window.getWidth() - 3) {
+            WorldGenerationProgressTracker tracker = seedQueueEntry.getWorldGenerationProgressTracker();
+            if (tracker != null) {
+                if (x + tracker.getSize() * scale > this.window.getWidth() - 3) {
                     x = 3;
-                    y += worldGenerationProgressTracker.getSize() * scale + 3;
+                    y += tracker.getSize() * scale + 3;
                 }
                 MatrixStack matrixStack = new MatrixStack();
-                LevelLoadingScreen.drawChunkMap(matrixStack, worldGenerationProgressTracker, x + worldGenerationProgressTracker.getSize() * scale / 2, y + worldGenerationProgressTracker.getSize() * scale / 2, scale, 0);
-                x += worldGenerationProgressTracker.getSize() * scale + 3;
+                LevelLoadingScreen.drawChunkMap(matrixStack, tracker, x + tracker.getSize() * scale / 2, y + tracker.getSize() * scale / 2, scale, 0);
+                x += tracker.getSize() * scale + 3;
             }
         }
     }

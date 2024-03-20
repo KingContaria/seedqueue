@@ -203,11 +203,11 @@ public abstract class MinecraftClientMixin {
     )
     private void loadWorldGenerationProgressTracker(CallbackInfo ci) {
         if (!SeedQueue.inQueue() && SeedQueue.currentEntry != null) {
-            WorldGenerationProgressTracker worldGenerationProgressTracker;
+            WorldGenerationProgressTracker tracker;
             do {
-                worldGenerationProgressTracker = SeedQueue.currentEntry.getWorldGenerationProgressTracker();
-            } while (worldGenerationProgressTracker == null);
-            ((SQWorldGenerationProgressListener) worldGenerationProgressTracker).seedQueue$unmute();
+                tracker = SeedQueue.currentEntry.getWorldGenerationProgressTracker();
+            } while (tracker == null);
+            ((SQWorldGenerationProgressListener) tracker).seedQueue$unmute();
             this.worldGenProgressTracker.set(SeedQueue.currentEntry.getWorldGenerationProgressTracker());
         }
     }
@@ -279,9 +279,9 @@ public abstract class MinecraftClientMixin {
             seedQueueEntry = SeedQueue.getEntry(Thread.currentThread());
         } while (seedQueueEntry == null);
 
-        WorldGenerationProgressTracker worldGenerationProgressTracker = (WorldGenerationProgressTracker) value;
-        ((SQWorldGenerationProgressListener) worldGenerationProgressTracker).seedQueue$mute();
-        seedQueueEntry.setWorldGenerationProgressTracker(worldGenerationProgressTracker);
+        WorldGenerationProgressTracker tracker = (WorldGenerationProgressTracker) value;
+        ((SQWorldGenerationProgressListener) tracker).seedQueue$mute();
+        seedQueueEntry.setWorldGenerationProgressTracker(tracker);
     }
 
     @Inject(
@@ -398,9 +398,9 @@ public abstract class MinecraftClientMixin {
             return true;
         }
         if (!SeedQueue.currentEntry.isReady()) {
-            WorldPreviewProperties worldPreviewProperties = SeedQueue.currentEntry.getWorldPreviewProperties();
-            if (worldPreviewProperties != null) {
-                worldPreviewProperties.apply();
+            WorldPreviewProperties wpProperties = SeedQueue.currentEntry.getWorldPreviewProperties();
+            if (wpProperties != null) {
+                wpProperties.apply();
             }
             return true;
         }

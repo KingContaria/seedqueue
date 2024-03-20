@@ -50,7 +50,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int chunkMapScale = 2;
 
     @Config.Ignored
-    public boolean canUseWall = ModCompat.HAS_WORLDPREVIEW;
+    public boolean canUseWall = ModCompat.HAS_WORLDPREVIEW && ModCompat.HAS_STANDARDSETTINGS;
 
     @Config.Category("wall")
     public boolean useWall = false;

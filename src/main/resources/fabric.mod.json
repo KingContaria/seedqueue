@@ -38,11 +38,9 @@
 		"atum": ">=2.0.0"
 	},
 	"breaks": {
-		"worldpreview": "<6.0.0-beta.5",
+		"worldpreview": "<6.0.0-beta.6",
 		"antiresourcereload": "<5.0.0",
-		"chunkcacher": "<1.4.0"
-	},
-	"conflicts": {
-		"standardsettings": "*"
+		"chunkcacher": "<1.4.0",
+		"standardsettings": "<2.0-beta.1"
 	}
 }

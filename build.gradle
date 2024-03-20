@@ -25,7 +25,7 @@ dependencies {
 
 	// SpeedrunAPI
 	// check for the latest versions at https://jitpack.io/#kingcontaria/speedrunapi
-	modImplementation "com.github.KingContaria:SpeedrunAPI:8c6902cc71"
+	modImplementation "com.github.KingContaria:SpeedrunAPI:b25af3eafb"
 	implementation(annotationProcessor "com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.1.1")
 	modImplementation "net.fabricmc.fabric-api:fabric-key-binding-api-v1:1.0.36+fb8d95da77"
 
@@ -35,7 +35,7 @@ dependencies {
 	}
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/mcsr-worldpreview-1.16.1
-	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:93185a3dad") {
+	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:3a8315206c") {
 		transitive = false
 	}
 
@@ -49,6 +49,11 @@ dependencies {
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/fastreset
 	modCompileOnly ("com.github.KingContaria:fastreset:9b0ff67df2") {
+		transitive = false
+	}
+
+	// check for the latest versions at https://jitpack.io/#kingcontaria/standardsettings
+	modCompileOnly ("com.github.KingContaria:standardsettings:0820698bc5") {
 		transitive = false
 	}
 
