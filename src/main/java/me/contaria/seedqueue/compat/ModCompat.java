@@ -23,6 +23,12 @@ public class ModCompat {
         }
     }
 
+    public static void standardsettings$onWorldJoin() {
+        if (HAS_STANDARDSETTINGS) {
+            StandardSettingsCompat.onWorldJoin();
+        }
+    }
+
     public static boolean worldpreview$kill(MinecraftServer server) {
         if (HAS_WORLDPREVIEW) {
             return WorldPreviewCompat.kill(server);

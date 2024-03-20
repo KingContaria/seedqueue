@@ -3,12 +3,15 @@ package me.contaria.seedqueue.gui.wall;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
+import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.keybindings.SeedQueueKeyBindings;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
+import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.Window;
@@ -185,6 +188,13 @@ public class SeedQueueWallScreen extends Screen {
         double mouseY = this.client.mouse.getY() * window.getScaledWidth() / window.getWidth();
 
         if (this.isBenchmarking()) {
+            return true;
+        }
+
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && Screen.hasShiftDown()) {
+            ModCompat.standardsettings$onWorldJoin();
+            Atum.stopRunning();
+            this.client.openScreen(new TitleScreen());
             return true;
         }
 

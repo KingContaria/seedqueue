@@ -15,4 +15,8 @@ class StandardSettingsCompat {
     static void resetPendingActions() {
         StandardSettings.resetPendingActions();
     }
+
+    static void onWorldJoin() {
+        StandardSettings.onWorldJoin();
+    }
 }
