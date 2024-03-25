@@ -3,18 +3,21 @@ package me.contaria.seedqueue;
 import me.contaria.seedqueue.gui.SeedQueueClearScreen;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
+import me.contaria.seedqueue.sounds.SeedQueueSounds;
+import net.fabricmc.api.ClientModInitializer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Predicate;
 
-public class SeedQueue {
+public class SeedQueue implements ClientModInitializer {
 
     public static final Logger LOGGER = LogManager.getLogger();
     public static final Object LOCK = new Object();
@@ -23,6 +26,32 @@ public class SeedQueue {
     public static SeedQueueEntry selectedEntry;
     public static SeedQueueConfig config;
     public static SeedQueueThread thread;
+
+    @Override
+    public void onInitializeClient() {
+        SeedQueueSounds.init();
+
+        if (config.useWatchdog) {
+            Thread watchDog = new Thread(() -> {
+                try {
+                    while (true) {
+                        Thread mainThread = MinecraftClient.getInstance() != null ? ((MinecraftClientAccessor) MinecraftClient.getInstance()).seedQueue$getThread() : null;
+                        if (mainThread != null) {
+                            LOGGER.info("WATCHDOG | " + Arrays.toString(mainThread.getStackTrace()));
+                        }
+                        //noinspection BusyWait
+                        Thread.sleep(10000);
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            watchDog.setDaemon(true);
+            watchDog.setPriority(3);
+            watchDog.setName("SeedQueue WatchDog");
+            watchDog.start();
+        }
+    }
 
     public static boolean loadEntry() {
         synchronized (LOCK) {

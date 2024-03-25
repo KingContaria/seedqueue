@@ -1,0 +1,12 @@
+{
+  "lock_instance": {
+    "sounds": [
+      "seedqueue:lock_instance"
+    ]
+  },
+  "reset_instance": {
+    "sounds": [
+      "seedqueue:reset_instance"
+    ]
+  }
+}

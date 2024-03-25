@@ -8,15 +8,18 @@ import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.keybindings.SeedQueueKeyBindings;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
+import me.contaria.seedqueue.sounds.SeedQueueSounds;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.LiteralText;
 import org.lwjgl.glfw.GLFW;
 
@@ -39,6 +42,8 @@ public class SeedQueueWallScreen extends Screen {
 
     private boolean shouldRenderBackground;
     protected int frame;
+
+    private int nextSoundFrame;
 
     private final long benchmarkStart = System.currentTimeMillis();
     private int benchmarkedSeeds;
@@ -293,7 +298,9 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void lockInstance(SeedQueueLevelLoadingScreen instance) {
-        instance.getSeedQueueEntry().lock();
+        if (instance.getSeedQueueEntry().lock()) {
+            this.playSound(SeedQueueSounds.LOCK_INSTANCE);
+        }
     }
 
     private boolean resetInstance(SeedQueueLevelLoadingScreen instance) {
@@ -321,6 +328,7 @@ public class SeedQueueWallScreen extends Screen {
         if (!SeedQueue.config.lazilyClearWorldRenderers) {
             clearWorldRenderer(getWorldRenderer(instance.getWorldPreviewProperties().getWorld()));
         }
+        this.playSound(SeedQueueSounds.RESET_INSTANCE);
         return true;
     }
 
@@ -339,6 +347,20 @@ public class SeedQueueWallScreen extends Screen {
     private void resetColumn(int column) {
         for (int row = 0; row < this.rows; row++) {
             this.resetInstance(this.getInstance(row, column));
+        }
+    }
+
+    private void playSound(SoundEvent sound) {
+        if (this.isBenchmarking()) {
+            return;
+        }
+
+        assert this.client != null;
+        if (this.nextSoundFrame < this.frame) {
+            this.client.getSoundManager().play(PositionedSoundInstance.master(sound, 1.0f));
+            this.nextSoundFrame = this.frame;
+        } else {
+            this.client.getSoundManager().play(PositionedSoundInstance.master(sound, 1.0f), ++this.nextSoundFrame - this.frame);
         }
     }
 

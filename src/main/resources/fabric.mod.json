@@ -20,7 +20,7 @@
 	"environment": "client",
 	"entrypoints": {
 		"client": [
-			"me.contaria.seedqueue.SeedQueueWatchDog"
+			"me.contaria.seedqueue.SeedQueue"
 		]
 	},
 	"custom": {
