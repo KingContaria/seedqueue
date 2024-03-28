@@ -1,27 +1,30 @@
 package me.contaria.seedqueue;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
+import com.google.gson.stream.JsonReader;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.gui.config.SeedQueueKeybindingsScreen;
 import me.contaria.seedqueue.keybindings.SeedQueueKeyBindings;
 import me.contaria.seedqueue.keybindings.SeedQueueMultiKeyBinding;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.toast.SystemToast;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.util.tinyfd.TinyFileDialogs;
 import org.mcsr.speedrunapi.config.SpeedrunConfigAPI;
 import org.mcsr.speedrunapi.config.api.SpeedrunConfig;
 import org.mcsr.speedrunapi.config.api.SpeedrunOption;
 import org.mcsr.speedrunapi.config.api.annotations.Config;
 import org.mcsr.speedrunapi.config.api.annotations.InitializeOn;
 
+import java.io.FileReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @InitializeOn(InitializeOn.InitPoint.PRELAUNCH)
 public class SeedQueueConfig implements SpeedrunConfig {
@@ -62,6 +65,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Category("wall")
     @Config.Numbers.Whole.Bounds(min = 1, max = 10, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public int columns = 2;
+
+    @Config.Category("wall")
+    public JsonObject customLayout = null;
 /*
     @Config.Category("wall")
     @Config.Numbers.Whole.Bounds(min = 0, max = Integer.MAX_VALUE, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
@@ -95,10 +101,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     // before that I want to implement a system that if no background preview is set up in a frame, it clears one worldrenderer instead
     @Config.Category("performance")
     public boolean lazilyClearWorldRenderers = false;
-
-    @Config.Category("performance")
-    @Config.Numbers.Whole.Bounds(min = 0, max = 50, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    public int previewRenderLimit = 0;
 
     @Config.Category("performance")
     @Config.Numbers.Whole.Bounds(min = 0, max = 50, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
@@ -148,9 +150,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
             SeedQueueKeyBindings.focusReset,
             SeedQueueKeyBindings.reset,
             SeedQueueKeyBindings.lock,
-            SeedQueueKeyBindings.resetAll,
-            SeedQueueKeyBindings.resetRow,
-            SeedQueueKeyBindings.resetColumn
+            SeedQueueKeyBindings.resetAll
     };
 
     {
@@ -173,6 +173,22 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Override
     public @Nullable SpeedrunOption<?> parseField(Field field, SpeedrunConfig config, String... idPrefix) {
+        if (JsonObject.class.equals(field.getType())) {
+            return new SpeedrunConfigAPI.CustomOption.Builder<JsonObject>(config, this, field, idPrefix)
+                    .fromJson(((option, config_, configStorage, optionField, jsonElement) -> option.set(jsonElement.isJsonNull() ? null : jsonElement.getAsJsonObject())))
+                    .toJson(((option, config_, configStorage, optionField) -> Optional.ofNullable((JsonElement) option.get()).orElse(JsonNull.INSTANCE)))
+                    .createWidget((option, config_, configStorage, optionField) -> new ButtonWidget(0, 0, 150, 20, new LiteralText("Upload..."), button -> {
+                        String file = TinyFileDialogs.tinyfd_openFileDialog("Upload Custom Wall Layout", null, null, null, false);
+                        if (file != null) {
+                            try (JsonReader reader = new JsonReader(new FileReader(file))) {
+                                option.set(new JsonParser().parse(reader).getAsJsonObject());
+                            } catch (Exception e) {
+                                MinecraftClient.getInstance().getToastManager().add(new SystemToast(SystemToast.Type.PACK_COPY_FAILURE, new LiteralText("Failed to load!"), new LiteralText(e.getMessage())));
+                            }
+                        }
+                    }))
+                    .build();
+        }
         if (SeedQueueMultiKeyBinding[].class.equals(field.getType())) {
             return new SpeedrunConfigAPI.CustomOption.Builder<SeedQueueMultiKeyBinding[]>(config, this, field, idPrefix)
                     .fromJson(((option, config_, configStorage, optionField, jsonElement) -> {

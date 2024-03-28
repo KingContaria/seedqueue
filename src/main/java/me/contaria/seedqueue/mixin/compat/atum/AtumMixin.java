@@ -35,7 +35,7 @@ public abstract class AtumMixin {
                 }
             }
             ModCompat.standardsettings$cacheAndReset();
-            return new SeedQueueWallScreen(screen, SeedQueue.config.rows, SeedQueue.config.columns);
+            return new SeedQueueWallScreen(screen);
         }
         return screen;
     }

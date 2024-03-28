@@ -4,7 +4,7 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueConfig;
-import me.contaria.seedqueue.gui.wall.SeedQueueLevelLoadingScreen;
+import me.contaria.seedqueue.gui.wall.SeedQueuePreview;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
@@ -38,7 +38,7 @@ public abstract class LevelLoadingScreenMixin {
     )
     private void doNotRenderChunkMapOnWallScreen(CallbackInfo ci) {
         //noinspection ConstantValue
-        if ((Object) this instanceof SeedQueueLevelLoadingScreen && ((SeedQueueLevelLoadingScreen) (Object) this).getSeedQueueEntry().isReady()) {
+        if ((Object) this instanceof SeedQueuePreview && ((SeedQueuePreview) (Object) this).getSeedQueueEntry().isReady()) {
             ci.cancel();
         }
     }

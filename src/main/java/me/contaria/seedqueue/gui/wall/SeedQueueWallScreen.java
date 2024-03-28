@@ -1,5 +1,8 @@
 package me.contaria.seedqueue.gui.wall;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
@@ -21,6 +24,8 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.LiteralText;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
@@ -30,105 +35,98 @@ public class SeedQueueWallScreen extends Screen {
 
     private static final Set<WorldRenderer> WORLD_RENDERERS = new HashSet<>();
 
-    private final SeedQueueLevelLoadingScreen[] loadingScreens;
-    private final List<SeedQueueLevelLoadingScreen> backupLoadingScreens;
     private final Screen createWorldScreen;
+
+    private Layout layout;
+    private SeedQueuePreview[] mainLoadingScreens;
+    @Nullable
+    private List<SeedQueuePreview> lockedLoadingScreens;
+    private List<SeedQueuePreview> preparingLoadingScreens;
 
     protected final SeedQueueSettingsCache settingsCache;
     private SeedQueueSettingsCache lastSettingsCache;
 
-    private final int rows;
-    private final int columns;
-
-    private boolean shouldRenderBackground;
     protected int frame;
-
     private int nextSoundFrame;
 
     private final long benchmarkStart = System.currentTimeMillis();
     private int benchmarkedSeeds;
 
-    public SeedQueueWallScreen(Screen createWorldScreen, int rows, int columns) {
+    public SeedQueueWallScreen(Screen createWorldScreen) {
         super(LiteralText.EMPTY);
         this.createWorldScreen = createWorldScreen;
-        this.rows = rows;
-        this.columns = columns;
-        this.loadingScreens = new SeedQueueLevelLoadingScreen[rows * columns];
-        this.backupLoadingScreens = new ArrayList<>(SeedQueue.config.backgroundPreviews);
+        this.preparingLoadingScreens = new ArrayList<>(SeedQueue.config.backgroundPreviews);
         this.lastSettingsCache = this.settingsCache = SeedQueueSettingsCache.create();
     }
 
     @Override
     protected void init() {
-        this.shouldRenderBackground = true;
+        assert this.client != null;
+        this.layout = this.createLayout();
+        this.mainLoadingScreens = new SeedQueuePreview[this.layout.main.size()];
+        this.lockedLoadingScreens = this.layout.locked != null ? new ArrayList<>() : null;
+        this.preparingLoadingScreens = new ArrayList<>();
+    }
+
+    private Layout createLayout() {
+        assert this.client != null;
+        if (SeedQueue.config.customLayout != null) {
+            try {
+                return Layout.fromJson(SeedQueue.config.customLayout);
+            } catch (Exception e) {
+                SeedQueue.LOGGER.warn("Failed to parse custom wall layout!", e);
+            }
+        }
+        return Layout.grid(SeedQueue.config.rows, SeedQueue.config.columns, this.client.getWindow().getWidth(), this.client.getWindow().getHeight());
     }
 
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        this.frame++;
-
-        this.updatePreviews();
-
-        if (this.shouldRenderBackground) {
-            this.renderBackground(matrices);
-            this.shouldRenderBackground = false;
-        }
-
-        Set<SeedQueueLevelLoadingScreen> instancesToRender = Arrays.stream(this.loadingScreens).filter(Objects::nonNull).collect(Collectors.toSet());
-        if (SeedQueue.config.previewRenderLimit > 0) {
-            instancesToRender = instancesToRender.stream().filter(instance -> instance.hasBeenRendered() || instance.shouldRender()).sorted(Comparator.comparingInt(e1 -> e1.lastRenderFrame)).limit(SeedQueue.config.previewRenderLimit).collect(Collectors.toSet());
-        }
-
         assert this.client != null;
-        int width = this.getInstanceWidth();
-        int height = this.getInstanceHeight();
+        this.frame++;
+        this.updatePreviews();
+        this.renderBackground(matrices);
 
         try {
-            for (int row = 0; row < this.rows; row++) {
-                for (int column = 0; column < this.columns; column++) {
-                    int x = column * width;
-                    int y = (this.rows - row - 1) * height;
-                    RenderSystem.viewport(x, y, width, height);
-
-                    SeedQueueLevelLoadingScreen instance = this.getInstance(row, column);
-
-                    if (instance == null) {
-                        this.renderBackground(matrices);
-                        continue;
-                    }
-
-                    this.loadPreviewSettings(instance.getWorldPreviewProperties().getSettingsCache(), instance.getWorldPreviewProperties().getPerspective());
-
-                    if (!instance.hasBeenRendered() && !instance.shouldRender()) {
-                        instance.buildChunks();
-                        instance.renderBackground(matrices);
-                        continue;
-                    }
-                    if (!instancesToRender.contains(instance)) {
-                        if (!instance.hasBeenRendered()) {
-                            instance.renderBackground(matrices);
-                        } else {
-                            instance.renderChunkMap(matrices);
-                            if (instance.getSeedQueueEntry().isLocked() && !instance.hasRenderedLock()) {
-                                instance.renderLock(matrices);
-                            }
-                        }
-                        instance.buildChunks();
-                        continue;
-                    }
-                    instance.render(matrices, 0, 0, delta);
+            for (int i = 0; i < this.layout.main.size(); i++) {
+                this.renderInstance(this.mainLoadingScreens[i], this.layout.main.getPos(i), matrices, delta);
+            }
+            if (this.layout.locked != null && this.lockedLoadingScreens != null) {
+                for (int i = 0; i < this.layout.locked.size() && i < this.lockedLoadingScreens.size(); i++) {
+                    this.renderInstance(this.lockedLoadingScreens.get(i), this.layout.locked.getPos(i), matrices, delta);
                 }
             }
+            for (int i = 0; i < this.layout.getMoreSize() && i < this.preparingLoadingScreens.size(); i++) {
+                this.renderInstance(this.preparingLoadingScreens.get(i), this.layout.getMorePos(i), matrices, delta);
+            }
         } finally {
-            RenderSystem.viewport(0, 0, this.client.getWindow().getWidth(), this.client.getWindow().getHeight());
+            RenderSystem.viewport(0, 0, this.client.getWindow().getFramebufferWidth(), this.client.getWindow().getFramebufferHeight());
         }
 
-        for (SeedQueueLevelLoadingScreen backupInstance : this.backupLoadingScreens) {
-            this.loadPreviewSettings(backupInstance.getWorldPreviewProperties().getSettingsCache(), backupInstance.getWorldPreviewProperties().getPerspective());
-            backupInstance.buildChunks();
+        for (SeedQueuePreview preparingInstance : this.preparingLoadingScreens) {
+            this.loadPreviewSettings(preparingInstance);
+            preparingInstance.buildChunks();
         }
 
         this.loadPreviewSettings(this.settingsCache, 0);
+    }
+
+    private void renderInstance(SeedQueuePreview instance, Layout.Pos pos, MatrixStack matrices, float delta) {
+        assert this.client != null;
+        if (pos == null) {
+            return;
+        }
+        RenderSystem.viewport(pos.x, this.client.getWindow().getFramebufferHeight() - pos.height - pos.y, pos.width, pos.height);
+        if (instance == null || !instance.shouldRender()) {
+            //this.renderBackground(matrices);
+            return;
+        }
+        this.loadPreviewSettings(instance);
+        instance.render(matrices, 0, 0, delta);
+    }
+
+    private void loadPreviewSettings(SeedQueuePreview instance) {
+        this.loadPreviewSettings(instance.getWorldPreviewProperties().getSettingsCache(), instance.getWorldPreviewProperties().getPerspective());
     }
 
     private void loadPreviewSettings(SeedQueueSettingsCache settingsCache, int perspective) {
@@ -151,14 +149,8 @@ public class SeedQueueWallScreen extends Screen {
         if (SeedQueueKeyBindings.resetAll.matchesMouse(button)) {
             this.resetAllInstances();
         }
-        if (SeedQueueKeyBindings.resetRow.matchesMouse(button)) {
-            this.resetRow(this.getRow(mouseY));
-        }
-        if (SeedQueueKeyBindings.resetColumn.matchesMouse(button)) {
-            this.resetColumn(this.getColumn(mouseX));
-        }
 
-        SeedQueueLevelLoadingScreen instance = this.getInstance(mouseX, mouseY);
+        SeedQueuePreview instance = this.getInstance(mouseX, mouseY);
         if (instance == null) {
             return true;
         }
@@ -204,14 +196,8 @@ public class SeedQueueWallScreen extends Screen {
         if (SeedQueueKeyBindings.resetAll.matchesKey(keyCode, scanCode)) {
             this.resetAllInstances();
         }
-        if (SeedQueueKeyBindings.resetRow.matchesKey(keyCode, scanCode)) {
-            this.resetRow(this.getRow(mouseY));
-        }
-        if (SeedQueueKeyBindings.resetColumn.matchesKey(keyCode, scanCode)) {
-            this.resetColumn(this.getColumn(mouseX));
-        }
 
-        SeedQueueLevelLoadingScreen instance = this.getInstance(mouseX, mouseY);
+        SeedQueuePreview instance = this.getInstance(mouseX, mouseY);
         if (instance == null) {
             return true;
         }
@@ -243,47 +229,42 @@ public class SeedQueueWallScreen extends Screen {
         return true;
     }
 
-    @Override
-    public void resize(MinecraftClient client, int width, int height) {
-        super.resize(client, width, height);
-        for (SeedQueueLevelLoadingScreen preview : this.loadingScreens) {
-            if (preview != null) {
-                preview.resize(client, width, height);
+    private SeedQueuePreview getInstance(double mouseX, double mouseY) {
+        assert this.client != null;
+        double scale = this.client.getWindow().getScaleFactor();
+        double x = mouseX * scale;
+        double y = mouseY * scale;
+
+        // we traverse the layout in reverse to catch the top rendered instance
+        for (int i = this.layout.more.length - 1; i >= 0; i--) {
+            Optional<SeedQueuePreview> instance = this.getInstance(this.layout.more[i], x, y).filter(index -> index < this.preparingLoadingScreens.size()).map(this.preparingLoadingScreens::get);
+            if (instance.isPresent()) {
+                return instance.get();
             }
         }
-    }
-
-    public int getInstanceWidth() {
-        assert this.client != null;
-        return this.client.getWindow().getWidth() / this.columns;
-    }
-
-    public int getInstanceHeight() {
-        assert this.client != null;
-        return this.client.getWindow().getHeight() / this.rows;
-    }
-
-    private SeedQueueLevelLoadingScreen getInstance(int row, int column) {
-        int index = row * this.columns + column;
-        if (index < 0 || index >= this.loadingScreens.length) {
-            return null;
+        if (this.layout.locked != null && this.lockedLoadingScreens != null) {
+            Optional<SeedQueuePreview> instance = this.getInstance(this.layout.locked, x, y).filter(index -> index < this.lockedLoadingScreens.size()).map(this.lockedLoadingScreens::get);
+            if (instance.isPresent()) {
+                return instance.get();
+            }
         }
-        return this.loadingScreens[row * this.columns + column];
+        return this.getInstance(this.layout.main, x, y).map(index -> this.mainLoadingScreens[index]).orElse(null);
     }
 
-    private SeedQueueLevelLoadingScreen getInstance(double mouseX, double mouseY) {
-        return this.getInstance(this.getRow(mouseY), this.getColumn(mouseX));
+    private Optional<Integer>  getInstance(Layout.Group group, double mouseX, double mouseY) {
+        if (group.cosmetic) {
+            return Optional.empty();
+        }
+        for (int i = group.size() - 1; i >= 0; i--) {
+            Layout.Pos pos = group.getPos(i);
+            if (mouseX >= pos.x && mouseX <= pos.x + pos.width && mouseY >= pos.y && mouseY <= pos.y + pos.height) {
+                return Optional.of(i);
+            }
+        }
+        return Optional.empty();
     }
 
-    private int getRow(double mouseY) {
-        return (int) (mouseY / (this.height / this.rows));
-    }
-
-    private int getColumn(double mouseX) {
-        return (int) (mouseX / (this.width / this.columns));
-    }
-
-    private boolean playInstance(SeedQueueLevelLoadingScreen instance) {
+    private boolean playInstance(SeedQueuePreview instance) {
         assert this.client != null;
         SeedQueueEntry seedQueueEntry = instance.getSeedQueueEntry();
         if (!instance.hasBeenRendered() || !seedQueueEntry.isReady() || SeedQueue.selectedEntry != null) {
@@ -297,17 +278,17 @@ public class SeedQueueWallScreen extends Screen {
         return true;
     }
 
-    private void lockInstance(SeedQueueLevelLoadingScreen instance) {
+    private void lockInstance(SeedQueuePreview instance) {
         if (instance.getSeedQueueEntry().lock()) {
             this.playSound(SeedQueueSounds.LOCK_INSTANCE);
         }
     }
 
-    private boolean resetInstance(SeedQueueLevelLoadingScreen instance) {
+    private boolean resetInstance(SeedQueuePreview instance) {
         return this.resetInstance(instance, false);
     }
 
-    private boolean resetInstance(SeedQueueLevelLoadingScreen instance, boolean ignoreLock) {
+    private boolean resetInstance(SeedQueuePreview instance, boolean ignoreLock) {
         if (instance == null) {
             return false;
         }
@@ -320,9 +301,13 @@ public class SeedQueueWallScreen extends Screen {
             seedQueueEntry.discard();
         }
 
-        for (int i = 0; i < this.loadingScreens.length; i++) {
-            if (this.loadingScreens[i] == instance) {
-                this.loadingScreens[i] = null;
+        for (int i = 0; i < this.mainLoadingScreens.length; i++) {
+            if (this.mainLoadingScreens[i] == instance) {
+                this.mainLoadingScreens[i] = null;
+            }
+            this.preparingLoadingScreens.remove(instance);
+            if (this.lockedLoadingScreens != null) {
+                this.lockedLoadingScreens.remove(instance);
             }
         }
         if (!SeedQueue.config.lazilyClearWorldRenderers) {
@@ -333,20 +318,8 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void resetAllInstances() {
-        for (SeedQueueLevelLoadingScreen instance : this.loadingScreens) {
+        for (SeedQueuePreview instance : this.mainLoadingScreens) {
             this.resetInstance(instance);
-        }
-    }
-
-    private void resetRow(int row) {
-        for (int column = 0; column < this.columns; column++) {
-            this.resetInstance(this.getInstance(row, column));
-        }
-    }
-
-    private void resetColumn(int column) {
-        for (int row = 0; row < this.rows; row++) {
-            this.resetInstance(this.getInstance(row, column));
         }
     }
 
@@ -365,26 +338,46 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void updatePreviews() {
-        List<SeedQueueLevelLoadingScreen> readyInstances = this.backupLoadingScreens.stream().filter(SeedQueueLevelLoadingScreen::shouldRender).collect(Collectors.toList());
-        for (int i = 0; i < this.loadingScreens.length && !readyInstances.isEmpty(); i++) {
-            if (this.loadingScreens[i] == null) {
-                this.backupLoadingScreens.remove(this.loadingScreens[i] = readyInstances.remove(0));
+        if (this.lockedLoadingScreens != null) {
+            for (int i = 0; i < this.mainLoadingScreens.length; i++) {
+                SeedQueuePreview instance = this.mainLoadingScreens[i];
+                if (instance != null && instance.getSeedQueueEntry().isLocked()) {
+                    this.lockedLoadingScreens.add(instance);
+                    this.mainLoadingScreens[i] = null;
+                }
+            }
+            for (SeedQueuePreview instance : this.preparingLoadingScreens) {
+                if (instance.getSeedQueueEntry().isLocked()) {
+                    this.lockedLoadingScreens.add(instance);
+                }
+            }
+            this.preparingLoadingScreens.removeAll(this.lockedLoadingScreens);
+        }
+
+        this.preparingLoadingScreens.sort(Comparator.comparing(SeedQueuePreview::shouldRender, Comparator.reverseOrder()));
+
+        for (int i = 0; i < this.mainLoadingScreens.length && !this.preparingLoadingScreens.isEmpty() && this.preparingLoadingScreens.get(0).shouldRender(); i++) {
+            if (this.mainLoadingScreens[i] == null) {
+                this.preparingLoadingScreens.remove(this.mainLoadingScreens[i] = this.preparingLoadingScreens.remove(0));
             }
         }
 
         List<SeedQueueEntry> availableSeedQueueEntries = new ArrayList<>(SeedQueue.SEED_QUEUE);
-        availableSeedQueueEntries.removeAll(Arrays.stream(this.loadingScreens).filter(Objects::nonNull).map(SeedQueueLevelLoadingScreen::getSeedQueueEntry).collect(Collectors.toList()));
-        availableSeedQueueEntries.removeAll(this.backupLoadingScreens.stream().map(SeedQueueLevelLoadingScreen::getSeedQueueEntry).collect(Collectors.toList()));
+        availableSeedQueueEntries.removeAll(Arrays.stream(this.mainLoadingScreens).filter(Objects::nonNull).map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
+        availableSeedQueueEntries.removeAll(this.preparingLoadingScreens.stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
+        if (this.lockedLoadingScreens != null) {
+            availableSeedQueueEntries.removeAll(this.lockedLoadingScreens.stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
+        }
         availableSeedQueueEntries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldGenerationProgressTracker() == null);
         availableSeedQueueEntries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldPreviewProperties() == null);
 
         int previewsSetup = 0;
-        int backgroundCapacity = SeedQueue.config.backgroundPreviews + (int) Arrays.stream(this.loadingScreens).filter(Objects::isNull).count();
+        int backgroundCapacity = SeedQueue.config.backgroundPreviews + (int) Arrays.stream(this.mainLoadingScreens).filter(Objects::isNull).count();
         for (SeedQueueEntry entry : availableSeedQueueEntries) {
-            if (this.backupLoadingScreens.size() >= backgroundCapacity) {
+            if (this.preparingLoadingScreens.size() >= backgroundCapacity) {
                 break;
             }
-            this.backupLoadingScreens.add(new SeedQueueLevelLoadingScreen(this, entry));
+            this.preparingLoadingScreens.add(new SeedQueuePreview(this, entry));
             previewsSetup++;
 
             if (previewsSetup >= SeedQueue.config.previewSetupBuffer) {
@@ -407,7 +400,7 @@ public class SeedQueueWallScreen extends Screen {
         if (!this.isBenchmarking()) {
             return;
         }
-        for (SeedQueueLevelLoadingScreen instance : this.loadingScreens) {
+        for (SeedQueuePreview instance : this.mainLoadingScreens) {
             if (this.resetInstance(instance, true)) {
                 this.benchmarkedSeeds++;
                 if (this.benchmarkedSeeds == SeedQueue.config.benchmarkResets) {
@@ -485,5 +478,124 @@ public class SeedQueueWallScreen extends Screen {
 
     private static ClientWorld getWorld(WorldRenderer worldRenderer) {
         return ((WorldRendererAccessor) worldRenderer).seedQueue$getWorld();
+    }
+
+    public static class Layout {
+        @NotNull
+        private final Group main;
+        @Nullable
+        private final Group locked;
+        private final Group[] more;
+
+        public Layout(@NotNull Group main) {
+            this(main, null, new Group[0]);
+        }
+
+        public Layout(@NotNull Group main, @Nullable Group locked, Group[] more) {
+            this.main = main;
+            this.locked = locked;
+            this.more = more;
+
+            if (this.main.cosmetic) {
+                throw new IllegalStateException("Failed to create SeedQueue Wall Layout. Main Group may not be cosmetic!");
+            }
+        }
+
+        public static Layout grid(int rows, int columns, int width, int height) {
+            return new Layout(Group.grid(rows, columns, 0, 0, width, height, false));
+        }
+
+        public static Layout fromJson(JsonObject jsonObject) throws JsonParseException {
+            return new Layout(Group.fromJson(jsonObject.getAsJsonObject("main")), jsonObject.has("locked") ? Group.fromJson(jsonObject.getAsJsonObject("locked")) : null, jsonObject.has("more") ? Group.fromJson(jsonObject.getAsJsonArray("more")) : new Group[0]);
+        }
+
+        public Pos getMorePos(int index) {
+            int i = 0;
+            for (Group group : this.more) {
+                if (index < group.size()) {
+                    return group.getPos(index - i);
+                }
+                i += group.size();
+            }
+            return null;
+        }
+
+        public int getMoreSize() {
+            int size = 0;
+            for (Group group : this.more) {
+                size += group.size();
+            }
+            return size;
+        }
+
+        public static class Group {
+            private final Pos[] positions;
+            private final boolean cosmetic;
+
+            public Group(Pos[] positions, boolean cosmetic) {
+                this.positions = positions;
+                this.cosmetic = cosmetic;
+            }
+
+            public Pos getPos(int index) {
+                if (index < 0 || index >= this.positions.length) {
+                    return null;
+                }
+                return this.positions[index];
+            }
+
+            public int size() {
+                return this.positions.length;
+            }
+
+            public static Group grid(int rows, int columns, int x, int y, int width, int height, boolean cosmetic) {
+                Pos[] positions = new Pos[rows * columns];
+                for (int row = 0; row < rows; row++) {
+                    for (int column = 0; column < columns; column++) {
+                        positions[row * columns + column] = new Pos(x + column * width / columns, y + row * height / rows, width / columns, height / rows);
+                    }
+                }
+                return new Group(positions, cosmetic);
+            }
+
+            public static Group[] fromJson(JsonArray jsonArray) {
+                Group[] groups = new Group[jsonArray.size()];
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    groups[i] = Group.fromJson(jsonArray.get(i).getAsJsonObject());
+                }
+                return groups;
+            }
+
+            public static Group fromJson(JsonObject jsonObject) throws JsonParseException {
+                boolean cosmetic = jsonObject.has("cosmetic") && jsonObject.get("cosmetic").getAsBoolean();
+                if (jsonObject.has("positions")) {
+                    JsonArray positionsArray = jsonObject.get("positions").getAsJsonArray();
+                    Pos[] positions = new Pos[positionsArray.size()];
+                    for (int i = 0; i < positionsArray.size(); i++) {
+                        positions[i] = (Pos.fromJson(positionsArray.get(i).getAsJsonObject()));
+                    }
+                    return new Group(positions, cosmetic);
+                }
+                return Group.grid(jsonObject.get("rows").getAsInt(), jsonObject.get("columns").getAsInt(), jsonObject.get("x").getAsInt(), jsonObject.get("y").getAsInt(), jsonObject.get("width").getAsInt(), jsonObject.get("height").getAsInt(), cosmetic);
+            }
+        }
+
+        public static class Pos {
+            public final int x;
+            public final int y;
+            public final int width;
+            public final int height;
+
+            public Pos(int x, int y, int width, int height) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+            }
+
+            private static Pos fromJson(JsonObject jsonObject) throws JsonParseException {
+                return new Pos(jsonObject.get("x").getAsInt(), jsonObject.get("y").getAsInt(), jsonObject.get("width").getAsInt(), jsonObject.get("height").getAsInt());
+            }
+        }
     }
 }
