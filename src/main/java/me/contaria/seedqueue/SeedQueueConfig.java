@@ -11,6 +11,7 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.toast.SystemToast;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.util.tinyfd.TinyFileDialogs;
@@ -20,6 +21,7 @@ import org.mcsr.speedrunapi.config.api.SpeedrunOption;
 import org.mcsr.speedrunapi.config.api.annotations.Config;
 import org.mcsr.speedrunapi.config.api.annotations.InitializeOn;
 
+import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -177,15 +179,24 @@ public class SeedQueueConfig implements SpeedrunConfig {
             return new SpeedrunConfigAPI.CustomOption.Builder<JsonObject>(config, this, field, idPrefix)
                     .fromJson(((option, config_, configStorage, optionField, jsonElement) -> option.set(jsonElement.isJsonNull() ? null : jsonElement.getAsJsonObject())))
                     .toJson(((option, config_, configStorage, optionField) -> Optional.ofNullable((JsonElement) option.get()).orElse(JsonNull.INSTANCE)))
-                    .createWidget((option, config_, configStorage, optionField) -> new ButtonWidget(0, 0, 150, 20, new LiteralText("Upload..."), button -> {
-                        String file = TinyFileDialogs.tinyfd_openFileDialog("Upload Custom Wall Layout", null, null, null, false);
-                        if (file != null) {
-                            try (JsonReader reader = new JsonReader(new FileReader(file))) {
-                                option.set(new JsonParser().parse(reader).getAsJsonObject());
-                            } catch (Exception e) {
-                                MinecraftClient.getInstance().getToastManager().add(new SystemToast(SystemToast.Type.PACK_COPY_FAILURE, new LiteralText("Failed to load!"), new LiteralText(e.getMessage())));
+                    .createWidget((option, config_, configStorage, optionField) -> new ButtonWidget(0, 0, 150, 20, this.getCustomLayoutText(option.get()), button -> {
+                        if (option.get() != null) {
+                            option.set(null);
+                        } else {
+                            String file = TinyFileDialogs.tinyfd_openFileDialog("Upload Custom Wall Layout", null, null, null, false);
+                            if (file != null) {
+                                try (JsonReader reader = new JsonReader(new FileReader(file))) {
+                                    JsonObject jsonObject = new JsonParser().parse(reader).getAsJsonObject();
+                                    if (!jsonObject.has("id")) {
+                                        jsonObject.add("id", new JsonPrimitive(new File(file).getName()));
+                                    }
+                                    option.set(jsonObject);
+                                } catch (Exception e) {
+                                    MinecraftClient.getInstance().getToastManager().add(new SystemToast(SystemToast.Type.PACK_COPY_FAILURE, new LiteralText("Failed to load!"), new LiteralText(e.getMessage())));
+                                }
                             }
                         }
+                        button.setMessage(this.getCustomLayoutText(option.get()));
                     }))
                     .build();
         }
@@ -222,6 +233,16 @@ public class SeedQueueConfig implements SpeedrunConfig {
                     .build();
         }
         return SpeedrunConfig.super.parseField(field, config, idPrefix);
+    }
+
+    private Text getCustomLayoutText(JsonObject customLayout) {
+        if (customLayout == null) {
+            return new TranslatableText("speedrunapi.config.seedqueue.option.customLayout.upload");
+        }
+        if (!customLayout.has("id")) {
+            customLayout.add("id", new JsonPrimitive("custom"));
+        }
+        return new LiteralText(customLayout.get("id").getAsString());
     }
 
     @Override
