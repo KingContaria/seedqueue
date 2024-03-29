@@ -38,6 +38,8 @@ public class SeedQueueWallScreen extends Screen {
 
     private static final Set<WorldRenderer> WORLD_RENDERERS = new HashSet<>();
 
+    private static final Identifier WALL_BACKGROUND = new Identifier("seedqueue", "textures/gui/wall/background.png");
+
     private final Screen createWorldScreen;
 
     protected final SeedQueueSettingsCache settingsCache;
@@ -105,7 +107,12 @@ public class SeedQueueWallScreen extends Screen {
         assert this.client != null;
         this.frame++;
         this.updatePreviews();
-        this.renderBackground(matrices);
+        if (this.client.getResourceManager().containsResource(WALL_BACKGROUND)) {
+            this.client.getTextureManager().bindTexture(WALL_BACKGROUND);
+            Screen.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
+        } else {
+            this.renderBackground(matrices);
+        }
 
         for (int i = 0; i < this.layout.main.size(); i++) {
             this.renderInstance(this.mainLoadingScreens[i], this.layout.main.getPos(i), matrices, delta);
@@ -528,8 +535,8 @@ public class SeedQueueWallScreen extends Screen {
 
         public LockTexture(Identifier id) throws IOException {
             this.id = id;
-            try (NativeImage lock = NativeImage.read(MinecraftClient.getInstance().getResourceManager().getResource(id).getInputStream())) {
-                this.aspectRatio = (double) lock.getWidth() / lock.getHeight();
+            try (NativeImage image = NativeImage.read(MinecraftClient.getInstance().getResourceManager().getResource(id).getInputStream())) {
+                this.aspectRatio = (double) image.getWidth() / image.getHeight();
             }
         }
     }
@@ -551,7 +558,7 @@ public class SeedQueueWallScreen extends Screen {
             this.more = more;
 
             if (this.main.cosmetic) {
-                throw new IllegalStateException("Failed to create SeedQueue Wall Layout. Main Group may not be cosmetic!");
+                throw new IllegalStateException("Main Group may not be cosmetic!");
             }
         }
 
