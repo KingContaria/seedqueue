@@ -72,12 +72,12 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public JsonObject customLayout = null;
 
     @Config.Category("wall")
-    @Config.Numbers.Whole.Bounds(min = 0, max = Integer.MAX_VALUE, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    @Config.Numbers.Whole.Bounds(min = 0, max = 16384, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     @Config.Numbers.TextField
     public int simulatedWindowWidth;
 
     @Config.Category("wall")
-    @Config.Numbers.Whole.Bounds(min = 0, max = Integer.MAX_VALUE, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    @Config.Numbers.Whole.Bounds(min = 0, max = 16384, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     @Config.Numbers.TextField
     public int simulatedWindowHeight;
 
