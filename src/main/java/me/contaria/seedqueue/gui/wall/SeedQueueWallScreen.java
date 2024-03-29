@@ -120,6 +120,9 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         for (SeedQueuePreview preparingInstance : this.preparingLoadingScreens) {
+            if (preparingInstance.hasBeenRendered()) {
+                continue;
+            }
             this.loadPreviewSettings(preparingInstance);
             preparingInstance.buildChunks();
         }
@@ -127,6 +130,7 @@ public class SeedQueueWallScreen extends Screen {
         this.loadPreviewSettings(this.settingsCache, 0);
     }
 
+    @SuppressWarnings("deprecation")
     private void renderInstance(SeedQueuePreview instance, Layout.Pos pos, MatrixStack matrices, float delta) {
         assert this.client != null;
         if (pos == null) {
@@ -141,7 +145,18 @@ public class SeedQueueWallScreen extends Screen {
             this.loadPreviewSettings(instance);
             instance.render(matrices, 0, 0, delta);
         } finally {
-            RenderSystem.viewport(0, 0, this.client.getWindow().getFramebufferWidth(), this.client.getWindow().getFramebufferHeight());
+            Window window = this.client.getWindow();
+            RenderSystem.viewport(0, 0, window.getFramebufferWidth(), window.getFramebufferHeight());
+
+            // see GameRenderer#render or WorldPreview#render
+            // we need this to reset RenderSystem.ortho after simulating a different window size
+            RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
+            RenderSystem.matrixMode(5889);
+            RenderSystem.loadIdentity();
+            RenderSystem.ortho(0.0D, (double) window.getFramebufferWidth() / window.getScaleFactor(), (double) window.getFramebufferHeight() / window.getScaleFactor(), 0.0D, 1000.0D, 3000.0D);
+            RenderSystem.matrixMode(5888);
+            RenderSystem.loadIdentity();
+            RenderSystem.translatef(0.0F, 0.0F, -2000.0F);
         }
         if (instance.getSeedQueueEntry().isLocked() && !this.lockTextures.isEmpty()) {
             if (instance.lock == null) {

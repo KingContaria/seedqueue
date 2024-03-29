@@ -15,6 +15,7 @@
     "client.MinecraftClientMixin",
     "client.render.LevelLoadingScreenMixin",
     "client.render.MinecraftClientMixin",
+    "client.render.WindowMixin",
     "client.render.WorldRendererMixin",
     "compat.antiresourcereload.MinecraftClientMixin",
     "compat.atum.AtumMixin",

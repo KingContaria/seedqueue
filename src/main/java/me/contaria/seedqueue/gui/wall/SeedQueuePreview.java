@@ -47,7 +47,15 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     private void initScreen() {
         try {
             WorldPreview.inPreview = true;
-            this.init(MinecraftClient.getInstance(), this.wallScreen.width, this.wallScreen.height);
+
+            MinecraftClient client = MinecraftClient.getInstance();
+            if (SeedQueue.config.hasSimulatedWindowSize()) {
+                // forceUnicodeFont is not being loaded from the settings cache because it is not included in SeedQueueSettingsCache.PREVIEW_SETTINGS
+                int scale = SeedQueue.config.calculateSimulatedScaleFactor((int) this.worldPreviewProperties.getSettingsCache().getValue("guiScale"), client.options.forceUnicodeFont);
+                this.init(client, SeedQueue.config.simulatedWindowWidth / scale, SeedQueue.config.simulatedWindowHeight / scale);
+            } else {
+                this.init(client, this.wallScreen.width, this.wallScreen.height);
+            }
 
             if (Boolean.TRUE.equals(SpeedrunConfigAPI.getConfigValue("standardsettings", "autoF3Esc"))) {
                 Text backToGame = new TranslatableText("menu.returnToGame");

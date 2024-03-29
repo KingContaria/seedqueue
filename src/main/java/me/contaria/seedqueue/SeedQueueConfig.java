@@ -70,7 +70,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("wall")
     public JsonObject customLayout = null;
-/*
+
     @Config.Category("wall")
     @Config.Numbers.Whole.Bounds(min = 0, max = Integer.MAX_VALUE, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     @Config.Numbers.TextField
@@ -80,8 +80,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Numbers.Whole.Bounds(min = 0, max = Integer.MAX_VALUE, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     @Config.Numbers.TextField
     public int simulatedWindowHeight;
-
- */
 
     @Config.Category("wall")
     public boolean bypassWall = false;
@@ -171,6 +169,22 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     public boolean shouldUseWall() {
         return this.canUseWall && this.maxCapacity > 0 && this.useWall;
+    }
+
+    public boolean hasSimulatedWindowSize() {
+        return this.simulatedWindowWidth != 0 && this.simulatedWindowHeight != 0;
+    }
+
+    // see Window#calculateScaleFactor
+    public int calculateSimulatedScaleFactor(int guiScale, boolean forceUnicodeFont) {
+        int scaleFactor = 1;
+        while(scaleFactor != guiScale && scaleFactor < this.simulatedWindowWidth && scaleFactor < this.simulatedWindowHeight && this.simulatedWindowWidth / (scaleFactor + 1) >= 320 && this.simulatedWindowHeight / (scaleFactor + 1) >= 240) {
+            scaleFactor++;
+        }
+        if (forceUnicodeFont) {
+            scaleFactor += guiScale % 2;
+        }
+        return scaleFactor;
     }
 
     @Override

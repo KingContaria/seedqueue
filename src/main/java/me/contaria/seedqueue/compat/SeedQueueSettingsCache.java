@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 
 public class SeedQueueSettingsCache extends StandardSettingsCache {
 
+    // while language and forceUnicodeFont also affect previews,
+    // they require reloading of some resources which is not feasible
     private static final Set<String> PREVIEW_SETTINGS = new HashSet<>(Arrays.asList(
             "biomeBlendRadius",
             "graphicsMode",
@@ -72,6 +74,15 @@ public class SeedQueueSettingsCache extends StandardSettingsCache {
         player.getDataTracker().set(PlayerEntityAccessor.getPLAYER_MODEL_PARTS(), (byte) playerModelPartsBitMask);
     }
 
+    public Object getValue(String option) {
+        for (Entry<?> entry : this.cache) {
+            if (option.equals(entry.setting.getID())) {
+                return entry.value;
+            }
+        }
+        return null;
+    }
+
     public boolean isCurrentSettings() {
         for (Entry<?> entry : this.cache) {
             if (!Objects.equals(entry.value, entry.setting.getOption())) {
@@ -84,7 +95,6 @@ public class SeedQueueSettingsCache extends StandardSettingsCache {
     public static SeedQueueSettingsCache create() {
         for (SeedQueueSettingsCache settingsCache : SeedQueue.SEED_QUEUE.stream().map(SeedQueueEntry::getWorldPreviewProperties).filter(Objects::nonNull).map(WorldPreviewProperties::getSettingsCache).filter(Objects::nonNull).collect(Collectors.toSet())) {
             if (settingsCache.isCurrentSettings()) {
-                System.out.println("test");
                 return settingsCache;
             }
         }

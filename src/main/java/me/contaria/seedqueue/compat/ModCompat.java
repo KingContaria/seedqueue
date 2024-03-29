@@ -29,6 +29,13 @@ public class ModCompat {
         }
     }
 
+    public static boolean worldpreview$isRenderingPreview() {
+        if (HAS_WORLDPREVIEW) {
+            return WorldPreviewCompat.isRenderingPreview();
+        }
+        return false;
+    }
+
     public static boolean worldpreview$kill(MinecraftServer server) {
         if (HAS_WORLDPREVIEW) {
             return WorldPreviewCompat.kill(server);

@@ -7,6 +7,7 @@ import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.options.Option;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.Packet;
@@ -38,7 +39,7 @@ public abstract class ServerChunkManagerMixin {
             )
     )
     private ClientWorld sendChunksToCorrectWorldPreview_inQueue(ClientWorld world) {
-        return this.getWorldPreviewProperties().map(WorldPreviewProperties::getWorld).orElse(this.world.getServer() == MinecraftClient.getInstance().getServer() ? world : null);
+        return this.getWorldPreviewProperties().map(WorldPreviewProperties::getWorld).orElse(this.isActiveServer() ? world : null);
     }
 
     @Dynamic
@@ -54,7 +55,7 @@ public abstract class ServerChunkManagerMixin {
             )
     )
     private ClientPlayerEntity sendChunksToCorrectWorldPreview_inQueue(ClientPlayerEntity player) {
-        return this.getWorldPreviewProperties().map(WorldPreviewProperties::getPlayer).orElse(this.world.getServer() == MinecraftClient.getInstance().getServer() ? player : null);
+        return this.getWorldPreviewProperties().map(WorldPreviewProperties::getPlayer).orElse(this.isActiveServer() ? player : null);
     }
 
     @Dynamic
@@ -70,7 +71,7 @@ public abstract class ServerChunkManagerMixin {
             )
     )
     private Camera sendChunksToCorrectWorldPreview_inQueue(Camera camera) {
-        return this.getWorldPreviewProperties().map(WorldPreviewProperties::getCamera).orElse(this.world.getServer() == MinecraftClient.getInstance().getServer() ? camera : null);
+        return this.getWorldPreviewProperties().map(WorldPreviewProperties::getCamera).orElse(this.isActiveServer() ? camera : null);
     }
 
     @Dynamic
@@ -87,11 +88,75 @@ public abstract class ServerChunkManagerMixin {
             remap = false
     )
     private Queue<Packet<?>> sendChunksToCorrectWorldPreview_inQueue(Queue<Packet<?>> packetQueue) {
-        return this.getWorldPreviewProperties().map(WorldPreviewProperties::getPacketQueue).orElse(this.world.getServer() == MinecraftClient.getInstance().getServer() ? packetQueue : null);
+        return this.getWorldPreviewProperties().map(WorldPreviewProperties::getPacketQueue).orElse(this.isActiveServer() ? packetQueue : null);
+    }
+
+    @Dynamic
+    @TargetHandler(
+            mixin = "me.voidxwalker.worldpreview.mixin.server.ServerChunkManagerMixin",
+            name = "updateFrustum"
+    )
+    @ModifyExpressionValue(
+            method = "@MixinSquared:Handler",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/client/options/GameOptions;fov:D"
+            )
+    )
+    private double modifyCullingFov_inQueue(double fov) {
+        if (!this.isActiveServer()) {
+            // trying to keep track of the FOV in the settings cache / standardsettings is unnecessarily complicated
+            // the majority of people will use quake pro with their personal FOV as fovOnWorldJoin anyway
+            return Option.FOV.getMax();
+        }
+        return fov;
+    }
+
+    @Dynamic
+    @TargetHandler(
+            mixin = "me.voidxwalker.worldpreview.mixin.server.ServerChunkManagerMixin",
+            name = "updateFrustum"
+    )
+    @ModifyExpressionValue(
+            method = "@MixinSquared:Handler",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/util/Window;getFramebufferWidth()I"
+            )
+    )
+    private int modifyCullingWindowWidth(int width) {
+        if (!this.isActiveServer() && SeedQueue.config.hasSimulatedWindowSize()) {
+            return SeedQueue.config.simulatedWindowWidth;
+        }
+        return width;
+    }
+
+    @Dynamic
+    @TargetHandler(
+            mixin = "me.voidxwalker.worldpreview.mixin.server.ServerChunkManagerMixin",
+            name = "updateFrustum"
+    )
+    @ModifyExpressionValue(
+            method = "@MixinSquared:Handler",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/util/Window;getFramebufferHeight()I"
+            )
+    )
+    private int modifyCullingWindowHeight(int height) {
+        if (!this.isActiveServer() && SeedQueue.config.hasSimulatedWindowSize()) {
+            return SeedQueue.config.simulatedWindowHeight;
+        }
+        return height;
     }
 
     @Unique
     private Optional<WorldPreviewProperties> getWorldPreviewProperties() {
         return Optional.ofNullable(SeedQueue.getEntry(this.world.getServer())).map(SeedQueueEntry::getWorldPreviewProperties);
+    }
+
+    @Unique
+    private boolean isActiveServer() {
+        return this.world.getServer() == MinecraftClient.getInstance().getServer();
     }
 }
