@@ -14,7 +14,6 @@ import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Identifier;
 import org.mcsr.speedrunapi.config.SpeedrunConfigAPI;
 
 import java.util.Arrays;
@@ -22,12 +21,12 @@ import java.util.Objects;
 
 public class SeedQueuePreview extends LevelLoadingScreen {
 
-    private static final Identifier LOCK = new Identifier("textures/item/barrier.png");
-
     private final SeedQueueWallScreen wallScreen;
     private final SeedQueueEntry seedQueueEntry;
     private final WorldPreviewProperties worldPreviewProperties;
     private WorldRenderer worldRenderer;
+
+    protected SeedQueueWallScreen.LockTexture lock;
 
     private int firstRenderFrame = Integer.MAX_VALUE;
     public int lastRenderFrame;
@@ -87,12 +86,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
             // the suppressed call usually renders a light blue overlay over the entire screen,
             // instead we draw it onto the preview ourselves
             DrawableHelper.fill(matrices, 0, 0, this.client.getWindow().getScaledWidth(), this.client.getWindow().getScaledHeight(), -5323025);
-
             super.render(matrices, mouseX, mouseY, delta);
-
-            if (this.seedQueueEntry.isLocked()) {
-                this.renderLock(matrices);
-            }
         } finally {
             WorldPreview.worldRenderer = worldPreviewRenderer;
             WorldPreview.clear();
@@ -103,12 +97,6 @@ public class SeedQueuePreview extends LevelLoadingScreen {
             this.firstRenderFrame = this.wallScreen.frame;
         }
         this.lastRenderFrame = this.wallScreen.frame;
-    }
-
-    public void renderLock(MatrixStack matrices) {
-        assert this.client != null;
-        this.client.getTextureManager().bindTexture(LOCK);
-        drawTexture(matrices, 5, 5, 0.0F, 0.0F, 128, 128, 128, 128);
     }
 
     public void buildChunks() {

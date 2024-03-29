@@ -19,15 +19,18 @@ import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.sound.PositionedSoundInstance;
+import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.LiteralText;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,14 +40,16 @@ public class SeedQueueWallScreen extends Screen {
 
     private final Screen createWorldScreen;
 
+    protected final SeedQueueSettingsCache settingsCache;
+    private SeedQueueSettingsCache lastSettingsCache;
+
     private Layout layout;
     private SeedQueuePreview[] mainLoadingScreens;
     @Nullable
     private List<SeedQueuePreview> lockedLoadingScreens;
     private List<SeedQueuePreview> preparingLoadingScreens;
 
-    protected final SeedQueueSettingsCache settingsCache;
-    private SeedQueueSettingsCache lastSettingsCache;
+    private List<LockTexture> lockTextures;
 
     protected int frame;
     private int nextSoundFrame;
@@ -66,6 +71,7 @@ public class SeedQueueWallScreen extends Screen {
         this.mainLoadingScreens = new SeedQueuePreview[this.layout.main.size()];
         this.lockedLoadingScreens = this.layout.locked != null ? new ArrayList<>() : null;
         this.preparingLoadingScreens = new ArrayList<>();
+        this.lockTextures = this.createLockTextures();
     }
 
     private Layout createLayout() {
@@ -77,7 +83,21 @@ public class SeedQueueWallScreen extends Screen {
                 SeedQueue.LOGGER.warn("Failed to parse custom wall layout!", e);
             }
         }
-        return Layout.grid(SeedQueue.config.rows, SeedQueue.config.columns, this.client.getWindow().getWidth(), this.client.getWindow().getHeight());
+        return Layout.grid(SeedQueue.config.rows, SeedQueue.config.columns, this.client.getWindow().getFramebufferWidth(), this.client.getWindow().getFramebufferHeight());
+    }
+
+    private List<LockTexture> createLockTextures() {
+        assert this.client != null;
+        List<LockTexture> lockTextures = new ArrayList<>();
+        Identifier lock;
+        while (this.client.getResourceManager().containsResource(lock = new Identifier("seedqueue", "textures/gui/wall/lock-" + lockTextures.size() + ".png"))) {
+            try {
+                lockTextures.add(new LockTexture(lock));
+            } catch (IOException e) {
+                SeedQueue.LOGGER.warn("Failed to read lock image texture: {}", lock, e);
+            }
+        }
+        return lockTextures;
     }
 
     @Override
@@ -87,20 +107,16 @@ public class SeedQueueWallScreen extends Screen {
         this.updatePreviews();
         this.renderBackground(matrices);
 
-        try {
-            for (int i = 0; i < this.layout.main.size(); i++) {
-                this.renderInstance(this.mainLoadingScreens[i], this.layout.main.getPos(i), matrices, delta);
+        for (int i = 0; i < this.layout.main.size(); i++) {
+            this.renderInstance(this.mainLoadingScreens[i], this.layout.main.getPos(i), matrices, delta);
+        }
+        if (this.layout.locked != null && this.lockedLoadingScreens != null) {
+            for (int i = 0; i < this.layout.locked.size() && i < this.lockedLoadingScreens.size(); i++) {
+                this.renderInstance(this.lockedLoadingScreens.get(i), this.layout.locked.getPos(i), matrices, delta);
             }
-            if (this.layout.locked != null && this.lockedLoadingScreens != null) {
-                for (int i = 0; i < this.layout.locked.size() && i < this.lockedLoadingScreens.size(); i++) {
-                    this.renderInstance(this.lockedLoadingScreens.get(i), this.layout.locked.getPos(i), matrices, delta);
-                }
-            }
-            for (int i = 0; i < this.layout.getMoreSize() && i < this.preparingLoadingScreens.size(); i++) {
-                this.renderInstance(this.preparingLoadingScreens.get(i), this.layout.getMorePos(i), matrices, delta);
-            }
-        } finally {
-            RenderSystem.viewport(0, 0, this.client.getWindow().getFramebufferWidth(), this.client.getWindow().getFramebufferHeight());
+        }
+        for (int i = 0; i < this.layout.getMoreSize() && i < this.preparingLoadingScreens.size(); i++) {
+            this.renderInstance(this.preparingLoadingScreens.get(i), this.layout.getMorePos(i), matrices, delta);
         }
 
         for (SeedQueuePreview preparingInstance : this.preparingLoadingScreens) {
@@ -116,13 +132,25 @@ public class SeedQueueWallScreen extends Screen {
         if (pos == null) {
             return;
         }
-        RenderSystem.viewport(pos.x, this.client.getWindow().getFramebufferHeight() - pos.height - pos.y, pos.width, pos.height);
-        if (instance == null || !instance.shouldRender()) {
-            //this.renderBackground(matrices);
-            return;
+        try {
+            RenderSystem.viewport(pos.x, this.client.getWindow().getFramebufferHeight() - pos.height - pos.y, pos.width, pos.height);
+            if (instance == null || !instance.shouldRender()) {
+                //this.renderBackground(matrices);
+                return;
+            }
+            this.loadPreviewSettings(instance);
+            instance.render(matrices, 0, 0, delta);
+        } finally {
+            RenderSystem.viewport(0, 0, this.client.getWindow().getFramebufferWidth(), this.client.getWindow().getFramebufferHeight());
         }
-        this.loadPreviewSettings(instance);
-        instance.render(matrices, 0, 0, delta);
+        if (instance.getSeedQueueEntry().isLocked() && !this.lockTextures.isEmpty()) {
+            if (instance.lock == null) {
+                instance.lock = this.lockTextures.get(new Random().nextInt(this.lockTextures.size()));
+            }
+            this.client.getTextureManager().bindTexture(instance.lock.id);
+            double scale = this.client.getWindow().getScaleFactor();
+            Screen.drawTexture(matrices, (int) (pos.x / scale), (int) (pos.y / scale), 0.0f, 0.0f, (int) (pos.height * instance.lock.aspectRatio / scale), (int) (pos.height / scale), (int) (pos.height * instance.lock.aspectRatio / scale), (int) (pos.height / scale));
+        }
     }
 
     private void loadPreviewSettings(SeedQueuePreview instance) {
@@ -264,18 +292,17 @@ public class SeedQueueWallScreen extends Screen {
         return Optional.empty();
     }
 
-    private boolean playInstance(SeedQueuePreview instance) {
+    private void playInstance(SeedQueuePreview instance) {
         assert this.client != null;
         SeedQueueEntry seedQueueEntry = instance.getSeedQueueEntry();
         if (!instance.hasBeenRendered() || !seedQueueEntry.isReady() || SeedQueue.selectedEntry != null) {
-            return false;
+            return;
         }
         SeedQueue.selectedEntry = seedQueueEntry;
         if (!SeedQueue.config.lazilyClearWorldRenderers) {
             clearWorldRenderer(getWorldRenderer(instance.getWorldPreviewProperties().getWorld()));
         }
         this.client.openScreen(this.createWorldScreen);
-        return true;
     }
 
     private void lockInstance(SeedQueuePreview instance) {
@@ -284,8 +311,8 @@ public class SeedQueueWallScreen extends Screen {
         }
     }
 
-    private boolean resetInstance(SeedQueuePreview instance) {
-        return this.resetInstance(instance, false);
+    private void resetInstance(SeedQueuePreview instance) {
+        this.resetInstance(instance, false);
     }
 
     private boolean resetInstance(SeedQueuePreview instance, boolean ignoreLock) {
@@ -478,6 +505,18 @@ public class SeedQueueWallScreen extends Screen {
 
     private static ClientWorld getWorld(WorldRenderer worldRenderer) {
         return ((WorldRendererAccessor) worldRenderer).seedQueue$getWorld();
+    }
+
+    public static class LockTexture {
+        private final Identifier id;
+        private final double aspectRatio;
+
+        public LockTexture(Identifier id) throws IOException {
+            this.id = id;
+            try (NativeImage lock = NativeImage.read(MinecraftClient.getInstance().getResourceManager().getResource(id).getInputStream())) {
+                this.aspectRatio = (double) lock.getWidth() / lock.getHeight();
+            }
+        }
     }
 
     public static class Layout {
