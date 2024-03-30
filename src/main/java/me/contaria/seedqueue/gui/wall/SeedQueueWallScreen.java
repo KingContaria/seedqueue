@@ -200,6 +200,10 @@ public class SeedQueueWallScreen extends Screen {
             this.resetAllInstances();
         }
 
+        if (SeedQueueKeyBindings.playNextLock.matchesMouse(button)) {
+            SeedQueue.getEntryMatching(SeedQueueEntry::isLocked).ifPresent(this::playInstance);
+        }
+
         SeedQueuePreview instance = this.getInstance(mouseX, mouseY);
         if (instance == null) {
             return true;
@@ -245,6 +249,10 @@ public class SeedQueueWallScreen extends Screen {
 
         if (SeedQueueKeyBindings.resetAll.matchesKey(keyCode, scanCode)) {
             this.resetAllInstances();
+        }
+
+        if (SeedQueueKeyBindings.playNextLock.matchesKey(keyCode, scanCode)) {
+            SeedQueue.getEntryMatching(SeedQueueEntry::isLocked).ifPresent(this::playInstance);
         }
 
         SeedQueuePreview instance = this.getInstance(mouseX, mouseY);
@@ -301,7 +309,7 @@ public class SeedQueueWallScreen extends Screen {
         return this.getInstance(this.layout.main, x, y).map(index -> this.mainLoadingScreens[index]).orElse(null);
     }
 
-    private Optional<Integer>  getInstance(Layout.Group group, double mouseX, double mouseY) {
+    private Optional<Integer> getInstance(Layout.Group group, double mouseX, double mouseY) {
         if (group.cosmetic) {
             return Optional.empty();
         }
@@ -315,14 +323,22 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void playInstance(SeedQueuePreview instance) {
+        if (instance.hasBeenRendered()) {
+            this.playInstance(instance.getSeedQueueEntry());
+        }
+    }
+
+    private void playInstance(SeedQueueEntry entry) {
         assert this.client != null;
-        SeedQueueEntry seedQueueEntry = instance.getSeedQueueEntry();
-        if (!instance.hasBeenRendered() || !seedQueueEntry.isReady() || SeedQueue.selectedEntry != null) {
+        if (!entry.isReady() || SeedQueue.selectedEntry != null) {
             return;
         }
-        SeedQueue.selectedEntry = seedQueueEntry;
+        SeedQueue.selectedEntry = entry;
         if (!SeedQueue.config.lazilyClearWorldRenderers) {
-            clearWorldRenderer(getWorldRenderer(instance.getWorldPreviewProperties().getWorld()));
+            WorldPreviewProperties wpProperties = entry.getWorldPreviewProperties();
+            if (wpProperties != null) {
+                clearWorldRenderer(getWorldRenderer(wpProperties.getWorld()));
+            }
         }
         this.client.openScreen(this.createWorldScreen);
     }

@@ -13,8 +13,7 @@
   "seedqueue.key.reset": "Reset Instance",
   "seedqueue.key.focusReset": "Focus Reset",
   "seedqueue.key.resetAll": "Reset all Instances",
-  "seedqueue.key.resetRow": "Reset Instance Row",
-  "seedqueue.key.resetColumn": "Reset Instance Column",
+  "seedqueue.key.playNextLock": "Play locked Instance",
 
   "speedrunapi.config.seedqueue.category.queue": "Queue Settings",
   "speedrunapi.config.seedqueue.category.chunkmap": "Chunkmap Settings",
