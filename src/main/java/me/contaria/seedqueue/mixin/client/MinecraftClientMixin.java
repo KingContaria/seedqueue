@@ -106,12 +106,11 @@ public abstract class MinecraftClientMixin {
         return original.call(client, modifiable, function, function4, bl, session);
     }
 
-    @SuppressWarnings({"MixinAnnotationTarget", "UnresolvedMixinReference", "InvalidInjectorMethodSignature"}) // MCDev struggles with targeting constructors, this is correct
     @WrapOperation(
             method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
             at = @At(
                     value = "NEW",
-                    target = "Lcom/mojang/authlib/yggdrasil/YggdrasilAuthenticationService;",
+                    target = "(Ljava/net/Proxy;Ljava/lang/String;)Lcom/mojang/authlib/yggdrasil/YggdrasilAuthenticationService;",
                     remap = false
             )
     )
@@ -152,12 +151,11 @@ public abstract class MinecraftClientMixin {
         return original.call(service);
     }
 
-    @SuppressWarnings({"MixinAnnotationTarget", "UnresolvedMixinReference", "InvalidInjectorMethodSignature"}) // MCDev struggles with targeting constructors, this is correct
     @WrapOperation(
             method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
             at = @At(
                     value = "NEW",
-                    target = "Lnet/minecraft/util/UserCache;"
+                    target = "(Lcom/mojang/authlib/GameProfileRepository;Ljava/io/File;)Lnet/minecraft/util/UserCache;"
             )
     )
     private UserCache loadUserCache(GameProfileRepository profileRepository, File cacheFile, Operation<UserCache> original) {

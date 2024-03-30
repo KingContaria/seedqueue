@@ -53,12 +53,9 @@ dependencies {
 	}
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/standardsettings
-	modCompileOnly ("com.github.KingContaria:standardsettings:0820698bc5") {
+	modCompileOnly ("com.github.KingContaria:standardsettings:9ae35522bd") {
 		transitive = false
 	}
-
-	// not necessary for building since all the MixinSquared mixins do not reference any StandardSettings classes directly
-	//modCompileOnly files("libs/standardsettings-1.2.2+1.16.1.jar")
 }
 
 loom {
