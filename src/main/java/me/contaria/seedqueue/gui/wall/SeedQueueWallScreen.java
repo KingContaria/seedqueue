@@ -427,38 +427,32 @@ public class SeedQueueWallScreen extends Screen {
             }
         }
 
-        List<SeedQueueEntry> availableSeedQueueEntries = new ArrayList<>(SeedQueue.SEED_QUEUE);
-        availableSeedQueueEntries.removeAll(Arrays.stream(this.mainLoadingScreens).filter(Objects::nonNull).map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
-        availableSeedQueueEntries.removeAll(this.preparingLoadingScreens.stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
+        int urgent = (int) Arrays.stream(this.mainLoadingScreens).filter(Objects::isNull).count();
+        int capacity = SeedQueue.config.backgroundPreviews + urgent;
+        if (this.preparingLoadingScreens.size() < capacity) {
+            int budget = Math.max(1, urgent);
+            for (SeedQueueEntry entry : this.getAvailableSeedQueueEntries()) {
+                this.preparingLoadingScreens.add(new SeedQueuePreview(this, entry));
+                if (--budget <= 0) {
+                    break;
+                }
+            }
+        } else {
+            clearWorldRenderer(getClearableWorldRenderer());
+        }
+    }
+
+    private List<SeedQueueEntry> getAvailableSeedQueueEntries() {
+        List<SeedQueueEntry> entries = new ArrayList<>(SeedQueue.SEED_QUEUE);
+        entries.removeAll(Arrays.stream(this.mainLoadingScreens).filter(Objects::nonNull).map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
+        entries.removeAll(this.preparingLoadingScreens.stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
         if (this.lockedLoadingScreens != null) {
-            availableSeedQueueEntries.removeAll(this.lockedLoadingScreens.stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
+            entries.removeAll(this.lockedLoadingScreens.stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
         }
-        availableSeedQueueEntries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldGenerationProgressTracker() == null);
-        availableSeedQueueEntries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldPreviewProperties() == null);
-
-        int previewsSetup = 0;
-        int backgroundCapacity = SeedQueue.config.backgroundPreviews + (int) Arrays.stream(this.mainLoadingScreens).filter(Objects::isNull).count();
-        for (SeedQueueEntry entry : availableSeedQueueEntries) {
-            if (this.preparingLoadingScreens.size() >= backgroundCapacity) {
-                break;
-            }
-            this.preparingLoadingScreens.add(new SeedQueuePreview(this, entry));
-            previewsSetup++;
-
-            if (previewsSetup >= SeedQueue.config.previewSetupBuffer) {
-                return;
-            }
-        }
-
-        WorldRenderer worldRendererToClear;
-        while ((worldRendererToClear = getClearableWorldRenderer()) != null) {
-            worldRendererToClear.setWorld(null);
-            previewsSetup++;
-
-            if (previewsSetup >= SeedQueue.config.previewSetupBuffer) {
-                return;
-            }
-        }
+        entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldGenerationProgressTracker() == null);
+        entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldPreviewProperties() == null);
+        entries.sort(Comparator.comparing(SeedQueueEntry::isLocked, Comparator.reverseOrder()));
+        return entries;
     }
 
     public void tickBenchmark() {

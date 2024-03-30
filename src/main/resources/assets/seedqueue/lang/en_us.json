@@ -55,8 +55,6 @@
   "speedrunapi.config.seedqueue.option.chunkUpdateThreads": "Chunk Update Threads",
   "speedrunapi.config.seedqueue.option.chunkUpdateThreads.description": "Sets the number of Sodium Chunk Update Threads per preview on the Wall Screen.",
   "speedrunapi.config.seedqueue.option.chunkUpdateThreads.value.0": "Default",
-  "speedrunapi.config.seedqueue.option.previewSetupBuffer": "Preview Setup Limit",
-  "speedrunapi.config.seedqueue.option.previewSetupBuffer.description": "Limits the number of previews that can be started per frame on the Wall Screen.\n§6It is recommended to not set this value higher than the amount of previews shown on your wall.",
   "speedrunapi.config.seedqueue.option.previewSetupBuffer.value.0": "No Limit",
   "speedrunapi.config.seedqueue.option.lazilyClearWorldRenderers": "Lazy Preview Clearing",
   "speedrunapi.config.seedqueue.option.lazilyClearWorldRenderers.description": "Clears out reset previews lazily, this won't have any visual effect. Enabling this helps reduce lag spikes when resetting many previews at once.",
