@@ -83,23 +83,14 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         assert this.client != null;
-        WorldRenderer worldPreviewRenderer = WorldPreview.worldRenderer;
 
-        WorldPreview.worldRenderer = this.getWorldRenderer();
-        this.worldPreviewProperties.apply();
-        WorldPreview.inPreview = true;
-
-        try {
+        this.runAsPreview(() -> {
             // related to WorldRendererMixin#doNotClearOnWallScreen
             // the suppressed call usually renders a light blue overlay over the entire screen,
             // instead we draw it onto the preview ourselves
-            DrawableHelper.fill(matrices, 0, 0, this.client.getWindow().getScaledWidth(), this.client.getWindow().getScaledHeight(), -5323025);
+            DrawableHelper.fill(matrices, 0, 0, this.width, this.height, -5323025);
             super.render(matrices, mouseX, mouseY, delta);
-        } finally {
-            WorldPreview.worldRenderer = worldPreviewRenderer;
-            WorldPreview.clear();
-            WorldPreview.inPreview = false;
-        }
+        });
 
         if (!this.hasBeenRendered()) {
             this.firstRenderFrame = this.wallScreen.frame;
@@ -108,18 +99,21 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     }
 
     public void buildChunks() {
-        WorldRenderer worldPreviewRenderer = WorldPreview.worldRenderer;
+        this.runAsPreview(() -> WorldPreview.runAsPreview(() -> {
+            WorldPreview.tickPackets();
+            WorldPreview.tickEntities();
+            this.worldPreviewProperties.buildChunks();
+        }));
+    }
 
+    private void runAsPreview(Runnable runnable) {
+        WorldRenderer worldPreviewRenderer = WorldPreview.worldRenderer;
         WorldPreview.worldRenderer = this.getWorldRenderer();
         this.worldPreviewProperties.apply();
         WorldPreview.inPreview = true;
 
         try {
-            WorldPreview.runAsPreview(() -> {
-                WorldPreview.tickPackets();
-                WorldPreview.tickEntities();
-                this.worldPreviewProperties.buildChunks();
-            });
+            runnable.run();
         } finally {
             WorldPreview.worldRenderer = worldPreviewRenderer;
             WorldPreview.clear();
