@@ -33,13 +33,13 @@ public abstract class MinecraftClientMixin {
             method = "render",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/util/profiler/Profiler;push(Ljava/lang/String;)V",
+                    target = "Lnet/minecraft/util/profiler/Profiler;pop()V",
                     ordinal = 0
             ),
             slice = @Slice(
                     from = @At(
-                            value = "CONSTANT",
-                            args = "stringValue=blit"
+                            value = "INVOKE",
+                            target = "Lnet/minecraft/client/render/GameRenderer;render(FJZ)V"
                     )
             )
     )
@@ -57,7 +57,7 @@ public abstract class MinecraftClientMixin {
             }
             WorldGenerationProgressTracker tracker = seedQueueEntry.getWorldGenerationProgressTracker();
             if (tracker != null) {
-                if (x + tracker.getSize() * scale > this.window.getWidth() - 3) {
+                if (x + tracker.getSize() * scale > this.window.getScaledWidth() - 3) {
                     x = 3;
                     y += tracker.getSize() * scale + 3;
                 }
