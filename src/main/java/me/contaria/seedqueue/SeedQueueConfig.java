@@ -92,11 +92,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Access(setter = "setChunkUpdateThreads")
     public int chunkUpdateThreads = 0;
 
-    // this option is for removal and should just always be true,
-    // before that I want to implement a system that if no background preview is set up in a frame, it clears one worldrenderer instead
-    @Config.Category("performance")
-    public boolean lazilyClearWorldRenderers = false;
-
     @Config.Category("performance")
     @Config.Numbers.Whole.Bounds(min = 0, max = 50, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public int backgroundPreviews = 0;

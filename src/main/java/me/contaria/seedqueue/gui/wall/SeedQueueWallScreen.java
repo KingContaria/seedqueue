@@ -334,12 +334,6 @@ public class SeedQueueWallScreen extends Screen {
             return;
         }
         SeedQueue.selectedEntry = entry;
-        if (!SeedQueue.config.lazilyClearWorldRenderers) {
-            WorldPreviewProperties wpProperties = entry.getWorldPreviewProperties();
-            if (wpProperties != null) {
-                clearWorldRenderer(getWorldRenderer(wpProperties.getWorld()));
-            }
-        }
         this.client.openScreen(this.createWorldScreen);
     }
 
@@ -374,9 +368,6 @@ public class SeedQueueWallScreen extends Screen {
             if (this.lockedLoadingScreens != null) {
                 this.lockedLoadingScreens.remove(instance);
             }
-        }
-        if (!SeedQueue.config.lazilyClearWorldRenderers) {
-            clearWorldRenderer(getWorldRenderer(instance.getWorldPreviewProperties().getWorld()));
         }
         this.playSound(SeedQueueSounds.RESET_INSTANCE);
         return true;
