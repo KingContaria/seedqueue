@@ -88,11 +88,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean unlimitedWallFPS = false;
 
     @Config.Category("performance")
-    @Config.Numbers.Whole.Bounds(min = 0, max = 8, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    @Config.Access(setter = "setChunkUpdateThreads")
-    public int chunkUpdateThreads = 0;
-
-    @Config.Category("performance")
     @Config.Numbers.Whole.Bounds(min = 0, max = 50, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public int backgroundPreviews = 0;
 
@@ -121,6 +116,15 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.MAX_PRIORITY)
     public int wallExecutorThreadPriority = Thread.NORM_PRIORITY;
+
+    @Config.Category("threading")
+    @Config.Numbers.Whole.Bounds(min = 0, max = 8, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    @Config.Access(setter = "setChunkUpdateThreads")
+    public int chunkUpdateThreads = 0;
+
+    @Config.Category("threading")
+    @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.MAX_PRIORITY)
+    public int chunkUpdateThreadPriority = 3;
 
     @Config.Category("debug")
     public boolean useWatchdog = false;
