@@ -442,7 +442,9 @@ public class SeedQueueWallScreen extends Screen {
         }
         entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldGenerationProgressTracker() == null);
         entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldPreviewProperties() == null);
-        entries.sort(Comparator.comparing(SeedQueueEntry::isLocked, Comparator.reverseOrder()));
+        if (this.lockedLoadingScreens != null) {
+            entries.sort(Comparator.comparing(SeedQueueEntry::isLocked, Comparator.reverseOrder()));
+        }
         return entries;
     }
 
