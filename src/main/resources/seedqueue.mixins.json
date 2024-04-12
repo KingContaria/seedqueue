@@ -40,5 +40,8 @@
     "server.synchronization.ScheduledTickMixin",
     "server.synchronization.WeightedBlockStateProviderMixin"
   ],
-  "plugin": "org.mcsr.speedrunapi.mixin_plugin.SpeedrunMixinConfigPlugin"
+  "plugin": "org.mcsr.speedrunapi.mixin_plugin.SpeedrunMixinConfigPlugin",
+  "mixins": [
+    "client.debug.DebugHudMixin"
+  ]
 }

@@ -5,21 +5,22 @@ import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.Version;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Predicate;
 
 public class SeedQueue implements ClientModInitializer {
 
     public static final Logger LOGGER = LogManager.getLogger();
+    public static final Version VERSION = FabricLoader.getInstance().getModContainer("seedqueue").orElseThrow(IllegalStateException::new).getMetadata().getVersion();
     public static final Object LOCK = new Object();
     public static final Queue<SeedQueueEntry> SEED_QUEUE = new LinkedBlockingQueue<>();
     public static SeedQueueEntry currentEntry;
@@ -229,5 +230,18 @@ public class SeedQueue implements ClientModInitializer {
         if (isActive()) {
             thread.ping();
         }
+    }
+
+    public static List<String> getDebugText() {
+        List<String> debugText = new ArrayList<>();
+        debugText.add("");
+        debugText.add("SeedQueue v" + VERSION.getFriendlyString());
+        debugText.add(String.join(", ",
+                "E: " + SEED_QUEUE.size() + "/" + SeedQueue.config.maxCapacity,
+                "C: " + SeedQueue.config.maxConcurrently + (SeedQueue.config.shouldUseWall() ? " | " + SeedQueue.config.maxConcurrently_onWall : ""),
+                "W: " + SeedQueue.config.backgroundExecutorThreads + (SeedQueue.config.shouldUseWall() ? " | " + SeedQueue.config.wallExecutorThreads : ""),
+                "M: " + SeedQueue.config.maxWorldGenerationPercentage + "%"
+        ));
+        return debugText;
     }
 }
