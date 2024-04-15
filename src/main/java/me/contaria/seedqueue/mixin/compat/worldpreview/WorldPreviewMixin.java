@@ -75,4 +75,16 @@ public abstract class WorldPreviewMixin {
         }
         return perspective;
     }
+
+    // can be replaced by an expression of WorldPreviewConfig#dataLimit <= 100 when MixinExtras adds expressions
+    @ModifyExpressionValue(
+            method = "shouldStopAtPacket",
+            at = @At(
+                    value = "CONSTANT",
+                    args = "intValue=100"
+            )
+    )
+    private static int doNotAllowUnlimitedPackets_onWall(int unlimitedPackets) {
+        return Integer.MAX_VALUE;
+    }
 }
