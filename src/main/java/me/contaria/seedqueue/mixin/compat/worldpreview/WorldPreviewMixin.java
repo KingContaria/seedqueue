@@ -85,6 +85,9 @@ public abstract class WorldPreviewMixin {
             )
     )
     private static int doNotAllowUnlimitedPackets_onWall(int unlimitedPackets) {
-        return Integer.MAX_VALUE;
+        if (SeedQueue.isOnWall()) {
+            return Integer.MAX_VALUE;
+        }
+        return unlimitedPackets;
     }
 }
