@@ -20,11 +20,13 @@ import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.texture.NativeImage;
+import net.minecraft.client.toast.SystemToast;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -133,11 +135,11 @@ public class SeedQueueWallScreen extends Screen {
             this.loadPreviewSettings(preparingInstance);
             preparingInstance.buildChunks();
         }
+        this.resetViewport();
 
         this.loadPreviewSettings(this.settingsCache, 0);
     }
 
-    @SuppressWarnings("deprecation")
     private void renderInstance(SeedQueuePreview instance, Layout.Pos pos, MatrixStack matrices, float delta) {
         assert this.client != null;
         if (pos == null) {
@@ -152,18 +154,7 @@ public class SeedQueueWallScreen extends Screen {
             this.loadPreviewSettings(instance);
             instance.render(matrices, 0, 0, delta);
         } finally {
-            Window window = this.client.getWindow();
-            RenderSystem.viewport(0, 0, window.getFramebufferWidth(), window.getFramebufferHeight());
-
-            // see GameRenderer#render or WorldPreview#render
-            // we need this to reset RenderSystem.ortho after simulating a different window size
-            RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
-            RenderSystem.matrixMode(5889);
-            RenderSystem.loadIdentity();
-            RenderSystem.ortho(0.0D, (double) window.getFramebufferWidth() / window.getScaleFactor(), (double) window.getFramebufferHeight() / window.getScaleFactor(), 0.0D, 1000.0D, 3000.0D);
-            RenderSystem.matrixMode(5888);
-            RenderSystem.loadIdentity();
-            RenderSystem.translatef(0.0F, 0.0F, -2000.0F);
+            this.resetViewport();
         }
         if (instance.getSeedQueueEntry().isLocked() && !this.lockTextures.isEmpty()) {
             if (instance.lock == null) {
@@ -173,6 +164,22 @@ public class SeedQueueWallScreen extends Screen {
             double scale = this.client.getWindow().getScaleFactor();
             Screen.drawTexture(matrices, (int) (pos.x / scale), (int) (pos.y / scale), 0.0f, 0.0f, (int) (pos.height * instance.lock.aspectRatio / scale), (int) (pos.height / scale), (int) (pos.height * instance.lock.aspectRatio / scale), (int) (pos.height / scale));
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void resetViewport() {
+        assert this.client != null;
+        Window window = this.client.getWindow();
+        RenderSystem.viewport(0, 0, window.getFramebufferWidth(), window.getFramebufferHeight());
+        // see GameRenderer#render or WorldPreview#render
+        // we need this to reset RenderSystem.ortho after simulating a different window size
+        RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
+        RenderSystem.matrixMode(5889);
+        RenderSystem.loadIdentity();
+        RenderSystem.ortho(0.0D, (double) window.getFramebufferWidth() / window.getScaleFactor(), (double) window.getFramebufferHeight() / window.getScaleFactor(), 0.0D, 1000.0D, 3000.0D);
+        RenderSystem.matrixMode(5888);
+        RenderSystem.loadIdentity();
+        RenderSystem.translatef(0.0F, 0.0F, -2000.0F);
     }
 
     private void loadPreviewSettings(SeedQueuePreview instance) {
@@ -449,6 +456,7 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     public void tickBenchmark() {
+        assert this.client != null;
         if (!this.isBenchmarking()) {
             return;
         }
@@ -456,7 +464,9 @@ public class SeedQueueWallScreen extends Screen {
             if (this.resetInstance(instance, true)) {
                 this.benchmarkedSeeds++;
                 if (this.benchmarkedSeeds == SeedQueue.config.benchmarkResets) {
-                    SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds.", this.benchmarkedSeeds, (System.currentTimeMillis() - this.benchmarkStart) / 1000.0);
+                    double time = Math.round((System.currentTimeMillis() - this.benchmarkStart) / 10.0) / 100.0;
+                    this.client.getToastManager().add(new SystemToast(SystemToast.Type.WORLD_BACKUP, new TranslatableText("seedqueue.menu.benchmark"), new TranslatableText("seedqueue.menu.benchmark.result", this.benchmarkedSeeds, time)));
+                    SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds.", this.benchmarkedSeeds, time);
                     break;
                 }
             }

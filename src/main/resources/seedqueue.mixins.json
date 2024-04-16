@@ -13,6 +13,7 @@
     "accessor.WorldRendererAccessor",
     "client.CreateWorldScreenMixin",
     "client.MinecraftClientMixin",
+    "client.debug.DebugHudMixin",
     "client.render.LevelLoadingScreenMixin",
     "client.render.MinecraftClientMixin",
     "client.render.WindowMixin",
@@ -40,8 +41,5 @@
     "server.synchronization.ScheduledTickMixin",
     "server.synchronization.WeightedBlockStateProviderMixin"
   ],
-  "plugin": "org.mcsr.speedrunapi.mixin_plugin.SpeedrunMixinConfigPlugin",
-  "mixins": [
-    "client.debug.DebugHudMixin"
-  ]
+  "plugin": "org.mcsr.speedrunapi.mixin_plugin.SpeedrunMixinConfigPlugin"
 }
