@@ -41,6 +41,8 @@ public class SeedQueueWallScreen extends Screen {
     private static final Set<WorldRenderer> WORLD_RENDERERS = new HashSet<>();
 
     private static final Identifier WALL_BACKGROUND = new Identifier("seedqueue", "textures/gui/wall/background.png");
+    private static final Identifier WALL_OVERLAY = new Identifier("seedqueue", "textures/gui/wall/overlay.png");
+    private static final Identifier INSTANCE_BACKGROUND = new Identifier("seedqueue", "textures/gui/wall/instance_background.png");
 
     private final Screen createWorldScreen;
 
@@ -117,15 +119,24 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         for (int i = 0; i < this.layout.main.size(); i++) {
-            this.renderInstance(this.mainLoadingScreens[i], this.layout.main.getPos(i), matrices, delta);
+            this.renderInstance(this.mainLoadingScreens[i], this.layout.main, this.layout.main.getPos(i), matrices, delta);
         }
         if (this.layout.locked != null && this.lockedLoadingScreens != null) {
-            for (int i = 0; i < this.layout.locked.size() && i < this.lockedLoadingScreens.size(); i++) {
-                this.renderInstance(this.lockedLoadingScreens.get(i), this.layout.locked.getPos(i), matrices, delta);
+            for (int i = 0; i < this.layout.locked.size(); i++) {
+                this.renderInstance(i < this.lockedLoadingScreens.size() ? this.lockedLoadingScreens.get(i) : null, this.layout.locked, this.layout.locked.getPos(i), matrices, delta);
             }
         }
-        for (int i = 0; i < this.layout.getMoreSize() && i < this.preparingLoadingScreens.size(); i++) {
-            this.renderInstance(this.preparingLoadingScreens.get(i), this.layout.getMorePos(i), matrices, delta);
+        int i = 0;
+        for (Layout.Group group : this.layout.more) {
+            int offset = i;
+            for (i = 0; i < group.size(); i++) {
+                this.renderInstance(i < this.preparingLoadingScreens.size() ? this.preparingLoadingScreens.get(i) : null, group, group.getPos(i - offset), matrices, delta);
+            }
+        }
+
+        if (this.client.getResourceManager().containsResource(WALL_OVERLAY)) {
+            this.client.getTextureManager().bindTexture(WALL_OVERLAY);
+            Screen.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
         }
 
         for (SeedQueuePreview preparingInstance : this.preparingLoadingScreens) {
@@ -140,7 +151,7 @@ public class SeedQueueWallScreen extends Screen {
         this.loadPreviewSettings(this.settingsCache, 0);
     }
 
-    private void renderInstance(SeedQueuePreview instance, Layout.Pos pos, MatrixStack matrices, float delta) {
+    private void renderInstance(SeedQueuePreview instance, Layout.Group group, Layout.Pos pos, MatrixStack matrices, float delta) {
         assert this.client != null;
         if (pos == null) {
             return;
@@ -148,7 +159,10 @@ public class SeedQueueWallScreen extends Screen {
         try {
             RenderSystem.viewport(pos.x, this.client.getWindow().getFramebufferHeight() - pos.height - pos.y, pos.width, pos.height);
             if (instance == null || !instance.shouldRender()) {
-                //this.renderBackground(matrices);
+                if (group.instance_background && this.client.getResourceManager().containsResource(INSTANCE_BACKGROUND)) {
+                    this.client.getTextureManager().bindTexture(INSTANCE_BACKGROUND);
+                    Screen.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
+                }
                 return;
             }
             this.loadPreviewSettings(instance);
@@ -576,39 +590,22 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         public static Layout grid(int rows, int columns, int width, int height) {
-            return new Layout(Group.grid(rows, columns, 0, 0, width, height, false));
+            return new Layout(Group.grid(rows, columns, 0, 0, width, height, false, true));
         }
 
         public static Layout fromJson(JsonObject jsonObject) throws JsonParseException {
             return new Layout(Group.fromJson(jsonObject.getAsJsonObject("main")), jsonObject.has("locked") ? Group.fromJson(jsonObject.getAsJsonObject("locked")) : null, jsonObject.has("more") ? Group.fromJson(jsonObject.getAsJsonArray("more")) : new Group[0]);
         }
 
-        public Pos getMorePos(int index) {
-            int i = 0;
-            for (Group group : this.more) {
-                if (index < group.size()) {
-                    return group.getPos(index - i);
-                }
-                i += group.size();
-            }
-            return null;
-        }
-
-        public int getMoreSize() {
-            int size = 0;
-            for (Group group : this.more) {
-                size += group.size();
-            }
-            return size;
-        }
-
         public static class Group {
             private final Pos[] positions;
             private final boolean cosmetic;
+            private final boolean instance_background;
 
-            public Group(Pos[] positions, boolean cosmetic) {
+            public Group(Pos[] positions, boolean cosmetic, boolean instance_background) {
                 this.positions = positions;
                 this.cosmetic = cosmetic;
+                this.instance_background = instance_background;
             }
 
             public Pos getPos(int index) {
@@ -622,14 +619,14 @@ public class SeedQueueWallScreen extends Screen {
                 return this.positions.length;
             }
 
-            public static Group grid(int rows, int columns, int x, int y, int width, int height, boolean cosmetic) {
+            public static Group grid(int rows, int columns, int x, int y, int width, int height, boolean cosmetic, boolean instance_background) {
                 Pos[] positions = new Pos[rows * columns];
                 for (int row = 0; row < rows; row++) {
                     for (int column = 0; column < columns; column++) {
                         positions[row * columns + column] = new Pos(x + column * width / columns, y + row * height / rows, width / columns, height / rows);
                     }
                 }
-                return new Group(positions, cosmetic);
+                return new Group(positions, cosmetic, instance_background);
             }
 
             public static Group[] fromJson(JsonArray jsonArray) {
@@ -642,15 +639,16 @@ public class SeedQueueWallScreen extends Screen {
 
             public static Group fromJson(JsonObject jsonObject) throws JsonParseException {
                 boolean cosmetic = jsonObject.has("cosmetic") && jsonObject.get("cosmetic").getAsBoolean();
+                boolean instance_background = !jsonObject.has("instance_background") || jsonObject.get("instance_background").getAsBoolean();
                 if (jsonObject.has("positions")) {
                     JsonArray positionsArray = jsonObject.get("positions").getAsJsonArray();
                     Pos[] positions = new Pos[positionsArray.size()];
                     for (int i = 0; i < positionsArray.size(); i++) {
                         positions[i] = (Pos.fromJson(positionsArray.get(i).getAsJsonObject()));
                     }
-                    return new Group(positions, cosmetic);
+                    return new Group(positions, cosmetic, instance_background);
                 }
-                return Group.grid(jsonObject.get("rows").getAsInt(), jsonObject.get("columns").getAsInt(), jsonObject.get("x").getAsInt(), jsonObject.get("y").getAsInt(), jsonObject.get("width").getAsInt(), jsonObject.get("height").getAsInt(), cosmetic);
+                return Group.grid(jsonObject.get("rows").getAsInt(), jsonObject.get("columns").getAsInt(), jsonObject.get("x").getAsInt(), jsonObject.get("y").getAsInt(), jsonObject.get("width").getAsInt(), jsonObject.get("height").getAsInt(), cosmetic, instance_background);
             }
         }
 
