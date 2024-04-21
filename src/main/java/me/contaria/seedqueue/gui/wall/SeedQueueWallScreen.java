@@ -196,6 +196,57 @@ public class SeedQueueWallScreen extends Screen {
         RenderSystem.translatef(0.0F, 0.0F, -2000.0F);
     }
 
+    private void updatePreviews() {
+        if (this.lockedLoadingScreens != null) {
+            for (int i = 0; i < this.mainLoadingScreens.length; i++) {
+                SeedQueuePreview instance = this.mainLoadingScreens[i];
+                if (instance != null && instance.getSeedQueueEntry().isLocked()) {
+                    this.lockedLoadingScreens.add(instance);
+                    this.mainLoadingScreens[i] = null;
+                }
+            }
+            for (SeedQueuePreview instance : this.preparingLoadingScreens) {
+                if (instance.getSeedQueueEntry().isLocked()) {
+                    this.lockedLoadingScreens.add(instance);
+                }
+            }
+            this.preparingLoadingScreens.removeAll(this.lockedLoadingScreens);
+        }
+
+        this.preparingLoadingScreens.sort(Comparator.comparing(SeedQueuePreview::shouldRender, Comparator.reverseOrder()));
+
+        for (int i = 0; i < this.mainLoadingScreens.length && !this.preparingLoadingScreens.isEmpty() && this.preparingLoadingScreens.get(0).shouldRender(); i++) {
+            if (this.mainLoadingScreens[i] == null && !this.blockedMainPositions.contains(i)) {
+                this.preparingLoadingScreens.remove(this.mainLoadingScreens[i] = this.preparingLoadingScreens.remove(0));
+            }
+        }
+
+        int urgent = (int) Arrays.stream(this.mainLoadingScreens).filter(Objects::isNull).count();
+        int capacity = SeedQueue.config.backgroundPreviews + urgent;
+        if (this.preparingLoadingScreens.size() < capacity) {
+            int budget = Math.max(1, urgent);
+            for (SeedQueueEntry entry : this.getAvailableSeedQueueEntries()) {
+                this.preparingLoadingScreens.add(new SeedQueuePreview(this, entry));
+                if (--budget <= 0) {
+                    break;
+                }
+            }
+        } else {
+            clearWorldRenderer(getClearableWorldRenderer());
+        }
+    }
+
+    private List<SeedQueueEntry> getAvailableSeedQueueEntries() {
+        List<SeedQueueEntry> entries = new ArrayList<>(SeedQueue.SEED_QUEUE);
+        entries.removeAll(this.getInstances().stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
+        entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldGenerationProgressTracker() == null);
+        entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldPreviewProperties() == null);
+        if (this.lockedLoadingScreens != null) {
+            entries.sort(Comparator.comparing(SeedQueueEntry::isLocked, Comparator.reverseOrder()));
+        }
+        return entries;
+    }
+
     private void loadPreviewSettings(SeedQueuePreview instance) {
         this.loadPreviewSettings(instance.getWorldPreviewProperties().getSettingsCache(), instance.getWorldPreviewProperties().getPerspective());
     }
@@ -219,6 +270,14 @@ public class SeedQueueWallScreen extends Screen {
 
         if (SeedQueueKeyBindings.resetAll.matchesMouse(button)) {
             this.resetAllInstances();
+        }
+
+        if (SeedQueueKeyBindings.resetColumn.matchesMouse(button)) {
+            this.resetColumn(mouseX);
+        }
+
+        if (SeedQueueKeyBindings.resetRow.matchesMouse(button)) {
+            this.resetRow(mouseY);
         }
 
         if (SeedQueueKeyBindings.playNextLock.matchesMouse(button)) {
@@ -274,6 +333,14 @@ public class SeedQueueWallScreen extends Screen {
 
         if (SeedQueueKeyBindings.playNextLock.matchesKey(keyCode, scanCode)) {
             SeedQueue.getEntryMatching(SeedQueueEntry::isLocked).ifPresent(this::playInstance);
+        }
+
+        if (SeedQueueKeyBindings.resetColumn.matchesKey(keyCode, scanCode)) {
+            this.resetColumn(mouseX);
+        }
+
+        if (SeedQueueKeyBindings.resetRow.matchesKey(keyCode, scanCode)) {
+            this.resetRow(mouseY);
         }
 
         SeedQueuePreview instance = this.getInstance(mouseX, mouseY);
@@ -343,6 +410,20 @@ public class SeedQueueWallScreen extends Screen {
         return Optional.empty();
     }
 
+    private List<SeedQueuePreview> getInstances() {
+        List<SeedQueuePreview> instances = new ArrayList<>();
+        for (SeedQueuePreview instance : this.mainLoadingScreens) {
+            if (instance != null) {
+                instances.add(instance);
+            }
+        }
+        instances.addAll(this.preparingLoadingScreens);
+        if (this.lockedLoadingScreens != null) {
+            instances.addAll(this.lockedLoadingScreens);
+        }
+        return instances;
+    }
+
     private void playInstance(SeedQueuePreview instance) {
         if (instance.hasBeenRendered()) {
             this.playInstance(instance.getSeedQueueEntry());
@@ -400,6 +481,28 @@ public class SeedQueueWallScreen extends Screen {
         }
     }
 
+    private void resetColumn(double mouseX) {
+        assert this.client != null;
+        double x = mouseX * this.client.getWindow().getScaleFactor();
+        for (int i = 0; i < this.mainLoadingScreens.length; i++) {
+            Layout.Pos pos = this.layout.main.getPos(i);
+            if (x >= pos.x && x <= pos.x + pos.width) {
+                this.resetInstance(this.mainLoadingScreens[i]);
+            }
+        }
+    }
+
+    private void resetRow(double mouseY) {
+        assert this.client != null;
+        double y = mouseY * this.client.getWindow().getScaleFactor();
+        for (int i = 0; i < this.mainLoadingScreens.length; i++) {
+            Layout.Pos pos = this.layout.main.getPos(i);
+            if (y >= pos.y && y <= pos.y + pos.height) {
+                this.resetInstance(this.mainLoadingScreens[i]);
+            }
+        }
+    }
+
     private void playSound(SoundEvent sound) {
         if (this.isBenchmarking()) {
             return;
@@ -412,61 +515,6 @@ public class SeedQueueWallScreen extends Screen {
         } else {
             this.client.getSoundManager().play(PositionedSoundInstance.master(sound, 1.0f), ++this.nextSoundFrame - this.frame);
         }
-    }
-
-    private void updatePreviews() {
-        if (this.lockedLoadingScreens != null) {
-            for (int i = 0; i < this.mainLoadingScreens.length; i++) {
-                SeedQueuePreview instance = this.mainLoadingScreens[i];
-                if (instance != null && instance.getSeedQueueEntry().isLocked()) {
-                    this.lockedLoadingScreens.add(instance);
-                    this.mainLoadingScreens[i] = null;
-                }
-            }
-            for (SeedQueuePreview instance : this.preparingLoadingScreens) {
-                if (instance.getSeedQueueEntry().isLocked()) {
-                    this.lockedLoadingScreens.add(instance);
-                }
-            }
-            this.preparingLoadingScreens.removeAll(this.lockedLoadingScreens);
-        }
-
-        this.preparingLoadingScreens.sort(Comparator.comparing(SeedQueuePreview::shouldRender, Comparator.reverseOrder()));
-
-        for (int i = 0; i < this.mainLoadingScreens.length && !this.preparingLoadingScreens.isEmpty() && this.preparingLoadingScreens.get(0).shouldRender(); i++) {
-            if (this.mainLoadingScreens[i] == null) {
-                this.preparingLoadingScreens.remove(this.mainLoadingScreens[i] = this.preparingLoadingScreens.remove(0));
-            }
-        }
-
-        int urgent = (int) Arrays.stream(this.mainLoadingScreens).filter(Objects::isNull).count();
-        int capacity = SeedQueue.config.backgroundPreviews + urgent;
-        if (this.preparingLoadingScreens.size() < capacity) {
-            int budget = Math.max(1, urgent);
-            for (SeedQueueEntry entry : this.getAvailableSeedQueueEntries()) {
-                this.preparingLoadingScreens.add(new SeedQueuePreview(this, entry));
-                if (--budget <= 0) {
-                    break;
-                }
-            }
-        } else {
-            clearWorldRenderer(getClearableWorldRenderer());
-        }
-    }
-
-    private List<SeedQueueEntry> getAvailableSeedQueueEntries() {
-        List<SeedQueueEntry> entries = new ArrayList<>(SeedQueue.SEED_QUEUE);
-        entries.removeAll(Arrays.stream(this.mainLoadingScreens).filter(Objects::nonNull).map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
-        entries.removeAll(this.preparingLoadingScreens.stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
-        if (this.lockedLoadingScreens != null) {
-            entries.removeAll(this.lockedLoadingScreens.stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
-        }
-        entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldGenerationProgressTracker() == null);
-        entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldPreviewProperties() == null);
-        if (this.lockedLoadingScreens != null) {
-            entries.sort(Comparator.comparing(SeedQueueEntry::isLocked, Comparator.reverseOrder()));
-        }
-        return entries;
     }
 
     public void tickBenchmark() {

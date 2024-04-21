@@ -146,6 +146,8 @@ public class SeedQueueConfig implements SpeedrunConfig {
             SeedQueueKeyBindings.lock,
             SeedQueueKeyBindings.resetAll,
             SeedQueueKeyBindings.playNextLock
+            SeedQueueKeyBindings.resetColumn,
+            SeedQueueKeyBindings.resetRow,
     };
 
     {
@@ -173,7 +175,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
     // see Window#calculateScaleFactor
     public int calculateSimulatedScaleFactor(int guiScale, boolean forceUnicodeFont) {
         int scaleFactor = 1;
-        while(scaleFactor != guiScale && scaleFactor < this.simulatedWindowWidth && scaleFactor < this.simulatedWindowHeight && this.simulatedWindowWidth / (scaleFactor + 1) >= 320 && this.simulatedWindowHeight / (scaleFactor + 1) >= 240) {
+        while (scaleFactor != guiScale && scaleFactor < this.simulatedWindowWidth && scaleFactor < this.simulatedWindowHeight && this.simulatedWindowWidth / (scaleFactor + 1) >= 320 && this.simulatedWindowHeight / (scaleFactor + 1) >= 240) {
             scaleFactor++;
         }
         if (forceUnicodeFont) {
