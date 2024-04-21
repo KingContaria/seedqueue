@@ -21,7 +21,7 @@ public class SeedQueueKeybindingsListWidget extends ElementListWidget<SeedQueueK
     private final SeedQueueKeybindingsScreen parent;
 
     public SeedQueueKeybindingsListWidget(SeedQueueKeybindingsScreen parent, MinecraftClient client) {
-        super(client, parent.width + 45, parent.height, 43, parent.height - 32, 20);
+        super(client, parent.width + 45, parent.height, 43, parent.height - 32, 25);
         this.parent = parent;
 
         Map<String, List<KeyEntry>> categoryToKeyEntryMap = new LinkedHashMap<>();
@@ -95,6 +95,7 @@ public class SeedQueueKeybindingsListWidget extends ElementListWidget<SeedQueueK
                 SeedQueueKeybindingsListWidget.this.parent.focusedBinding = this;
                 this.focusedKey = this.keyBindingButtons.indexOf(button);
             }) {
+                @SuppressWarnings("WrongTypeInTranslationArgs")
                 @Override
                 protected MutableText getNarrationMessage() {
                     InputUtil.Key key = KeyEntry.this.binding.getKey(KeyEntry.this.keyBindingButtons.indexOf(this));
@@ -112,13 +113,13 @@ public class SeedQueueKeybindingsListWidget extends ElementListWidget<SeedQueueK
             SeedQueueKeybindingsListWidget.this.client.textRenderer.draw(matrices, this.name, x, (float)(y + entryHeight / 2 - SeedQueueKeybindingsListWidget.this.client.textRenderer.fontHeight / 2), 0xFFFFFF);
             x += 120;
 
-            int xOffset = 10;
+            int xOffset = 5;
             for (ButtonWidget keyBindingButton : this.keyBindingButtons) {
                 this.renderKeyBindingButton(keyBindingButton, this.binding.getKey(this.keyBindingButtons.indexOf(keyBindingButton)), x, y, matrices, mouseX, mouseY, tickDelta);
                 x += keyBindingButton.getWidth() + xOffset;
-                xOffset = 5;
+                xOffset = 0;
             }
-            x += xOffset;
+            x += 5;
 
             this.addKeyButton.x = x;
             this.addKeyButton.y = y;
