@@ -470,7 +470,7 @@ public class SeedQueueWallScreen extends Screen {
             return false;
         }
         SeedQueueEntry seedQueueEntry = instance.getSeedQueueEntry();
-        if (!instance.hasBeenRendered() || (seedQueueEntry.isLocked() && !ignoreLock) || SeedQueue.selectedEntry == seedQueueEntry) {
+        if (!instance.hasBeenRendered() || (seedQueueEntry.isLocked() && !ignoreLock) || System.currentTimeMillis() - instance.firstRenderTime < SeedQueue.config.resetCooldown || SeedQueue.selectedEntry == seedQueueEntry) {
             return false;
         }
 
@@ -532,6 +532,15 @@ public class SeedQueueWallScreen extends Screen {
             this.nextSoundFrame = this.frame;
         } else {
             this.client.getSoundManager().play(PositionedSoundInstance.master(sound, 1.0f), ++this.nextSoundFrame - this.frame);
+        }
+    }
+
+    public void populateResetCooldowns() {
+        long renderTime = System.currentTimeMillis();
+        for (SeedQueuePreview instance : this.getInstances()) {
+            if (this.frame == instance.firstRenderFrame) {
+                instance.firstRenderTime = renderTime;
+            }
         }
     }
 

@@ -85,6 +85,10 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean replaceLockedPreviews = true;
 
     @Config.Category("wall")
+    @Config.Numbers.Whole.Bounds(max = 1000)
+    public int resetCooldown = 150;
+
+    @Config.Category("wall")
     public boolean bypassWall = false;
 
     @Config.Category("performance")

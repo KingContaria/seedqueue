@@ -28,8 +28,9 @@ public class SeedQueuePreview extends LevelLoadingScreen {
 
     protected SeedQueueWallScreen.LockTexture lock;
 
-    private int firstRenderFrame = Integer.MAX_VALUE;
-    public int lastRenderFrame;
+    protected int firstRenderFrame = Integer.MAX_VALUE;
+    protected int lastRenderFrame;
+    protected long firstRenderTime;
 
     public SeedQueuePreview(SeedQueueWallScreen wallScreen, SeedQueueEntry seedQueueEntry) {
         super(seedQueueEntry.getWorldGenerationProgressTracker());

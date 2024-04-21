@@ -494,8 +494,9 @@ public abstract class MinecraftClientMixin {
                     shift = At.Shift.AFTER
             )
     )
-    private void benchmarkResets(CallbackInfo ci) {
+    private void finishRenderingWall(CallbackInfo ci) {
         if (this.currentScreen instanceof SeedQueueWallScreen) {
+            ((SeedQueueWallScreen) this.currentScreen).populateResetCooldowns();
             ((SeedQueueWallScreen) this.currentScreen).tickBenchmark();
         }
     }
