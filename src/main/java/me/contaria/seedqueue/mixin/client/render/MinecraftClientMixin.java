@@ -3,14 +3,11 @@ package me.contaria.seedqueue.mixin.client.render;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueConfig;
 import me.contaria.seedqueue.SeedQueueEntry;
-import me.contaria.seedqueue.gui.SeedQueueClearScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.LevelLoadingScreen;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,9 +22,6 @@ public abstract class MinecraftClientMixin {
     @Shadow
     @Final
     private Window window;
-    @Shadow
-    @Nullable
-    public Screen currentScreen;
 
     @Inject(
             method = "render",
@@ -44,7 +38,7 @@ public abstract class MinecraftClientMixin {
             )
     )
     private void drawSeedQueueChunkMaps(CallbackInfo ci) {
-        if (this.currentScreen instanceof SeedQueueClearScreen || SeedQueue.isOnWall() || SeedQueue.config.chunkMapVisibility == SeedQueueConfig.ChunkMapVisibility.FALSE) {
+        if (SeedQueue.isOnWall() || SeedQueue.config.chunkMapVisibility == SeedQueueConfig.ChunkMapVisibility.FALSE) {
             return;
         }
 

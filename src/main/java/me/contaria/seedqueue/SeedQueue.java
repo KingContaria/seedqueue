@@ -1,6 +1,5 @@
 package me.contaria.seedqueue;
 
-import me.contaria.seedqueue.gui.SeedQueueClearScreen;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
@@ -8,7 +7,10 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.Version;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.SaveLevelScreen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.text.TranslatableText;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
@@ -163,8 +165,9 @@ public class SeedQueue implements ClientModInitializer {
     private static void clear() {
         LOGGER.info("Clearing SeedQueue...");
 
-        SeedQueueClearScreen seedQueueClearScreen = new SeedQueueClearScreen(MinecraftClient.getInstance().currentScreen);
-        MinecraftClient.getInstance().setScreenAndRender(seedQueueClearScreen);
+        MinecraftClient client = MinecraftClient.getInstance();
+        Screen screen = client.currentScreen;
+        client.setScreenAndRender(new SaveLevelScreen(new TranslatableText("seedqueue.menu.clearing")));
 
         currentEntry = null;
         selectedEntry = null;
@@ -172,17 +175,15 @@ public class SeedQueue implements ClientModInitializer {
         SEED_QUEUE.forEach(SeedQueueEntry::discard);
 
         while (!SEED_QUEUE.isEmpty()) {
-            ((MinecraftClientAccessor) MinecraftClient.getInstance()).seedQueue$render(false);
+            ((MinecraftClientAccessor) client).seedQueue$render(false);
             SEED_QUEUE.removeIf(entry -> entry.getServer().isStopping());
         }
 
         SeedQueueExecutorWrapper.shutdownExecutors();
-
         SeedQueueWallScreen.clearWorldRenderers();
-
         System.gc();
 
-        seedQueueClearScreen.onClose();
+        client.openScreen(screen);
     }
 
     public static boolean isActive() {
