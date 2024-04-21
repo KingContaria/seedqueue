@@ -50,10 +50,12 @@ public class SeedQueueWallScreen extends Screen {
     private SeedQueueSettingsCache lastSettingsCache;
 
     private Layout layout;
-    private SeedQueuePreview[] mainLoadingScreens;
+    private SeedQueuePreview[] mainPreviews;
     @Nullable
-    private List<SeedQueuePreview> lockedLoadingScreens;
-    private List<SeedQueuePreview> preparingLoadingScreens;
+    private List<SeedQueuePreview> lockedPreviews;
+    private List<SeedQueuePreview> preparingPreviews;
+
+    private final Set<Integer> blockedMainPositions = new HashSet<>();
 
     private List<LockTexture> lockTextures;
 
@@ -66,7 +68,7 @@ public class SeedQueueWallScreen extends Screen {
     public SeedQueueWallScreen(Screen createWorldScreen) {
         super(LiteralText.EMPTY);
         this.createWorldScreen = createWorldScreen;
-        this.preparingLoadingScreens = new ArrayList<>(SeedQueue.config.backgroundPreviews);
+        this.preparingPreviews = new ArrayList<>(SeedQueue.config.backgroundPreviews);
         this.lastSettingsCache = this.settingsCache = SeedQueueSettingsCache.create();
     }
 
@@ -74,9 +76,9 @@ public class SeedQueueWallScreen extends Screen {
     protected void init() {
         assert this.client != null;
         this.layout = this.createLayout();
-        this.mainLoadingScreens = new SeedQueuePreview[this.layout.main.size()];
-        this.lockedLoadingScreens = this.layout.locked != null ? new ArrayList<>() : null;
-        this.preparingLoadingScreens = new ArrayList<>();
+        this.mainPreviews = new SeedQueuePreview[this.layout.main.size()];
+        this.lockedPreviews = this.layout.locked != null ? new ArrayList<>() : null;
+        this.preparingPreviews = new ArrayList<>();
         this.lockTextures = this.createLockTextures();
     }
 
@@ -111,6 +113,7 @@ public class SeedQueueWallScreen extends Screen {
         assert this.client != null;
         this.frame++;
         this.updatePreviews();
+
         if (this.client.getResourceManager().containsResource(WALL_BACKGROUND)) {
             this.client.getTextureManager().bindTexture(WALL_BACKGROUND);
             Screen.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
@@ -119,18 +122,18 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         for (int i = 0; i < this.layout.main.size(); i++) {
-            this.renderInstance(this.mainLoadingScreens[i], this.layout.main, this.layout.main.getPos(i), matrices, delta);
+            this.renderInstance(this.mainPreviews[i], this.layout.main, this.layout.main.getPos(i), matrices, delta);
         }
-        if (this.layout.locked != null && this.lockedLoadingScreens != null) {
+        if (this.layout.locked != null && this.lockedPreviews != null) {
             for (int i = 0; i < this.layout.locked.size(); i++) {
-                this.renderInstance(i < this.lockedLoadingScreens.size() ? this.lockedLoadingScreens.get(i) : null, this.layout.locked, this.layout.locked.getPos(i), matrices, delta);
+                this.renderInstance(i < this.lockedPreviews.size() ? this.lockedPreviews.get(i) : null, this.layout.locked, this.layout.locked.getPos(i), matrices, delta);
             }
         }
         int i = 0;
         for (Layout.Group group : this.layout.more) {
             int offset = i;
             for (i = 0; i < group.size(); i++) {
-                this.renderInstance(i < this.preparingLoadingScreens.size() ? this.preparingLoadingScreens.get(i) : null, group, group.getPos(i - offset), matrices, delta);
+                this.renderInstance(i < this.preparingPreviews.size() ? this.preparingPreviews.get(i) : null, group, group.getPos(i - offset), matrices, delta);
             }
         }
 
@@ -139,7 +142,7 @@ public class SeedQueueWallScreen extends Screen {
             Screen.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
         }
 
-        for (SeedQueuePreview preparingInstance : this.preparingLoadingScreens) {
+        for (SeedQueuePreview preparingInstance : this.preparingPreviews) {
             if (preparingInstance.hasBeenRendered()) {
                 continue;
             }
@@ -197,36 +200,53 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void updatePreviews() {
-        if (this.lockedLoadingScreens != null) {
-            for (int i = 0; i < this.mainLoadingScreens.length; i++) {
-                SeedQueuePreview instance = this.mainLoadingScreens[i];
+        this.updateLockedPreviews();
+        this.updateMainPreviews();
+        this.updatePreparingPreviews();
+    }
+
+    private void updateLockedPreviews() {
+        if (this.lockedPreviews != null) {
+            for (SeedQueueEntry entry : this.getAvailableSeedQueueEntries()) {
+                if (entry.isLocked()) {
+                    this.lockedPreviews.add(new SeedQueuePreview(this, entry));
+                }
+            }
+            for (int i = 0; i < this.mainPreviews.length; i++) {
+                SeedQueuePreview instance = this.mainPreviews[i];
                 if (instance != null && instance.getSeedQueueEntry().isLocked()) {
-                    this.lockedLoadingScreens.add(instance);
-                    this.mainLoadingScreens[i] = null;
+                    this.lockedPreviews.add(instance);
+                    this.mainPreviews[i] = null;
+                    if (!SeedQueue.config.replaceLockedPreviews) {
+                        this.blockedMainPositions.add(i);
+                    }
                 }
             }
-            for (SeedQueuePreview instance : this.preparingLoadingScreens) {
+            for (SeedQueuePreview instance : this.preparingPreviews) {
                 if (instance.getSeedQueueEntry().isLocked()) {
-                    this.lockedLoadingScreens.add(instance);
+                    this.lockedPreviews.add(instance);
                 }
             }
-            this.preparingLoadingScreens.removeAll(this.lockedLoadingScreens);
+            this.preparingPreviews.removeAll(this.lockedPreviews);
         }
+    }
 
-        this.preparingLoadingScreens.sort(Comparator.comparing(SeedQueuePreview::shouldRender, Comparator.reverseOrder()));
-
-        for (int i = 0; i < this.mainLoadingScreens.length && !this.preparingLoadingScreens.isEmpty() && this.preparingLoadingScreens.get(0).shouldRender(); i++) {
-            if (this.mainLoadingScreens[i] == null && !this.blockedMainPositions.contains(i)) {
-                this.preparingLoadingScreens.remove(this.mainLoadingScreens[i] = this.preparingLoadingScreens.remove(0));
+    private void updateMainPreviews() {
+        this.preparingPreviews.sort(Comparator.comparing(SeedQueuePreview::shouldRender, Comparator.reverseOrder()));
+        for (int i = 0; i < this.mainPreviews.length && !this.preparingPreviews.isEmpty() && this.preparingPreviews.get(0).shouldRender(); i++) {
+            if (this.mainPreviews[i] == null && !this.blockedMainPositions.contains(i)) {
+                this.preparingPreviews.remove(this.mainPreviews[i] = this.preparingPreviews.remove(0));
             }
         }
+    }
 
-        int urgent = (int) Arrays.stream(this.mainLoadingScreens).filter(Objects::isNull).count();
+    private void updatePreparingPreviews() {
+        int urgent = (int) Arrays.stream(this.mainPreviews).filter(Objects::isNull).count() - Math.min(this.blockedMainPositions.size(), this.preparingPreviews.size());
         int capacity = SeedQueue.config.backgroundPreviews + urgent;
-        if (this.preparingLoadingScreens.size() < capacity) {
+        if (this.preparingPreviews.size() < capacity) {
             int budget = Math.max(1, urgent);
             for (SeedQueueEntry entry : this.getAvailableSeedQueueEntries()) {
-                this.preparingLoadingScreens.add(new SeedQueuePreview(this, entry));
+                this.preparingPreviews.add(new SeedQueuePreview(this, entry));
                 if (--budget <= 0) {
                     break;
                 }
@@ -239,11 +259,7 @@ public class SeedQueueWallScreen extends Screen {
     private List<SeedQueueEntry> getAvailableSeedQueueEntries() {
         List<SeedQueueEntry> entries = new ArrayList<>(SeedQueue.SEED_QUEUE);
         entries.removeAll(this.getInstances().stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
-        entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldGenerationProgressTracker() == null);
-        entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldPreviewProperties() == null);
-        if (this.lockedLoadingScreens != null) {
-            entries.sort(Comparator.comparing(SeedQueueEntry::isLocked, Comparator.reverseOrder()));
-        }
+        entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldGenerationProgressTracker() == null || seedQueueEntry.getWorldPreviewProperties() == null);
         return entries;
     }
 
@@ -383,18 +399,18 @@ public class SeedQueueWallScreen extends Screen {
 
         // we traverse the layout in reverse to catch the top rendered instance
         for (int i = this.layout.more.length - 1; i >= 0; i--) {
-            Optional<SeedQueuePreview> instance = this.getInstance(this.layout.more[i], x, y).filter(index -> index < this.preparingLoadingScreens.size()).map(this.preparingLoadingScreens::get);
+            Optional<SeedQueuePreview> instance = this.getInstance(this.layout.more[i], x, y).filter(index -> index < this.preparingPreviews.size()).map(this.preparingPreviews::get);
             if (instance.isPresent()) {
                 return instance.get();
             }
         }
-        if (this.layout.locked != null && this.lockedLoadingScreens != null) {
-            Optional<SeedQueuePreview> instance = this.getInstance(this.layout.locked, x, y).filter(index -> index < this.lockedLoadingScreens.size()).map(this.lockedLoadingScreens::get);
+        if (this.layout.locked != null && this.lockedPreviews != null) {
+            Optional<SeedQueuePreview> instance = this.getInstance(this.layout.locked, x, y).filter(index -> index < this.lockedPreviews.size()).map(this.lockedPreviews::get);
             if (instance.isPresent()) {
                 return instance.get();
             }
         }
-        return this.getInstance(this.layout.main, x, y).map(index -> this.mainLoadingScreens[index]).orElse(null);
+        return this.getInstance(this.layout.main, x, y).map(index -> this.mainPreviews[index]).orElse(null);
     }
 
     private Optional<Integer> getInstance(Layout.Group group, double mouseX, double mouseY) {
@@ -412,14 +428,14 @@ public class SeedQueueWallScreen extends Screen {
 
     private List<SeedQueuePreview> getInstances() {
         List<SeedQueuePreview> instances = new ArrayList<>();
-        for (SeedQueuePreview instance : this.mainLoadingScreens) {
+        for (SeedQueuePreview instance : this.mainPreviews) {
             if (instance != null) {
                 instances.add(instance);
             }
         }
-        instances.addAll(this.preparingLoadingScreens);
-        if (this.lockedLoadingScreens != null) {
-            instances.addAll(this.lockedLoadingScreens);
+        instances.addAll(this.preparingPreviews);
+        if (this.lockedPreviews != null) {
+            instances.addAll(this.lockedPreviews);
         }
         return instances;
     }
@@ -462,32 +478,34 @@ public class SeedQueueWallScreen extends Screen {
             seedQueueEntry.discard();
         }
 
-        for (int i = 0; i < this.mainLoadingScreens.length; i++) {
-            if (this.mainLoadingScreens[i] == instance) {
-                this.mainLoadingScreens[i] = null;
-            }
-            this.preparingLoadingScreens.remove(instance);
-            if (this.lockedLoadingScreens != null) {
-                this.lockedLoadingScreens.remove(instance);
+        for (int i = 0; i < this.mainPreviews.length; i++) {
+            if (this.mainPreviews[i] == instance) {
+                this.mainPreviews[i] = null;
             }
         }
+        this.preparingPreviews.remove(instance);
+        if (this.lockedPreviews != null) {
+            this.lockedPreviews.remove(instance);
+        }
+
         this.playSound(SeedQueueSounds.RESET_INSTANCE);
         return true;
     }
 
     private void resetAllInstances() {
-        for (SeedQueuePreview instance : this.mainLoadingScreens) {
+        for (SeedQueuePreview instance : this.mainPreviews) {
             this.resetInstance(instance);
         }
+        this.blockedMainPositions.clear();
     }
 
     private void resetColumn(double mouseX) {
         assert this.client != null;
         double x = mouseX * this.client.getWindow().getScaleFactor();
-        for (int i = 0; i < this.mainLoadingScreens.length; i++) {
+        for (int i = 0; i < this.mainPreviews.length; i++) {
             Layout.Pos pos = this.layout.main.getPos(i);
             if (x >= pos.x && x <= pos.x + pos.width) {
-                this.resetInstance(this.mainLoadingScreens[i]);
+                this.resetInstance(this.mainPreviews[i]);
             }
         }
     }
@@ -495,10 +513,10 @@ public class SeedQueueWallScreen extends Screen {
     private void resetRow(double mouseY) {
         assert this.client != null;
         double y = mouseY * this.client.getWindow().getScaleFactor();
-        for (int i = 0; i < this.mainLoadingScreens.length; i++) {
+        for (int i = 0; i < this.mainPreviews.length; i++) {
             Layout.Pos pos = this.layout.main.getPos(i);
             if (y >= pos.y && y <= pos.y + pos.height) {
-                this.resetInstance(this.mainLoadingScreens[i]);
+                this.resetInstance(this.mainPreviews[i]);
             }
         }
     }
@@ -522,7 +540,7 @@ public class SeedQueueWallScreen extends Screen {
         if (!this.isBenchmarking()) {
             return;
         }
-        for (SeedQueuePreview instance : this.mainLoadingScreens) {
+        for (SeedQueuePreview instance : this.mainPreviews) {
             if (this.resetInstance(instance, true)) {
                 this.benchmarkedSeeds++;
                 if (this.benchmarkedSeeds == SeedQueue.config.benchmarkResets) {

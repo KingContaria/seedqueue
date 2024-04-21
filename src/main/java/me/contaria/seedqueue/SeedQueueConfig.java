@@ -82,6 +82,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int simulatedWindowHeight;
 
     @Config.Category("wall")
+    public boolean replaceLockedPreviews = true;
+
+    @Config.Category("wall")
     public boolean bypassWall = false;
 
     @Config.Category("performance")
@@ -145,9 +148,10 @@ public class SeedQueueConfig implements SpeedrunConfig {
             SeedQueueKeyBindings.reset,
             SeedQueueKeyBindings.lock,
             SeedQueueKeyBindings.resetAll,
-            SeedQueueKeyBindings.playNextLock
             SeedQueueKeyBindings.resetColumn,
             SeedQueueKeyBindings.resetRow,
+            SeedQueueKeyBindings.playNextLock,
+            SeedQueueKeyBindings.cancelBenchmark
     };
 
     {

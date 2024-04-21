@@ -53,6 +53,8 @@
   "speedrunapi.config.seedqueue.option.simulatedWindowHeight": "Simulated Window Height",
   "speedrunapi.config.seedqueue.option.customLayout": "Custom Layout",
   "speedrunapi.config.seedqueue.option.customLayout.upload": "Upload...",
+  "speedrunapi.config.seedqueue.option.replaceLockedPreviews": "Replace Locked Instances",
+  "speedrunapi.config.seedqueue.option.replaceLockedPreviews.description": "If disabled, a locked instance will only get replaced once Reset All Instances or Focus Reset is used.",
   "speedrunapi.config.seedqueue.option.bypassWall": "Bypass Wall Screen",
   "speedrunapi.config.seedqueue.option.bypassWall.description": "Bypasses the Wall Screen and immediately puts you into the next locked instance if possible.",
   "speedrunapi.config.seedqueue.option.unlimitedWallFPS": "Unlimited Wall FPS",
