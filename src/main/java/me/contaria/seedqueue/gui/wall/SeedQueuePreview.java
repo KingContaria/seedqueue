@@ -6,7 +6,6 @@ import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.voidxwalker.worldpreview.WorldPreview;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.LevelLoadingScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -21,7 +20,7 @@ import java.util.Objects;
 
 public class SeedQueuePreview extends LevelLoadingScreen {
 
-    private final SeedQueueWallScreen wallScreen;
+    public final SeedQueueWallScreen wallScreen;
     private final SeedQueueEntry seedQueueEntry;
     private final WorldPreviewProperties worldPreviewProperties;
     private WorldRenderer worldRenderer;
@@ -85,13 +84,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         assert this.client != null;
 
-        this.runAsPreview(() -> {
-            // related to WorldRendererMixin#doNotClearOnWallScreen
-            // the suppressed call usually renders a light blue overlay over the entire screen,
-            // instead we draw it onto the preview ourselves
-            DrawableHelper.fill(matrices, 0, 0, this.width, this.height, -5323025);
-            super.render(matrices, mouseX, mouseY, delta);
-        });
+        this.runAsPreview(() -> super.render(matrices, mouseX, mouseY, delta));
 
         if (!this.hasBeenRendered()) {
             this.firstRenderFrame = this.wallScreen.frame;

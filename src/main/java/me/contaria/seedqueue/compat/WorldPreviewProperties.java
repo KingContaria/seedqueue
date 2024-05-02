@@ -15,6 +15,7 @@ import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.Packet;
 import net.minecraft.util.math.Matrix4f;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Queue;
 
@@ -27,6 +28,9 @@ public class WorldPreviewProperties {
     private final Queue<Packet<?>> packetQueue;
 
     private SeedQueueSettingsCache settingsCache;
+
+    @Nullable
+    private WorldPreviewFrame frame;
 
     public WorldPreviewProperties(ClientWorld world, ClientPlayerEntity player, ClientPlayerInteractionManager interactionManager, Camera camera, Queue<Packet<?>> packetQueue) {
         this.world = world;
@@ -105,5 +109,12 @@ public class WorldPreviewProperties {
         DiffuseLighting.enableGuiDepthLighting();
         RenderSystem.defaultAlphaFunc();
         RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
+    }
+
+    public WorldPreviewFrame getFrame() {
+        if (this.frame == null) {
+            this.frame = new WorldPreviewFrame(MinecraftClient.getInstance().getWindow().getFramebufferWidth(), MinecraftClient.getInstance().getWindow().getFramebufferHeight());
+        }
+        return this.frame;
     }
 }

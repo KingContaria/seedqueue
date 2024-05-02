@@ -14,6 +14,7 @@ import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.render.BufferBuilderStorage;
@@ -61,6 +62,9 @@ public class SeedQueueWallScreen extends Screen {
 
     protected int frame;
     private int nextSoundFrame;
+
+    @Nullable
+    private Layout.Pos currentPos;
 
     private final long benchmarkStart = System.currentTimeMillis();
     private int benchmarkedSeeds;
@@ -116,7 +120,7 @@ public class SeedQueueWallScreen extends Screen {
 
         if (this.client.getResourceManager().containsResource(WALL_BACKGROUND)) {
             this.client.getTextureManager().bindTexture(WALL_BACKGROUND);
-            Screen.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
+            DrawableHelper.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
         } else {
             this.renderBackground(matrices);
         }
@@ -139,7 +143,7 @@ public class SeedQueueWallScreen extends Screen {
 
         if (this.client.getResourceManager().containsResource(WALL_OVERLAY)) {
             this.client.getTextureManager().bindTexture(WALL_OVERLAY);
-            Screen.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
+            DrawableHelper.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
         }
 
         for (SeedQueuePreview preparingInstance : this.preparingPreviews) {
@@ -160,11 +164,11 @@ public class SeedQueueWallScreen extends Screen {
             return;
         }
         try {
-            RenderSystem.viewport(pos.x, this.client.getWindow().getFramebufferHeight() - pos.height - pos.y, pos.width, pos.height);
+            this.setViewport(pos);
             if (instance == null || !instance.shouldRender()) {
                 if (group.instance_background && this.client.getResourceManager().containsResource(INSTANCE_BACKGROUND)) {
                     this.client.getTextureManager().bindTexture(INSTANCE_BACKGROUND);
-                    Screen.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
+                    DrawableHelper.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
                 }
                 return;
             }
@@ -180,6 +184,20 @@ public class SeedQueueWallScreen extends Screen {
             this.client.getTextureManager().bindTexture(instance.lock.id);
             double scale = this.client.getWindow().getScaleFactor();
             Screen.drawTexture(matrices, (int) (pos.x / scale), (int) (pos.y / scale), 0.0f, 0.0f, (int) (pos.height * instance.lock.aspectRatio / scale), (int) (pos.height / scale), (int) (pos.height * instance.lock.aspectRatio / scale), (int) (pos.height / scale));
+                DrawableHelper.drawTexture(matrices, (int) (pos.x / scale), (int) (pos.y / scale), 0.0f, 0.0f, (int) (pos.height * instance.lock.aspectRatio / scale), (int) (pos.height / scale), (int) (pos.height * instance.lock.aspectRatio / scale), (int) (pos.height / scale));
+        }
+    }
+
+    private void setViewport(Layout.Pos pos) {
+        assert this.client != null;
+        RenderSystem.viewport(pos.x, this.client.getWindow().getFramebufferHeight() - pos.height - pos.y, pos.width, pos.height);
+
+        this.currentPos = pos;
+    }
+
+    public void refreshViewport() {
+        if (this.currentPos != null) {
+            this.setViewport(this.currentPos);
         }
     }
 
@@ -197,6 +215,8 @@ public class SeedQueueWallScreen extends Screen {
         RenderSystem.matrixMode(5888);
         RenderSystem.loadIdentity();
         RenderSystem.translatef(0.0F, 0.0F, -2000.0F);
+
+        this.currentPos = null;
     }
 
     private void updatePreviews() {
