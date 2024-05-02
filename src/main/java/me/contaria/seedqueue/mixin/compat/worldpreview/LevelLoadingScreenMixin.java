@@ -93,11 +93,11 @@ public abstract class LevelLoadingScreenMixin extends Screen {
     private void endFrame(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ignored, CallbackInfo ci) {
         this.getAsSeedQueuePreview().ifPresent(preview -> {
             assert this.client != null;
-            WorldPreviewFrame frame = preview.getWorldPreviewProperties().getFrame();
-            if (frame == null) {
+            if (SeedQueue.config.previewBufferUpdates == -1) {
                 return;
             }
 
+            WorldPreviewFrame frame = preview.getWorldPreviewProperties().getFrame();
             frame.endWrite();
             this.client.getFramebuffer().beginWrite(true);
             preview.wallScreen.refreshViewport();
