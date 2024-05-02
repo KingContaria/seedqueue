@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.5-SNAPSHOT'
+	id 'fabric-loom' version '1.6-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -35,7 +35,7 @@ dependencies {
 	}
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/mcsr-worldpreview-1.16.1
-	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:327c1b3f34") {
+	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:38a511b635") {
 		transitive = false
 	}
 
@@ -53,7 +53,7 @@ dependencies {
 	}
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/standardsettings
-	modCompileOnly ("com.github.KingContaria:standardsettings:9ae35522bd") {
+	modCompileOnly ("com.github.KingContaria:standardsettings:94b780bd6d") {
 		transitive = false
 	}
 }
