@@ -1,5 +1,7 @@
 package me.contaria.seedqueue.mixin.client.render;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import me.contaria.seedqueue.SeedQueue;
@@ -10,6 +12,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.LevelLoadingScreen;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.profiler.Profiler;
 import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -40,6 +43,25 @@ public abstract class LevelLoadingScreenMixin {
         //noinspection ConstantValue
         if ((Object) this instanceof SeedQueuePreview && ((SeedQueuePreview) (Object) this).getSeedQueueEntry().isReady()) {
             ci.cancel();
+        }
+    }
+
+    @WrapOperation(
+            method = "render",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/screen/LevelLoadingScreen;drawChunkMap(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/gui/WorldGenerationProgressTracker;IIII)V"
+            )
+    )
+    private void profileChunkMapOnWall(MatrixStack matrices, WorldGenerationProgressTracker progress, int i, int j, int k, int l, Operation<Void> original) {
+        //noinspection ConstantValue
+        if ((Object) this instanceof SeedQueuePreview) {
+            Profiler profiler = MinecraftClient.getInstance().getProfiler();
+            profiler.push("chunkmap");
+            original.call(matrices, progress, i, j, k, l);
+            profiler.pop();
+        } else {
+            original.call(matrices, progress, i, j, k, l);
         }
     }
 

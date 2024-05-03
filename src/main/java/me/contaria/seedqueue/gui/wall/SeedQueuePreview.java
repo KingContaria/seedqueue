@@ -117,11 +117,11 @@ public class SeedQueuePreview extends LevelLoadingScreen {
 
     public void printDebug() {
         WorldRenderer worldRenderer = this.getWorldRenderer();
-        SeedQueue.LOGGER.info("SeedQueue-DEBUG | " + "Instance: " + this.seedQueueEntry.getSession().getDirectoryName() + ", Seed: " + this.seedQueueEntry.getServer().getOverworld().getSeed() + ", Chunks: " + worldRenderer.getChunksDebugString() + " (" + worldRenderer.isTerrainRenderComplete() + "), locked: " + this.seedQueueEntry.isLocked() + ", paused: " + this.seedQueueEntry.isPaused() + ", ready: " + this.seedQueueEntry.isReady());
+        SeedQueue.LOGGER.info("SeedQueue-DEBUG | Instance: {}, Seed: {}, Chunks: {} ({}), locked: {}, paused: {}, ready: {}", this.seedQueueEntry.getSession().getDirectoryName(), this.seedQueueEntry.getServer().getOverworld().getSeed(), worldRenderer.getChunksDebugString(), worldRenderer.isTerrainRenderComplete(), this.seedQueueEntry.isLocked(), this.seedQueueEntry.isPaused(), this.seedQueueEntry.isReady());
     }
 
     public void printStacktrace() {
-        SeedQueue.LOGGER.info("SeedQueue-DEBUG | " + "Instance: " + this.seedQueueEntry.getSession().getDirectoryName() + ", Stacktrace: " + Arrays.toString(this.seedQueueEntry.getServer().getThread().getStackTrace()));
+        SeedQueue.LOGGER.info("SeedQueue-DEBUG | Instance: {}, Stacktrace: {}", this.seedQueueEntry.getSession().getDirectoryName(), Arrays.toString(this.seedQueueEntry.getServer().getThread().getStackTrace()));
     }
 
     public boolean shouldRender() {

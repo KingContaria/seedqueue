@@ -1,6 +1,7 @@
 package me.contaria.seedqueue.mixin.client;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -499,6 +500,14 @@ public abstract class MinecraftClientMixin {
             ((SeedQueueWallScreen) this.currentScreen).populateResetCooldowns();
             ((SeedQueueWallScreen) this.currentScreen).tickBenchmark();
         }
+    }
+
+    @ModifyReturnValue(
+            method = "shouldMonitorTickDuration",
+            at = @At("RETURN")
+    )
+    private boolean showDebugMenuOnWall(boolean shouldMonitorTickDuration) {
+        return shouldMonitorTickDuration || (SeedQueue.isOnWall() && SeedQueue.config.showDebugMenu);
     }
 
     @Inject(

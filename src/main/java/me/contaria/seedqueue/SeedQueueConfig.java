@@ -147,6 +147,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean doNotWaitForChunksToBuild = false;
 
     @Config.Category("debug")
+    public boolean showDebugMenu = false;
+
+    @Config.Category("debug")
     @Config.Numbers.Whole.Bounds(max = Integer.MAX_VALUE)
     @Config.Numbers.TextField
     public int benchmarkResets = 0;

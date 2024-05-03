@@ -49,7 +49,7 @@ public abstract class WorldRendererMixin implements SQWorldRenderer {
     public void seedQueue$buildChunks(MatrixStack matrices, Camera camera, Matrix4f projectionMatrix) {
         Profiler profiler = this.world.getProfiler();
 
-        profiler.swap("light_updates");
+        profiler.push("light_updates");
         this.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
 
         profiler.swap("culling");
@@ -62,5 +62,7 @@ public abstract class WorldRendererMixin implements SQWorldRenderer {
 
         profiler.swap("updatechunks");
         this.updateChunks(0);
+
+        profiler.pop();
     }
 }

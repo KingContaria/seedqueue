@@ -89,11 +89,15 @@ public abstract class LevelLoadingScreenMixin extends Screen {
             mixin = "me.voidxwalker.worldpreview.mixin.client.render.LevelLoadingScreenMixin",
             name = "renderWorldPreview"
     )
-    @Inject(method = "@MixinSquared:Handler", at = @At("RETURN"))
+    @Inject(
+            method = "@MixinSquared:Handler",
+            at = @At("RETURN")
+    )
     private void endFrame(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ignored, CallbackInfo ci) {
         this.getAsSeedQueuePreview().ifPresent(preview -> {
             assert this.client != null;
             if (SeedQueue.config.previewBufferUpdates == -1) {
+                this.client.getProfiler().pop();
                 return;
             }
 

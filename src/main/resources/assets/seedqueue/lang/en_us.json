@@ -94,6 +94,8 @@
   "speedrunapi.config.seedqueue.option.doNotWaitForChunksToBuild": "Allow Void Previews",
   "speedrunapi.config.seedqueue.option.useWatchdog": "Watchdog",
   "speedrunapi.config.seedqueue.option.useWatchdog.description": "Launches an extra thread that prints out the main threads stacktrace every 10 seconds to diagnose freezing issues.\n§cTo update this option restart the game.",
+  "speedrunapi.config.seedqueue.option.showDebugMenu": "Show Debug Menu",
+  "speedrunapi.config.seedqueue.option.showDebugMenu.description": "Renders an FPS Graph and a Profiler on top of the Wall Screen.",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "Benchmark Resets",
   "speedrunapi.config.seedqueue.option.benchmarkResets.description": "Every time the wall screen is opened, a benchmark will start for the given amount of resets.\nWhen the benchmark finishes it logs the results."
 }

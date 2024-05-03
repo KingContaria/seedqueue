@@ -15,6 +15,7 @@ import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.Packet;
 import net.minecraft.util.math.Matrix4f;
+import net.minecraft.util.profiler.Profiler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Queue;
@@ -77,7 +78,10 @@ public class WorldPreviewProperties {
     @SuppressWarnings("deprecation")
     public void buildChunks() {
         MinecraftClient client = MinecraftClient.getInstance();
+        Profiler profiler = client.getProfiler();
         Window window = client.getWindow();
+
+        profiler.swap("build_preview");
 
         RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
         RenderSystem.loadIdentity();
@@ -86,6 +90,7 @@ public class WorldPreviewProperties {
         RenderSystem.translatef(0.0F, 0.0F, 0.0F);
         DiffuseLighting.disableGuiDepthLighting();
 
+        profiler.push("matrix");
         // see GameRenderer#renderWorld
         MatrixStack rotationMatrix = new MatrixStack();
         rotationMatrix.multiply(Vector3f.POSITIVE_X.getDegreesQuaternion(this.camera.getPitch()));
@@ -94,10 +99,13 @@ public class WorldPreviewProperties {
         Matrix4f projectionMatrix = new Matrix4f();
         client.gameRenderer.loadProjectionMatrix(projectionMatrix);
 
+        profiler.swap("camera_update");
         synchronized (this.camera) {
             this.camera.update(this.world, this.player, this.camera.isThirdPerson(), ((CameraAccessor) this.camera).seedQueue$isInverseView(), 0);
         }
+        profiler.swap("build_chunks");
         ((SQWorldRenderer) WorldPreview.worldRenderer).seedQueue$buildChunks(rotationMatrix, this.camera, projectionMatrix);
+        profiler.pop();
 
         RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
         RenderSystem.matrixMode(5889);

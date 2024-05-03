@@ -18,4 +18,7 @@ public interface MinecraftClientAccessor {
 
     @Accessor("thread")
     Thread seedQueue$getThread();
+
+    @Invoker("handleProfilerKeyPress")
+    void seedQueue$handleProfilerKeyPress(int digit);
 }

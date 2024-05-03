@@ -10,11 +10,14 @@ import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.keybindings.SeedQueueKeyBindings;
+import me.contaria.seedqueue.mixin.accessor.DebugHudAccessor;
+import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
+import net.minecraft.client.gui.hud.DebugHud;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.render.BufferBuilderStorage;
@@ -29,6 +32,7 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.profiler.Profiler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -46,6 +50,8 @@ public class SeedQueueWallScreen extends Screen {
     private static final Identifier INSTANCE_BACKGROUND = new Identifier("seedqueue", "textures/gui/wall/instance_background.png");
 
     private final Screen createWorldScreen;
+
+    private final DebugHud debugHud;
 
     protected final SeedQueueSettingsCache settingsCache;
     private SeedQueueSettingsCache lastSettingsCache;
@@ -72,6 +78,7 @@ public class SeedQueueWallScreen extends Screen {
     public SeedQueueWallScreen(Screen createWorldScreen) {
         super(LiteralText.EMPTY);
         this.createWorldScreen = createWorldScreen;
+        this.debugHud = new DebugHud(MinecraftClient.getInstance());
         this.preparingPreviews = new ArrayList<>(SeedQueue.config.backgroundPreviews);
         this.lastSettingsCache = this.settingsCache = SeedQueueSettingsCache.create();
     }
@@ -116,8 +123,14 @@ public class SeedQueueWallScreen extends Screen {
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         assert this.client != null;
         this.frame++;
+
+        Profiler profiler = this.client.getProfiler();
+        profiler.swap("wall");
+
+        profiler.push("update_previews");
         this.updatePreviews();
 
+        profiler.swap("background");
         if (this.client.getResourceManager().containsResource(WALL_BACKGROUND)) {
             this.client.getTextureManager().bindTexture(WALL_BACKGROUND);
             DrawableHelper.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
@@ -125,15 +138,18 @@ public class SeedQueueWallScreen extends Screen {
             this.renderBackground(matrices);
         }
 
+        profiler.swap("render_main");
         for (int i = 0; i < this.layout.main.size(); i++) {
             this.renderInstance(this.mainPreviews[i], this.layout.main, this.layout.main.getPos(i), matrices, delta);
         }
         if (this.layout.locked != null && this.lockedPreviews != null) {
+            profiler.swap("render_locked");
             for (int i = 0; i < this.layout.locked.size(); i++) {
                 this.renderInstance(i < this.lockedPreviews.size() ? this.lockedPreviews.get(i) : null, this.layout.locked, this.layout.locked.getPos(i), matrices, delta);
             }
         }
         int i = 0;
+        profiler.swap("render_more");
         for (Layout.Group group : this.layout.more) {
             int offset = i;
             for (i = 0; i < group.size(); i++) {
@@ -141,21 +157,33 @@ public class SeedQueueWallScreen extends Screen {
             }
         }
 
+        profiler.swap("overlay");
         if (this.client.getResourceManager().containsResource(WALL_OVERLAY)) {
             this.client.getTextureManager().bindTexture(WALL_OVERLAY);
             DrawableHelper.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
         }
 
+        profiler.swap("build_more");
         for (SeedQueuePreview preparingInstance : this.preparingPreviews) {
             if (preparingInstance.hasBeenRendered()) {
                 continue;
             }
+            profiler.push("load_settings");
             this.loadPreviewSettings(preparingInstance);
+            profiler.swap("build");
             preparingInstance.buildChunks();
+            profiler.pop();
         }
-        this.resetViewport();
 
+        profiler.swap("reset");
+        this.resetViewport();
         this.loadPreviewSettings(this.settingsCache, 0);
+
+        if (SeedQueue.config.showDebugMenu) {
+            profiler.swap("fps_graph");
+            ((DebugHudAccessor) this.debugHud).seedQueue$drawMetricsData(matrices, this.client.getMetricsData(), 0, this.width / 2, true);
+        }
+        profiler.pop();
     }
 
     private void renderInstance(SeedQueuePreview instance, Layout.Group group, Layout.Pos pos, MatrixStack matrices, float delta) {
@@ -163,21 +191,37 @@ public class SeedQueueWallScreen extends Screen {
         if (pos == null) {
             return;
         }
+        Profiler profiler = this.client.getProfiler();
         try {
+            profiler.push("set_viewport");
             this.setViewport(pos);
             if (instance == null || !instance.shouldRender()) {
                 if (group.instance_background && this.client.getResourceManager().containsResource(INSTANCE_BACKGROUND)) {
+                    profiler.swap("instance_background");
                     this.client.getTextureManager().bindTexture(INSTANCE_BACKGROUND);
                     DrawableHelper.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
                 }
+                profiler.pop();
                 return;
             }
+            profiler.swap("load_settings");
             this.loadPreviewSettings(instance);
+            profiler.swap("render_preview");
             instance.render(matrices, 0, 0, delta);
         } finally {
+            profiler.swap("reset_viewport");
             this.resetViewport();
         }
-        if (instance.getSeedQueueEntry().isLocked() && !this.lockTextures.isEmpty()) {
+        if (instance.getSeedQueueEntry().isLocked()) {
+            profiler.swap("lock");
+            this.renderLock(instance, pos, matrices);
+        }
+        profiler.pop();
+    }
+
+    private void renderLock(SeedQueuePreview instance, Layout.Pos pos, MatrixStack matrices) {
+        assert this.client != null;
+        if (!this.lockTextures.isEmpty()) {
             if (instance.lock == null) {
                 instance.lock = this.lockTextures.get(new Random().nextInt(this.lockTextures.size()));
             }
@@ -306,15 +350,12 @@ public class SeedQueueWallScreen extends Screen {
         if (SeedQueueKeyBindings.resetAll.matchesMouse(button)) {
             this.resetAllInstances();
         }
-
         if (SeedQueueKeyBindings.resetColumn.matchesMouse(button)) {
             this.resetColumn(mouseX);
         }
-
         if (SeedQueueKeyBindings.resetRow.matchesMouse(button)) {
             this.resetRow(mouseY);
         }
-
         if (SeedQueueKeyBindings.playNextLock.matchesMouse(button)) {
             SeedQueue.getEntryMatching(SeedQueueEntry::isLocked).ifPresent(this::playInstance);
         }
@@ -362,18 +403,20 @@ public class SeedQueueWallScreen extends Screen {
             return true;
         }
 
+        // see Keyboard#onKey
+        if (SeedQueue.config.showDebugMenu && keyCode >= GLFW.GLFW_KEY_0 && keyCode <= GLFW.GLFW_KEY_9) {
+            ((MinecraftClientAccessor) this.client).seedQueue$handleProfilerKeyPress(keyCode - GLFW.GLFW_KEY_0);
+        }
+
         if (SeedQueueKeyBindings.resetAll.matchesKey(keyCode, scanCode)) {
             this.resetAllInstances();
         }
-
         if (SeedQueueKeyBindings.playNextLock.matchesKey(keyCode, scanCode)) {
             SeedQueue.getEntryMatching(SeedQueueEntry::isLocked).ifPresent(this::playInstance);
         }
-
         if (SeedQueueKeyBindings.resetColumn.matchesKey(keyCode, scanCode)) {
             this.resetColumn(mouseX);
         }
-
         if (SeedQueueKeyBindings.resetRow.matchesKey(keyCode, scanCode)) {
             this.resetRow(mouseY);
         }
