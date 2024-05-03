@@ -97,7 +97,6 @@ public abstract class LevelLoadingScreenMixin extends Screen {
         this.getAsSeedQueuePreview().ifPresent(preview -> {
             assert this.client != null;
             if (SeedQueue.config.previewBufferUpdates == -1) {
-                this.client.getProfiler().pop();
                 return;
             }
 
