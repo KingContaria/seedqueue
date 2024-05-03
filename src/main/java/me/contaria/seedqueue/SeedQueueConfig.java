@@ -103,6 +103,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int previewBufferUpdates;
 
     @Config.Category("performance")
+    public boolean freezeLockedPreviews = false;
+
+    @Config.Category("performance")
     public boolean usePerThreadSurfaceBuilders = false;
 
     @Config.Category("performance")

@@ -47,7 +47,7 @@ public abstract class LevelLoadingScreenMixin extends Screen {
             WorldPreviewFrame frame = preview.getWorldPreviewProperties().getFrame();
 
             String renderData = preview.getWorldRenderer().getChunksDebugString() + "\n" + preview.getWorldRenderer().getEntitiesDebugString();
-            if (frame.isEmpty() || (frame.isDirty(renderData) && System.currentTimeMillis() - frame.getLastRenderTime() > SeedQueue.config.previewBufferUpdates)) {
+            if (frame.isEmpty() || (frame.isDirty(renderData) && System.currentTimeMillis() - frame.getLastRenderTime() > SeedQueue.config.previewBufferUpdates && !(SeedQueue.config.freezeLockedPreviews && preview.getSeedQueueEntry().isLocked()))) {
                 frame.beginWrite(renderData);
                 return;
             }

@@ -70,6 +70,8 @@
   "speedrunapi.config.seedqueue.option.previewBufferUpdates.value.-1": "Every Frame",
   "speedrunapi.config.seedqueue.option.previewBufferUpdates.value": "%sms",
   "speedrunapi.config.seedqueue.option.previewBufferUpdates.value.1000": "1 second",
+  "speedrunapi.config.seedqueue.option.freezeLockedPreviews": "Freeze Locked Previews",
+  "speedrunapi.config.seedqueue.option.freezeLockedPreviews.description": "If enabled, locked instances will not be sent any new chunks to render and if Preview Render Updates is not set to Every Frame it won't have to redraw the preview anymore.",
   "speedrunapi.config.seedqueue.option.usePerThreadSurfaceBuilders": "Multi Surface Builders",
   "speedrunapi.config.seedqueue.option.usePerThreadSurfaceBuilders.description": "Instead of synchronizing access to surface builders between instances, create multiple copies to be used in parallel.\n§cTo update this option restart the game.",
   "speedrunapi.config.seedqueue.option.lazyUserCache": "Lazy UserCache",

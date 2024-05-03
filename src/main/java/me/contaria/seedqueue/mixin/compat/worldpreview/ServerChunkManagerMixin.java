@@ -152,7 +152,7 @@ public abstract class ServerChunkManagerMixin {
 
     @Unique
     private Optional<WorldPreviewProperties> getWorldPreviewProperties() {
-        return Optional.ofNullable(SeedQueue.getEntry(this.world.getServer())).map(SeedQueueEntry::getWorldPreviewProperties);
+        return Optional.ofNullable(SeedQueue.getEntry(this.world.getServer())).filter(entry -> !(SeedQueue.config.freezeLockedPreviews && entry.isLocked())).map(SeedQueueEntry::getWorldPreviewProperties);
     }
 
     @Unique
