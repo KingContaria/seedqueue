@@ -33,7 +33,6 @@ public abstract class BiomeMixin {
     @Unique
     private boolean synchronizedAccess;
 
-    // TODO: logging doesn't actually log the biome id, but the surfacebuilder id
     @Inject(
             method = "<init>*",
             at = @At("TAIL")
@@ -44,10 +43,8 @@ public abstract class BiomeMixin {
             try {
                 clas.getDeclaredMethod(initSeed, long.class);
                 if (SeedQueue.config.usePerThreadSurfaceBuilders) {
-                    SeedQueue.LOGGER.info("Enabled per thread surface building for " + Registry.SURFACE_BUILDER.getId(this.surfaceBuilder.surfaceBuilder) + " using " + clas + ".");
                     this.threadSafeSurfaceBuilder = new ThreadLocal<>();
                 } else {
-                    SeedQueue.LOGGER.info("Enabled synchronized surface building for " + Registry.SURFACE_BUILDER.getId(this.surfaceBuilder.surfaceBuilder) + " using " + clas + ".");
                     this.synchronizedAccess = true;
                 }
                 break;
