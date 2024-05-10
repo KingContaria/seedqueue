@@ -4,13 +4,15 @@ import me.voidxwalker.worldpreview.WorldPreview;
 import me.voidxwalker.worldpreview.interfaces.WPMinecraftServer;
 import net.minecraft.server.MinecraftServer;
 
-class WorldPreviewCompat {
+public class WorldPreviewCompat {
+
+    public static final ThreadLocal<WorldPreviewProperties> SERVER_WP_PROPERTIES = new ThreadLocal<>();
 
     static boolean kill(MinecraftServer server) {
         return ((WPMinecraftServer) server).worldpreview$kill();
     }
 
-    public static boolean isRenderingPreview() {
+    static boolean isRenderingPreview() {
         return WorldPreview.renderingPreview;
     }
 }

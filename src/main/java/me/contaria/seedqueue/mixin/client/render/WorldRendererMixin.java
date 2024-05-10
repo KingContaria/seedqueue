@@ -2,6 +2,8 @@ package me.contaria.seedqueue.mixin.client.render;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import me.contaria.seedqueue.SeedQueue;
+import me.contaria.seedqueue.compat.WorldPreviewCompat;
+import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.interfaces.SQWorldRenderer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
@@ -16,6 +18,8 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(WorldRenderer.class)
 public abstract class WorldRendererMixin implements SQWorldRenderer {
@@ -43,6 +47,19 @@ public abstract class WorldRendererMixin implements SQWorldRenderer {
     )
     private boolean doNotClearOnWallScreen(int mask, boolean getError, MatrixStack matrices) {
         return !SeedQueue.isOnWall();
+    }
+
+    @Inject(
+            method = "scheduleChunkRender",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    private void captureScheduledChunkRebuildsFromServer(int x, int y, int z, boolean important, CallbackInfo ci) {
+        WorldPreviewProperties wpProperties = WorldPreviewCompat.SERVER_WP_PROPERTIES.get();
+        if (wpProperties != null) {
+            wpProperties.scheduleChunkRender(x, y, z, important);
+            ci.cancel();
+        }
     }
 
     @Override

@@ -97,6 +97,8 @@
   "speedrunapi.config.seedqueue.option.chunkUpdateThreads.value.0": "Default",
   "speedrunapi.config.seedqueue.option.chunkUpdateThreadPriority": "Sodium Update Priority",
   "speedrunapi.config.seedqueue.option.chunkUpdateThreadPriority.description": "Sets the thread priority for Sodium Chunk Update Threads on the Wall Screen.",
+  "speedrunapi.config.seedqueue.option.evaluatePacketsServerSide": "Convert Data On Server",
+  "speedrunapi.config.seedqueue.option.evaluatePacketsServerSide.description": "Reads WorldPreview data packets on the server thread instead of the render thread to improve framerate on the Wall Screen at the cost of slowing down world generation by a bit.",
   "speedrunapi.config.seedqueue.option.alwaysDeferChunkUpdates": "Always Defer Chunk Updates",
   "speedrunapi.config.seedqueue.option.alwaysDeferChunkUpdates.description": "By default Sodium will build some data for rendering chunks very close to the player on the Render Thread, if this option is disabled all chunks get built on the Sodium Chunk Update Threads instead.",
   "speedrunapi.config.seedqueue.option.cacheShaders": "Cache Shaders",

@@ -85,6 +85,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         assert this.client != null;
 
+        this.worldPreviewProperties.loadNewData(this.worldRenderer);
         this.runAsPreview(() -> super.render(matrices, mouseX, mouseY, delta));
 
         if (!this.hasBeenRendered()) {
@@ -94,6 +95,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     }
 
     public void buildChunks() {
+        this.worldPreviewProperties.loadNewData(this.worldRenderer);
         this.runAsPreview(() -> WorldPreview.runAsPreview(() -> {
             WorldPreview.tickPackets();
             WorldPreview.tickEntities();
