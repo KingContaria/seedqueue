@@ -152,27 +152,25 @@ public class SeedQueueWallScreen extends Screen {
         profiler.swap("render_more");
         for (Layout.Group group : this.layout.more) {
             int offset = i;
-            for (i = 0; i < group.size(); i++) {
+            for (; i < group.size(); i++) {
                 this.renderInstance(i < this.preparingPreviews.size() ? this.preparingPreviews.get(i) : null, group, group.getPos(i - offset), matrices, delta);
             }
+        }
+
+        profiler.swap("build_more");
+        for (; i < this.preparingPreviews.size(); i++) {
+            SeedQueuePreview preparingInstance = this.preparingPreviews.get(i);
+            profiler.push("load_settings");
+            this.loadPreviewSettings(preparingInstance);
+            profiler.swap("build");
+            preparingInstance.buildChunks();
+            profiler.pop();
         }
 
         profiler.swap("overlay");
         if (this.client.getResourceManager().containsResource(WALL_OVERLAY)) {
             this.client.getTextureManager().bindTexture(WALL_OVERLAY);
             DrawableHelper.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
-        }
-
-        profiler.swap("build_more");
-        for (SeedQueuePreview preparingInstance : this.preparingPreviews) {
-            if (preparingInstance.hasBeenRendered()) {
-                continue;
-            }
-            profiler.push("load_settings");
-            this.loadPreviewSettings(preparingInstance);
-            profiler.swap("build");
-            preparingInstance.buildChunks();
-            profiler.pop();
         }
 
         profiler.swap("reset");
@@ -600,7 +598,7 @@ public class SeedQueueWallScreen extends Screen {
     public void populateResetCooldowns() {
         long renderTime = System.currentTimeMillis();
         for (SeedQueuePreview instance : this.getInstances()) {
-            if (this.frame == instance.firstRenderFrame) {
+            if (instance.lastRenderFrame == this.frame && instance.firstRenderTime == null) {
                 instance.firstRenderTime = renderTime;
             }
         }
