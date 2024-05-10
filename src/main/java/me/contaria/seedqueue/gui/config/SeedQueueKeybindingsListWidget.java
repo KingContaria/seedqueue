@@ -95,7 +95,6 @@ public class SeedQueueKeybindingsListWidget extends ElementListWidget<SeedQueueK
                 SeedQueueKeybindingsListWidget.this.parent.focusedBinding = this;
                 this.focusedKey = this.keyBindingButtons.indexOf(button);
             }) {
-                @SuppressWarnings("WrongTypeInTranslationArgs")
                 @Override
                 protected MutableText getNarrationMessage() {
                     InputUtil.Key key = KeyEntry.this.binding.getKey(KeyEntry.this.keyBindingButtons.indexOf(this));
