@@ -47,7 +47,7 @@ public class WorldPreviewFrame {
     @SuppressWarnings("deprecation")
     public void draw(int width, int height) {
         // DrawableHelper#drawTexture enables alpha test when rendering the lock image,
-        // which causes artifacts to appear when drawing the buffer, to prevent this we just make sure its disabled it
+        // which causes artifacts to appear when drawing the buffer, to prevent this we just make sure its disabled
         RenderSystem.disableAlphaTest();
 
         GlStateManager.bindTexture(this.framebuffer.colorAttachment);
@@ -60,5 +60,9 @@ public class WorldPreviewFrame {
         bufferbuilder.vertex(0.0, 0.0, -90.0).texture(0.0F, 1.0F).next();
         bufferbuilder.end();
         BufferRenderer.draw(bufferbuilder);
+    }
+
+    public void delete() {
+        this.framebuffer.delete();
     }
 }

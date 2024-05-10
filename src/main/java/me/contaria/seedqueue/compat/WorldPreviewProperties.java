@@ -169,4 +169,14 @@ public class WorldPreviewProperties {
         }
         this.scheduledChunkRenders.clear();
     }
+
+    public synchronized void discard() {
+        this.packetQueue.clear();
+        if (this.frame != null) {
+            this.frame.delete();
+        }
+        this.addedEntities.clear();
+        this.addedChunks.clear();
+        this.scheduledChunkRenders.clear();
+    }
 }

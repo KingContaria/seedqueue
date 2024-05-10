@@ -84,8 +84,15 @@ public class SeedQueueEntry {
         return this.worldPreviewProperties;
     }
 
-    public void setWorldPreviewProperties(@Nullable WorldPreviewProperties worldPreviewProperties) {
+    public synchronized void setWorldPreviewProperties(@Nullable WorldPreviewProperties worldPreviewProperties) {
         this.worldPreviewProperties = worldPreviewProperties;
+    }
+
+    public synchronized void discardWorldPreviewProperties() {
+        if (this.worldPreviewProperties != null) {
+            this.worldPreviewProperties.discard();
+            this.worldPreviewProperties = null;
+        }
     }
 
     public boolean shouldPause() {
@@ -138,7 +145,7 @@ public class SeedQueueEntry {
         return this.discarded;
     }
 
-    public void discard() {
+    public synchronized void discard() {
         synchronized (this.server) {
             if (this.discarded) {
                 return;
@@ -147,6 +154,8 @@ public class SeedQueueEntry {
             SeedQueue.LOGGER.info("Discarding \"{}\"...", this.server.getSaveProperties().getLevelName());
 
             this.discarded = true;
+
+            this.discardWorldPreviewProperties();
 
             if (!ModCompat.worldpreview$kill(this.server)) {
                 ModCompat.fastReset$fastReset(this.server);

@@ -18,7 +18,7 @@ public abstract class MinecraftServerMixin {
     private void tooLateToConfigureWorldPreview(CallbackInfo ci) {
         SeedQueueEntry entry = SeedQueue.getEntry((MinecraftServer) (Object) this);
         if (entry != null && !SeedQueue.config.shouldUseWall()) {
-            entry.setWorldPreviewProperties(null);
+            entry.discardWorldPreviewProperties();
         }
     }
 }
