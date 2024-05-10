@@ -6,12 +6,25 @@ import net.minecraft.server.MinecraftServer;
 public class ModCompat {
 
     public static final boolean HAS_FASTRESET = FabricLoader.getInstance().isModLoaded("fast_reset");
-    public static final boolean HAS_WORLDPREVIEW = FabricLoader.getInstance().isModLoaded("worldpreview");
+    public static final boolean HAS_SODIUM = FabricLoader.getInstance().isModLoaded("sodium");
     public static final boolean HAS_STANDARDSETTINGS = FabricLoader.getInstance().isModLoaded("standardsettings");
+    public static final boolean HAS_WORLDPREVIEW = FabricLoader.getInstance().isModLoaded("worldpreview");
 
     public static void fastReset$fastReset(MinecraftServer server) {
         if (HAS_FASTRESET) {
             FastResetCompat.fastReset(server);
+        }
+    }
+
+    public static void sodium$clearShaderCache() {
+        if (HAS_SODIUM) {
+            SodiumCompat.clearShaderCache();
+        }
+    }
+
+    public static void sodium$clearBuildBufferPool() {
+        if (HAS_SODIUM) {
+            SodiumCompat.clearBuildBufferPool();
         }
     }
 

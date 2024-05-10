@@ -23,7 +23,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     public final SeedQueueWallScreen wallScreen;
     private final SeedQueueEntry seedQueueEntry;
     private final WorldPreviewProperties worldPreviewProperties;
-    private WorldRenderer worldRenderer;
+    private final WorldRenderer worldRenderer;
 
     protected SeedQueueWallScreen.LockTexture lock;
 
@@ -36,6 +36,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
         this.wallScreen = wallScreen;
         this.seedQueueEntry = seedQueueEntry;
         this.worldPreviewProperties = Objects.requireNonNull(seedQueueEntry.getWorldPreviewProperties());
+        this.worldRenderer = SeedQueueWallScreen.getOrCreateWorldRenderer(this.worldPreviewProperties.getWorld());
 
         if (this.worldPreviewProperties.getSettingsCache() == null) {
             this.worldPreviewProperties.setSettingsCache(this.wallScreen.settingsCache);
@@ -152,9 +153,6 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     }
 
     public WorldRenderer getWorldRenderer() {
-        if (this.worldRenderer == null) {
-            this.worldRenderer = SeedQueueWallScreen.getOrCreateWorldRenderer(this.worldPreviewProperties.getWorld());
-        }
         return this.worldRenderer;
     }
 }

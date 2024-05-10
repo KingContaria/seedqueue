@@ -71,7 +71,8 @@ public abstract class LevelLoadingScreenMixin extends Screen {
             method = "@MixinSquared:Handler",
             at = @At(
                     value = "INVOKE",
-                    target = "Lme/voidxwalker/worldpreview/WorldPreview;runAsPreview(Ljava/lang/Runnable;)V"
+                    target = "Lme/voidxwalker/worldpreview/WorldPreview;runAsPreview(Ljava/lang/Runnable;)V",
+                    remap = false
             )
     )
     private void drawClearBackground(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ignored, CallbackInfo ci) {

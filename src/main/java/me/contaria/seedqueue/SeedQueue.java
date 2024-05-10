@@ -1,5 +1,6 @@
 package me.contaria.seedqueue;
 
+import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
@@ -181,6 +182,8 @@ public class SeedQueue implements ClientModInitializer {
 
         SeedQueueExecutorWrapper.shutdownExecutors();
         SeedQueueWallScreen.clearWorldRenderers();
+        ModCompat.sodium$clearShaderCache();
+        ModCompat.sodium$clearBuildBufferPool();
         System.gc();
 
         client.openScreen(screen);

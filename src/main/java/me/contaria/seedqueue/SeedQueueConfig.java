@@ -140,6 +140,12 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.MAX_PRIORITY)
     public int chunkUpdateThreadPriority = 3;
 
+    @Config.Category("experimental")
+    public boolean cacheShaders = false;
+
+    @Config.Category("experimental")
+    public boolean cacheBuildBuffers;
+
     @Config.Category("debug")
     public boolean useWatchdog = false;
 
@@ -173,12 +179,12 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @SuppressWarnings("unused")
     public void setChunkUpdateThreads(int chunkUpdateThreads) {
-        this.chunkUpdateThreads = Math.min(Runtime.getRuntime().availableProcessors(), chunkUpdateThreads);
+        this.chunkUpdateThreads = Math.min(PROCESSORS, chunkUpdateThreads);
     }
 
     @SuppressWarnings("unused")
     public void setBackgroundExecutorThreads(int backgroundExecutorThreads) {
-        this.backgroundExecutorThreads = Math.min(Runtime.getRuntime().availableProcessors(), backgroundExecutorThreads);
+        this.backgroundExecutorThreads = Math.min(PROCESSORS, backgroundExecutorThreads);
     }
 
     public boolean shouldUseWall() {
@@ -203,6 +209,30 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Override
     public @Nullable SpeedrunOption<?> parseField(Field field, SpeedrunConfig config, String... idPrefix) {
+        if ("useWall".equals(field.getName())) {
+            return new SpeedrunConfigAPI.CustomOption.Builder<Boolean>(config, this, field, idPrefix)
+                    .fromJson(((option, config_, configStorage, optionField, jsonElement) -> option.set(jsonElement.getAsBoolean())))
+                    .toJson(((option, config_, configStorage, optionField) -> new JsonPrimitive(option.get())))
+                    .createWidget((option, config_, configStorage, optionField) -> {
+                        if (!this.canUseWall) {
+                            ButtonWidget button = new ButtonWidget(0, 0, 150, 20, new TranslatableText("seedqueue.menu.config.useWall.notAvailable"), b -> {}, ((b, matrices, mouseX, mouseY) -> {
+                                MinecraftClient client = MinecraftClient.getInstance();
+                                List<StringRenderable> tooltip = new ArrayList<>(client.textRenderer.wrapLines(new TranslatableText("seedqueue.menu.config.useWall.notAvailable.tooltip"), 200));
+                                for (int i = 1; i <= 3; i++) {
+                                    tooltip.add(new TranslatableText("seedqueue.menu.config.useWall.notAvailable.tooltip." + i));
+                                }
+                                Objects.requireNonNull(client.currentScreen).renderTooltip(matrices, tooltip, mouseX, mouseY);
+                            }));
+                            button.active = false;
+                            return button;
+                        }
+                        return new ButtonWidget(0, 0, 150, 20, ScreenTexts.getToggleText(option.get()), button -> {
+                            option.set(!option.get());
+                            button.setMessage(ScreenTexts.getToggleText(option.get()));
+                        });
+                    })
+                    .build();
+        }
         if (JsonObject.class.equals(field.getType())) {
             return new SpeedrunConfigAPI.CustomOption.Builder<JsonObject>(config, this, field, idPrefix)
                     .fromJson(((option, config_, configStorage, optionField, jsonElement) -> option.set(jsonElement.isJsonNull() ? null : jsonElement.getAsJsonObject())))
