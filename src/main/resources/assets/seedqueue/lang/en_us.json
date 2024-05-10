@@ -4,6 +4,12 @@
   "seedqueue.menu.benchmark": "SeedQueue Benchmark",
   "seedqueue.menu.benchmark.result": "Reset %s seeds in %ss",
 
+  "seedqueue.menu.config.useWall.notAvailable": "§c§oNot Available",
+  "seedqueue.menu.config.useWall.notAvailable.tooltip": "Using the Wall Screen requires the following mods to be installed:",
+  "seedqueue.menu.config.useWall.notAvailable.tooltip.1": " - Sodium",
+  "seedqueue.menu.config.useWall.notAvailable.tooltip.2": " - StandardSettings",
+  "seedqueue.menu.config.useWall.notAvailable.tooltip.3": " - WorldPreview",
+
   "seedqueue.menu.keys": "Wall Keybindings",
   "seedqueue.menu.keys.configure": "Configure...",
   "seedqueue.menu.keys.primary": "Primary Key",
