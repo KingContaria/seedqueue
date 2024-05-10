@@ -27,6 +27,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
 
     protected SeedQueueWallScreen.LockTexture lock;
 
+    protected int firstRenderFrame;
     protected int lastRenderFrame = Integer.MIN_VALUE;
     protected Long firstRenderTime;
 
@@ -86,6 +87,10 @@ public class SeedQueuePreview extends LevelLoadingScreen {
 
         this.worldPreviewProperties.loadNewData(this.worldRenderer);
         this.runAsPreview(() -> super.render(matrices, mouseX, mouseY, delta));
+
+        if (!this.hasBeenRendered()) {
+            this.firstRenderFrame = this.wallScreen.frame;
+        }
     }
 
     public void buildChunks() {
