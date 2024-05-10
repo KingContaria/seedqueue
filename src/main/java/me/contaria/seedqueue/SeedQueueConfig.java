@@ -105,10 +105,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int backgroundPreviews = 0;
 
     @Config.Category("performance")
-    @Config.Numbers.Whole.Bounds(min = -1, max = 1000)
-    public int previewBufferUpdates;
-
-    @Config.Category("performance")
     public boolean freezeLockedPreviews = false;
 
     @Config.Category("performance")
@@ -148,6 +144,10 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("experimental")
     public boolean evaluatePacketsServerSide = false;
+
+    @Config.Category("experimental")
+    @Config.Numbers.Whole.Bounds(min = -1, max = 1000)
+    public int previewBufferUpdates;
 
     @Config.Category("experimental")
     public boolean alwaysDeferChunkUpdates = false;
