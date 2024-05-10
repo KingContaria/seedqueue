@@ -16,14 +16,12 @@ public class WorldPreviewFrame {
 
     @Nullable
     private String lastRenderData;
-    private long lastRenderTime;
 
     public WorldPreviewFrame(int width, int height) {
         this.framebuffer = new Framebuffer(width, height, true, MinecraftClient.IS_SYSTEM_MAC);
     }
 
     public void beginWrite(String renderData) {
-        this.lastRenderTime = System.currentTimeMillis();
         this.lastRenderData = renderData;
         this.framebuffer.beginWrite(true);
     }
@@ -38,10 +36,6 @@ public class WorldPreviewFrame {
 
     public boolean isDirty(String newRenderData) {
         return !newRenderData.equals(this.lastRenderData);
-    }
-
-    public long getLastRenderTime() {
-        return this.lastRenderTime;
     }
 
     @SuppressWarnings("deprecation")

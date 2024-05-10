@@ -1,10 +1,10 @@
 package me.contaria.seedqueue.mixin.compat.worldpreview;
 
 import com.bawnorton.mixinsquared.TargetHandler;
-import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.compat.WorldPreviewFrame;
 import me.contaria.seedqueue.gui.wall.SeedQueuePreview;
 import me.voidxwalker.worldpreview.WorldPreview;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.screen.LevelLoadingScreen;
 import net.minecraft.client.gui.screen.Screen;
@@ -26,7 +26,6 @@ public abstract class LevelLoadingScreenMixin extends Screen {
         super(title);
     }
 
-    @SuppressWarnings("CancellableInjectionUsage") // MCDev is being silly, maybe because it cancels in a lambda
     @Dynamic
     @TargetHandler(
             mixin = "me.voidxwalker.worldpreview.mixin.client.render.LevelLoadingScreenMixin",
@@ -37,17 +36,12 @@ public abstract class LevelLoadingScreenMixin extends Screen {
             at = @At("HEAD"),
             cancellable = true
     )
-    private void beginFrame(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ignored, CallbackInfo ci) {
+    private void beginFrame(CallbackInfo ci) {
         this.getAsSeedQueuePreview().ifPresent(preview -> {
-            assert this.client != null;
-            if (SeedQueue.config.previewBufferUpdates == -1) {
-                return;
-            }
-
             WorldPreviewFrame frame = preview.getWorldPreviewProperties().getFrame();
 
             String renderData = preview.getWorldRenderer().getChunksDebugString() + "\n" + preview.getWorldRenderer().getEntitiesDebugString();
-            if (frame.isEmpty() || (frame.isDirty(renderData) && System.currentTimeMillis() - frame.getLastRenderTime() > SeedQueue.config.previewBufferUpdates && !(SeedQueue.config.freezeLockedPreviews && preview.getSeedQueueEntry().isLocked()))) {
+            if (frame.isEmpty() || (frame.isDirty(renderData) && preview.shouldRenderPreview())) {
                 frame.beginWrite(renderData);
                 return;
             }
@@ -94,16 +88,13 @@ public abstract class LevelLoadingScreenMixin extends Screen {
             method = "@MixinSquared:Handler",
             at = @At("RETURN")
     )
-    private void endFrame(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ignored, CallbackInfo ci) {
+    private void endFrame(CallbackInfo ci) {
         this.getAsSeedQueuePreview().ifPresent(preview -> {
-            assert this.client != null;
-            if (SeedQueue.config.previewBufferUpdates == -1) {
-                return;
-            }
-
             WorldPreviewFrame frame = preview.getWorldPreviewProperties().getFrame();
             frame.endWrite();
-            this.client.getFramebuffer().beginWrite(true);
+            preview.updateLastRenderFrame();
+
+            MinecraftClient.getInstance().getFramebuffer().beginWrite(true);
             preview.wallScreen.refreshViewport();
             frame.draw(this.width, this.height);
         });

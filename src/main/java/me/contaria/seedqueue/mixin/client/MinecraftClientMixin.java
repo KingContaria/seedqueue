@@ -24,7 +24,6 @@ import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.Window;
 import net.minecraft.resource.DataPackSettings;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ServerResourceManager;
@@ -61,9 +60,6 @@ public abstract class MinecraftClientMixin {
     @Shadow
     @Final
     private AtomicReference<WorldGenerationProgressTracker> worldGenProgressTracker;
-    @Shadow
-    @Final
-    private Window window;
 
     @Shadow
     @Nullable
@@ -481,9 +477,9 @@ public abstract class MinecraftClientMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    private void unlimitedWallFPS(CallbackInfoReturnable<Integer> cir) {
-        if (SeedQueue.isOnWall() && SeedQueue.config.unlimitedWallFPS) {
-            cir.setReturnValue(this.window.getFramerateLimit());
+    private void modifyFPSOnWall(CallbackInfoReturnable<Integer> cir) {
+        if (SeedQueue.isOnWall()) {
+            cir.setReturnValue(SeedQueue.config.wallFPS);
         }
     }
 

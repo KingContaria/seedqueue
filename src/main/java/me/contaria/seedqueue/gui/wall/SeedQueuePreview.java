@@ -28,7 +28,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     protected SeedQueueWallScreen.LockTexture lock;
 
     protected int firstRenderFrame = Integer.MAX_VALUE;
-    protected int lastRenderFrame;
+    protected int lastRenderFrame = Integer.MIN_VALUE;
     protected long firstRenderTime;
 
     public SeedQueuePreview(SeedQueueWallScreen wallScreen, SeedQueueEntry seedQueueEntry) {
@@ -91,7 +91,6 @@ public class SeedQueuePreview extends LevelLoadingScreen {
         if (!this.hasBeenRendered()) {
             this.firstRenderFrame = this.wallScreen.frame;
         }
-        this.lastRenderFrame = this.wallScreen.frame;
     }
 
     public void buildChunks() {
@@ -144,6 +143,17 @@ public class SeedQueuePreview extends LevelLoadingScreen {
 
     public boolean hasBeenRendered() {
         return this.firstRenderFrame < this.wallScreen.frame;
+    }
+
+    public void updateLastRenderFrame() {
+        this.lastRenderFrame = this.wallScreen.frame;
+    }
+
+    public boolean shouldRenderPreview() {
+        if (this.seedQueueEntry.isLocked() && SeedQueue.config.freezeLockedPreviews) {
+            return false;
+        }
+        return this.wallScreen.frame - this.lastRenderFrame >= SeedQueue.config.wallFPS / SeedQueue.config.previewFPS;
     }
 
     public SeedQueueEntry getSeedQueueEntry() {

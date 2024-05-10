@@ -98,7 +98,12 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean bypassWall = false;
 
     @Config.Category("performance")
-    public boolean unlimitedWallFPS = false;
+    @Config.Numbers.Whole.Bounds(min = 1, max = 255)
+    public int wallFPS = 60;
+
+    @Config.Category("performance")
+    @Config.Numbers.Whole.Bounds(min = 1, max = 255)
+    public int previewFPS = 15;
 
     @Config.Category("performance")
     @Config.Numbers.Whole.Bounds(min = 0, max = 50, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
@@ -146,17 +151,13 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean evaluatePacketsServerSide = false;
 
     @Config.Category("experimental")
-    @Config.Numbers.Whole.Bounds(min = -1, max = 1000)
-    public int previewBufferUpdates;
-
-    @Config.Category("experimental")
     public boolean alwaysDeferChunkUpdates = false;
 
     @Config.Category("experimental")
     public boolean cacheShaders = false;
 
     @Config.Category("experimental")
-    public boolean cacheBuildBuffers;
+    public boolean cacheBuildBuffers = false;
 
     @Config.Category("experimental")
     public boolean doNotYieldRenderThread = false;
