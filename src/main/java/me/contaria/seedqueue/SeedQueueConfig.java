@@ -155,6 +155,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Category("experimental")
     public boolean cacheBuildBuffers;
 
+    @Config.Category("experimental")
+    public boolean doNotYieldRenderThread = false;
+
     @Config.Category("debug")
     public boolean useWatchdog = false;
 

@@ -487,6 +487,25 @@ public abstract class MinecraftClientMixin {
         }
     }
 
+    @ModifyReturnValue(
+            method = "shouldMonitorTickDuration",
+            at = @At("RETURN")
+    )
+    private boolean showDebugMenuOnWall(boolean shouldMonitorTickDuration) {
+        return shouldMonitorTickDuration || (SeedQueue.isOnWall() && SeedQueue.config.showDebugMenu);
+    }
+
+    @WrapWithCondition(
+            method = "render",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/lang/Thread;yield()V"
+            )
+    )
+    private boolean doNotYieldRenderThreadOnWall() {
+        return !(SeedQueue.isOnWall() && SeedQueue.config.doNotYieldRenderThread);
+    }
+
     @Inject(
             method = "render",
             at = @At(
@@ -500,14 +519,6 @@ public abstract class MinecraftClientMixin {
             ((SeedQueueWallScreen) this.currentScreen).populateResetCooldowns();
             ((SeedQueueWallScreen) this.currentScreen).tickBenchmark();
         }
-    }
-
-    @ModifyReturnValue(
-            method = "shouldMonitorTickDuration",
-            at = @At("RETURN")
-    )
-    private boolean showDebugMenuOnWall(boolean shouldMonitorTickDuration) {
-        return shouldMonitorTickDuration || (SeedQueue.isOnWall() && SeedQueue.config.showDebugMenu);
     }
 
     @Inject(
