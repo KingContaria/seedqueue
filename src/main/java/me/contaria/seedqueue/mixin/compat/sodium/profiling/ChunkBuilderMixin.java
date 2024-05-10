@@ -25,7 +25,7 @@ public abstract class ChunkBuilderMixin {
         MinecraftClient.getInstance().getProfiler().push("build_buffers");
     }
 
-    @Inject(method = "startWorkers", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheLocal;<init>(Lnet/minecraft/client/MinecraftClient;Lnet/minecraft/world/World;)V"))
+    @Inject(method = "startWorkers", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheLocal;<init>(Lnet/minecraft/client/MinecraftClient;Lnet/minecraft/world/World;)V", remap = true))
     private void profileRenderCache(CallbackInfo ci) {
         MinecraftClient.getInstance().getProfiler().swap("render_cache");
     }

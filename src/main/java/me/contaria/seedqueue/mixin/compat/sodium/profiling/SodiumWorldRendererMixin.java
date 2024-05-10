@@ -29,7 +29,7 @@ import java.util.Set;
 @Mixin(value = SodiumWorldRenderer.class, remap = false, priority = 500)
 public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
 
-    @Shadow
+    @Shadow(remap = true)
     private ClientWorld world;
 
     @Shadow
@@ -42,14 +42,14 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
     @Final
     private LongSet loadedChunkPositions;
 
-    @Shadow
+    @Shadow(remap = true)
     @Final
     private Set<BlockEntity> globalBlockEntities;
 
     @Shadow
     private int renderDistance;
 
-    @Shadow
+    @Shadow(remap = true)
     @Final
     private MinecraftClient client;
 
@@ -65,7 +65,7 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
      * @author contaria
      * @reason see JavaDocs on this mixin class
      */
-    @Overwrite
+    @Overwrite(remap = true)
     public void setWorld(ClientWorld world) {
         // Check that the world is actually changing
         if (this.world == world) {
@@ -95,7 +95,7 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
      * @author contaria
      * @reason see JavaDocs on this mixin class
      */
-    @Overwrite
+    @Overwrite(remap = true)
     private void loadWorld(ClientWorld world) {
         Profiler profiler = MinecraftClient.getInstance().getProfiler();
 

@@ -58,7 +58,7 @@ public abstract class ChunkRenderManagerMixin<T extends ChunkGraphicsState> {
         MinecraftClient.getInstance().getProfiler().push("create_chunk_builder");
     }
 
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder;init(Lnet/minecraft/client/world/ClientWorld;Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;)V"))
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder;init(Lnet/minecraft/client/world/ClientWorld;Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;)V", remap = true))
     private void profileInitChunkBuilder(CallbackInfo ci) {
         MinecraftClient.getInstance().getProfiler().swap("init_chunk_builder");
     }
@@ -68,7 +68,7 @@ public abstract class ChunkRenderManagerMixin<T extends ChunkGraphicsState> {
         MinecraftClient.getInstance().getProfiler().swap("create_render_lists");
     }
 
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/chunk/cull/graph/ChunkGraphCuller;<init>(Lnet/minecraft/world/World;I)V"))
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/chunk/cull/graph/ChunkGraphCuller;<init>(Lnet/minecraft/world/World;I)V", remap = true))
     private void profileCreateGraphCuller(CallbackInfo ci) {
         MinecraftClient.getInstance().getProfiler().swap("create_graph_culler");
     }
