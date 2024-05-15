@@ -173,7 +173,7 @@ public class WorldPreviewProperties {
     public synchronized void discard() {
         this.packetQueue.clear();
         if (this.frame != null) {
-            this.frame.delete();
+            SeedQueue.runOnMainThread(this.frame::delete);
         }
         this.addedEntities.clear();
         this.addedChunks.clear();

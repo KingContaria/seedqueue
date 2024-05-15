@@ -236,6 +236,14 @@ public class SeedQueue implements ClientModInitializer {
         }
     }
 
+    public static void runOnMainThread(Runnable runnable) {
+        if (MinecraftClient.getInstance().isOnThread()) {
+            runnable.run();
+        } else {
+            ((MinecraftClientAccessor) MinecraftClient.getInstance()).getRenderTaskQueue().add(runnable);
+        }
+    }
+
     public static List<String> getDebugText() {
         List<String> debugText = new ArrayList<>();
         debugText.add("");
