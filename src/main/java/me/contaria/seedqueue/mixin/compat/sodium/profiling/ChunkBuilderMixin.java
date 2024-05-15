@@ -45,7 +45,7 @@ public abstract class ChunkBuilderMixin {
         MinecraftClient.getInstance().getProfiler().pop();
     }
 
-    @Inject(method = "startWorkers", at = @At("TAIL"))
+    @Inject(method = "startWorkers", at = @At("RETURN"))
     private void profileEnd(CallbackInfo ci) {
         MinecraftClient.getInstance().getProfiler().pop();
     }
