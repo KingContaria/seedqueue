@@ -67,7 +67,10 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
             at = @At("TAIL"),
             argsOnly = true
     )
-    private Thread modifyServerThreadName(Thread thread) {
+    private Thread modifyServerThreadProperties(Thread thread) {
+        if (SeedQueue.inQueue()) {
+            thread.setPriority(SeedQueue.config.serverThreadPriority);
+        }
         thread.setName(thread.getName() + " - " + this.saveProperties.getLevelName());
         return thread;
     }

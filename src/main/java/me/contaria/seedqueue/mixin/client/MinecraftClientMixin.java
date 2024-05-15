@@ -179,10 +179,12 @@ public abstract class MinecraftClientMixin {
     private MinecraftServer loadServer(Function<Thread, MinecraftServer> serverFactory, Operation<MinecraftServer> original, @Local UserCache userCache) {
         if (!SeedQueue.inQueue() && SeedQueue.currentEntry != null) {
             // see "loadUserCache"
+            MinecraftServer server = SeedQueue.currentEntry.getServer();
             if (SeedQueue.currentEntry.getUserCache() == null) {
-                ((MinecraftServerAccessor) SeedQueue.currentEntry.getServer()).seedQueue$setUserCache(userCache);
+                ((MinecraftServerAccessor) server).seedQueue$setUserCache(userCache);
             }
-            return SeedQueue.currentEntry.getServer();
+            server.getThread().setPriority(Thread.NORM_PRIORITY);
+            return server;
         }
         return original.call(serverFactory);
     }

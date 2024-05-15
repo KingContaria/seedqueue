@@ -85,6 +85,8 @@
   "speedrunapi.config.seedqueue.option.lazyUserCache.description": "When launching a world on the SeedQueue Thread, creating a UserCache for a world takes a considerable amount of time and may slow down your resets. If this option is enabled, the UserCache will be build when joining the world instead.",
   "speedrunapi.config.seedqueue.option.seedQueueThreadPriority": "SeedQueue Thread Priority",
   "speedrunapi.config.seedqueue.option.seedQueueThreadPriority.description": "Sets the thread priority for the SeedQueue Thread which creates seeds to generate.",
+  "speedrunapi.config.seedqueue.option.serverThreadPriority": "Server Thread Priority",
+  "speedrunapi.config.seedqueue.option.serverThreadPriority.description": "Sets the thread priority for worlds generating in the background.",
   "speedrunapi.config.seedqueue.option.backgroundExecutorThreads": "SeedQueue Worker Threads",
   "speedrunapi.config.seedqueue.option.backgroundExecutorThreads.description": "Sets the amount of Worker Threads for seeds generating in queue while in a world.\n§6It is recommended to not set this value higher than the amount of processors your CPU has, but not lower than the Max Generating Seeds option.",
   "speedrunapi.config.seedqueue.option.backgroundExecutorThreadPriority": "SeedQueue Worker Priority",

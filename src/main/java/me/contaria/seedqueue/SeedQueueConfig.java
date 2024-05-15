@@ -123,6 +123,10 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int seedQueueThreadPriority = Thread.NORM_PRIORITY;
 
     @Config.Category("threading")
+    @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.MAX_PRIORITY)
+    public int serverThreadPriority = Thread.NORM_PRIORITY;
+
+    @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = 0, max = 31, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public int backgroundExecutorThreads = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
 
