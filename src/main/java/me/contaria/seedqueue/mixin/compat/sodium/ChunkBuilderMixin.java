@@ -1,20 +1,26 @@
 package me.contaria.seedqueue.mixin.compat.sodium;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.compat.SodiumCompat;
+import me.contaria.seedqueue.interfaces.sodium.SQChunkBuilder$WorkerRunnable;
 import me.jellysquid.mods.sodium.client.model.vertex.type.ChunkVertexType;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuildBuffers;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuilder;
 import me.jellysquid.mods.sodium.client.render.chunk.passes.BlockRenderPassManager;
+import me.jellysquid.mods.sodium.client.render.pipeline.context.ChunkRenderCacheLocal;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -24,6 +30,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Mixin(value = ChunkBuilder.class, remap = false)
 public abstract class ChunkBuilderMixin {
+
+    @Shadow
+    private World world;
 
     @Mutable
     @Shadow
@@ -89,5 +98,32 @@ public abstract class ChunkBuilderMixin {
             return Objects.requireNonNull(SodiumCompat.WALL_BUILD_BUFFERS_POOL.remove(0));
         }
         return original.call(passId, buffers);
+    }
+
+    @WrapOperation(
+            method = "startWorkers",
+            at = @At(
+                    value = "NEW",
+                    target = "(Lnet/minecraft/client/MinecraftClient;Lnet/minecraft/world/World;)Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheLocal;"
+            )
+    )
+    private ChunkRenderCacheLocal createRenderCacheOnWorkerThread(MinecraftClient client, World world, Operation<ChunkRenderCacheLocal> original) {
+        if (SeedQueue.isOnWall() && SeedQueue.config.createRenderCacheAsync) {
+            return null;
+        }
+        return original.call(client, world);
+    }
+
+    @SuppressWarnings("InvalidInjectorMethodSignature") // MCDev doesn't seem to like @Coerce on the return type
+    @ModifyExpressionValue(
+            method = "startWorkers",
+            at = @At(
+                    value = "NEW",
+                    target = "(Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder;Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers;Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheLocal;)Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder$WorkerRunnable;"
+            )
+    )
+    private @Coerce Object passWorldToWorkerThread(@Coerce SQChunkBuilder$WorkerRunnable worker) {
+        worker.seedQueue$setWorldForRenderCache(this.world);
+        return worker;
     }
 }

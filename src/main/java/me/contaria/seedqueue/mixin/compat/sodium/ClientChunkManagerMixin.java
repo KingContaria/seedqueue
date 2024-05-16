@@ -4,7 +4,7 @@ import com.bawnorton.mixinsquared.TargetHandler;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import me.contaria.seedqueue.compat.WorldPreviewCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
-import me.contaria.seedqueue.interfaces.SQClientChunkManager;
+import me.contaria.seedqueue.interfaces.sodium.SQClientChunkManager;
 import me.jellysquid.mods.sodium.client.world.ChunkStatusListener;
 import net.minecraft.client.world.ClientChunkManager;
 import net.minecraft.nbt.CompoundTag;

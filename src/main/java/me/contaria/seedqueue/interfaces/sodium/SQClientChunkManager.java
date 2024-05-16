@@ -1,4 +1,4 @@
-package me.contaria.seedqueue.interfaces;
+package me.contaria.seedqueue.interfaces.sodium;
 
 public interface SQClientChunkManager {
 

@@ -108,6 +108,8 @@
   "speedrunapi.config.seedqueue.option.cacheShaders.description": "Caches Shaders between WorldRenderers to reduce freezing when loading new previews on the Wall Screen.",
   "speedrunapi.config.seedqueue.option.cacheBuildBuffers": "Cache BuildBuffers",
   "speedrunapi.config.seedqueue.option.cacheBuildBuffers.description": "Caches BuildBuffers between WorldRenderers to reduce freezing when loading new previews on the Wall Screen.",
+  "speedrunapi.config.seedqueue.option.createRenderCacheAsync": "Create RenderCache Async",
+  "speedrunapi.config.seedqueue.option.createRenderCacheAsync.description": "Creates RenderCaches on the Sodium Update Threads instead of the Main Thread.",
   "speedrunapi.config.seedqueue.option.doNotYieldRenderThread": "Don't Yield Render Thread",
   "speedrunapi.config.seedqueue.option.doNotYieldRenderThread.description": "By default Minecraft yields the Render Thread after each frame to allocate more resources to other threads.\nWith SeedQueue, the number of threads is significantly increased, leading to potential lag when yielding the Render Thread.",
   "speedrunapi.config.seedqueue.option.doNotWaitForChunksToBuild": "Allow Void Previews",
