@@ -1,14 +1,15 @@
 package me.contaria.seedqueue.mixin.compat.sodium.profiling;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
+import it.unimi.dsi.fastutil.objects.ObjectList;
 import me.jellysquid.mods.sodium.client.gl.device.RenderDevice;
-import me.jellysquid.mods.sodium.client.render.chunk.ChunkGraphicsState;
-import me.jellysquid.mods.sodium.client.render.chunk.ChunkRenderBackend;
-import me.jellysquid.mods.sodium.client.render.chunk.ChunkRenderContainer;
-import me.jellysquid.mods.sodium.client.render.chunk.ChunkRenderManager;
+import me.jellysquid.mods.sodium.client.render.chunk.*;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuildResult;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuilder;
+import me.jellysquid.mods.sodium.client.render.chunk.lists.ChunkRenderList;
 import me.jellysquid.mods.sodium.common.util.collections.FutureDequeDrain;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.profiler.Profiler;
 import org.spongepowered.asm.mixin.Final;
@@ -52,6 +53,18 @@ public abstract class ChunkRenderManagerMixin<T extends ChunkGraphicsState> {
     @Shadow
     @Final
     private ChunkRenderBackend<T> backend;
+
+    @Shadow @Final private Long2ObjectOpenHashMap<ChunkRenderColumn<T>> columns;
+
+    @Shadow protected abstract void unloadSections(ChunkRenderColumn<T> column);
+
+    @Shadow @Final private ObjectList<BlockEntity> visibleBlockEntities;
+
+    @Shadow @Final private ChunkRenderList<T>[] chunkRenderLists;
+
+    @Shadow @Final private ObjectList<ChunkRenderContainer<T>> tickableChunks;
+
+    @Shadow private int visibleChunkCount;
 
     @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder;<init>(Lme/jellysquid/mods/sodium/client/model/vertex/type/ChunkVertexType;Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderBackend;)V"))
     private void profileCreateChunkBuilder(CallbackInfo ci) {
@@ -123,6 +136,57 @@ public abstract class ChunkRenderManagerMixin<T extends ChunkGraphicsState> {
             profiler.swap("backend_upload");
             this.backend.upload(RenderDevice.INSTANCE.createCommandList(), new FutureDequeDrain<>(futures));
         }
+        profiler.pop();
+    }
+
+    /**
+     * @author contaria
+     * @reason see JavaDocs on this mixin class
+     */
+    @Overwrite
+    public void destroy() {
+        Profiler profiler = MinecraftClient.getInstance().getProfiler();
+
+        profiler.push("reset");
+        this.reset();
+
+        profiler.swap("unload_sections");
+        for (ChunkRenderColumn<T> column : this.columns.values()) {
+            this.unloadSections(column);
+        }
+
+        profiler.swap("clear_sections");
+        this.columns.clear();
+
+        // not pushing the profiler here because it's already done in ChunkBuilderMixin
+        this.builder.stopWorkers();
+        profiler.pop();
+    }
+
+    /**
+     * @author contaria
+     * @reason see JavaDocs on this mixin class
+     */
+    @Overwrite
+    private void reset() {
+        Profiler profiler = MinecraftClient.getInstance().getProfiler();
+
+        profiler.push("clear_rebuild_queue");
+        this.rebuildQueue.clear();
+        this.importantRebuildQueue.clear();
+
+        profiler.swap("clear_block_entities");
+        this.visibleBlockEntities.clear();
+
+        profiler.swap("reset_chunk_renders");
+        for (ChunkRenderList<T> list : this.chunkRenderLists) {
+            list.reset();
+        }
+
+        profiler.swap("clear_chunks");
+        this.tickableChunks.clear();
+
+        this.visibleChunkCount = 0;
         profiler.pop();
     }
 }

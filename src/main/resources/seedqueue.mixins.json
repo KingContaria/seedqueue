@@ -31,6 +31,7 @@
     "compat.sodium.ClientChunkManagerMixin",
     "compat.sodium.SodiumWorldRendererMixin",
     "compat.sodium.profiling.ChunkBuilderMixin",
+    "compat.sodium.profiling.ChunkRenderCacheLocalMixin",
     "compat.sodium.profiling.ChunkRenderManagerMixin",
     "compat.sodium.profiling.MultidrawChunkRenderBackendMixin",
     "compat.sodium.profiling.SodiumWorldRendererMixin",
