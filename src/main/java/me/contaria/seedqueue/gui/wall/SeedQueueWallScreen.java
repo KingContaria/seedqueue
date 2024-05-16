@@ -598,7 +598,7 @@ public class SeedQueueWallScreen extends Screen {
     public void populateResetCooldowns() {
         long renderTime = System.currentTimeMillis();
         for (SeedQueuePreview instance : this.getInstances()) {
-            if (instance.lastRenderFrame == this.frame && instance.firstRenderTime == null) {
+            if (instance.firstRenderFrame == this.frame) {
                 instance.firstRenderTime = renderTime;
             }
         }
