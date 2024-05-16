@@ -170,6 +170,9 @@ public class SeedQueue implements ClientModInitializer {
         Screen screen = client.currentScreen;
         client.setScreenAndRender(new SaveLevelScreen(new TranslatableText("seedqueue.menu.clearing")));
 
+        if (currentEntry != null) {
+            currentEntry.discardWorldPreviewProperties();
+        }
         currentEntry = null;
         selectedEntry = null;
 

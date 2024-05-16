@@ -268,12 +268,13 @@ public abstract class MinecraftClientMixin {
     )
     private void saveWorldGenerationProgressTracker(AtomicReference<?> instance, Object value, Operation<Void> original) {
         SeedQueueEntry seedQueueEntry;
+        Thread currentThread = Thread.currentThread();
         do {
-            if (this.server != null && Thread.currentThread() == this.server.getThread()) {
+            if (this.server != null && currentThread == this.server.getThread()) {
                 original.call(instance, value);
                 return;
             }
-            seedQueueEntry = SeedQueue.getEntry(Thread.currentThread());
+            seedQueueEntry = SeedQueue.getEntry(currentThread);
         } while (seedQueueEntry == null);
 
         WorldGenerationProgressTracker tracker = (WorldGenerationProgressTracker) value;
@@ -427,6 +428,17 @@ public abstract class MinecraftClientMixin {
     )
     private boolean doNotRunTasksOnSeedQueueThread(MinecraftClient client, BooleanSupplier booleanSupplier) {
         return !SeedQueue.inQueue();
+    }
+
+    @Inject(
+            method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
+            at = @At("TAIL")
+    )
+    private void discardCurrentSeedQueueEntry(CallbackInfo ci) {
+        if (!SeedQueue.inQueue() && SeedQueue.currentEntry != null) {
+            SeedQueue.currentEntry.discardWorldPreviewProperties();
+            SeedQueue.currentEntry = null;
+        }
     }
 
     @Inject(
