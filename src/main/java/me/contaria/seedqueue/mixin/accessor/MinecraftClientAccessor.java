@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
+import java.util.Queue;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Mixin(MinecraftClient.class)
@@ -21,4 +22,7 @@ public interface MinecraftClientAccessor {
 
     @Invoker("handleProfilerKeyPress")
     void seedQueue$handleProfilerKeyPress(int digit);
+
+    @Accessor
+    Queue<Runnable> getRenderTaskQueue();
 }
