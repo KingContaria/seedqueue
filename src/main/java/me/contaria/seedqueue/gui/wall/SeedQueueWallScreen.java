@@ -526,18 +526,22 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private boolean resetInstance(SeedQueuePreview instance, boolean ignoreLock) {
+        Profiler profiler = MinecraftClient.getInstance().getProfiler();
+
         if (instance == null) {
             return false;
         }
+        profiler.push("reset_instance");
         SeedQueueEntry seedQueueEntry = instance.getSeedQueueEntry();
         if (!instance.hasBeenRendered() || (seedQueueEntry.isLocked() && !ignoreLock) || System.currentTimeMillis() - instance.firstRenderTime < SeedQueue.config.resetCooldown || SeedQueue.selectedEntry == seedQueueEntry) {
+            profiler.pop();
             return false;
         }
 
-        if (SeedQueue.remove(seedQueueEntry)) {
-            seedQueueEntry.discard();
-        }
+        profiler.push("discard_entry");
+        SeedQueue.discard(seedQueueEntry);
 
+        profiler.swap("remove_preview");
         for (int i = 0; i < this.mainPreviews.length; i++) {
             if (this.mainPreviews[i] == instance) {
                 this.mainPreviews[i] = null;
@@ -548,7 +552,10 @@ public class SeedQueueWallScreen extends Screen {
             this.lockedPreviews.remove(instance);
         }
 
+        profiler.swap("play_sound");
         this.playSound(SeedQueueSounds.RESET_INSTANCE);
+        profiler.pop();
+        profiler.pop();
         return true;
     }
 
@@ -683,7 +690,10 @@ public class SeedQueueWallScreen extends Screen {
 
     private static void clearWorldRenderer(WorldRenderer worldRenderer) {
         if (worldRenderer != null) {
+            Profiler profiler = MinecraftClient.getInstance().getProfiler();
+            profiler.push("world_renderer_clear");
             worldRenderer.setWorld(null);
+            profiler.pop();
         }
     }
 

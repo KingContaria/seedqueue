@@ -11,6 +11,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.UserCache;
+import net.minecraft.util.profiler.Profiler;
 import net.minecraft.world.level.storage.LevelStorage;
 import org.jetbrains.annotations.Nullable;
 
@@ -151,17 +152,23 @@ public class SeedQueueEntry {
                 return;
             }
 
+            Profiler profiler = MinecraftClient.getInstance().getProfiler();
+
             SeedQueue.LOGGER.info("Discarding \"{}\"...", this.server.getSaveProperties().getLevelName());
 
             this.discarded = true;
 
+            profiler.push("discard_worldpreview_properties");
             this.discardWorldPreviewProperties();
 
+            profiler.swap("stop_server");
             if (!ModCompat.worldpreview$kill(this.server)) {
                 ModCompat.fastReset$fastReset(this.server);
                 ((MinecraftServerAccessor) this.server).seedQueue$setRunning(false);
             }
+            profiler.swap("unpause");
             this.unpause();
+            profiler.pop();
         }
     }
 }

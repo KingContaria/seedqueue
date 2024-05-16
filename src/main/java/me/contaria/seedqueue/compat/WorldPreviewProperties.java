@@ -1,6 +1,7 @@
 package me.contaria.seedqueue.compat;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.interfaces.sodium.SQClientChunkManager;
 import me.contaria.seedqueue.interfaces.SQWorldRenderer;
 import me.contaria.seedqueue.mixin.accessor.CameraAccessor;
@@ -23,6 +24,7 @@ import net.minecraft.util.Pair;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.ChunkSectionPos;
 import net.minecraft.util.math.Matrix4f;
+import net.minecraft.util.profiler.DummyProfiler;
 import net.minecraft.util.profiler.Profiler;
 import org.jetbrains.annotations.Nullable;
 
@@ -133,7 +135,10 @@ public class WorldPreviewProperties {
 
     public WorldPreviewFrame getFrame() {
         if (this.frame == null) {
+            Profiler profiler = MinecraftClient.getInstance().getProfiler();
+            profiler.push("create_framebuffer");
             this.frame = new WorldPreviewFrame(MinecraftClient.getInstance().getWindow().getFramebufferWidth(), MinecraftClient.getInstance().getWindow().getFramebufferHeight());
+            profiler.pop();
         }
         return this.frame;
     }
@@ -171,12 +176,19 @@ public class WorldPreviewProperties {
     }
 
     public synchronized void discard() {
+        Profiler profiler = MinecraftClient.getInstance().isOnThread() ? MinecraftClient.getInstance().getProfiler() : DummyProfiler.INSTANCE;
+
+        profiler.push("clear_packet_queue");
         this.packetQueue.clear();
+        profiler.swap("delete_framebuffer");
         if (this.frame != null) {
             SeedQueue.runOnMainThread(this.frame::delete);
         }
+        this.frame = null;
+        profiler.swap("clear_new_data");
         this.addedEntities.clear();
         this.addedChunks.clear();
         this.scheduledChunkRenders.clear();
+        profiler.pop();
     }
 }

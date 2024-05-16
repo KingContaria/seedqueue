@@ -61,7 +61,7 @@ public class SeedQueue implements ClientModInitializer {
         synchronized (LOCK) {
             if (selectedEntry != null) {
                 currentEntry = selectedEntry;
-                remove(selectedEntry);
+                SEED_QUEUE.remove(selectedEntry);
                 selectedEntry = null;
             } else {
                 currentEntry = SEED_QUEUE.poll();
@@ -84,13 +84,12 @@ public class SeedQueue implements ClientModInitializer {
         ping();
     }
 
-    public static boolean remove(SeedQueueEntry seedQueueEntry) {
-        boolean result;
+    public static void discard(SeedQueueEntry seedQueueEntry) {
         synchronized (LOCK) {
-            result = SEED_QUEUE.remove(seedQueueEntry);
+            SEED_QUEUE.remove(seedQueueEntry);
         }
+        seedQueueEntry.discard();
         ping();
-        return result;
     }
 
     public static boolean shouldGenerate() {
