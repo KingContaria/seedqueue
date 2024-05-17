@@ -104,7 +104,8 @@ public abstract class ChunkBuilderMixin {
             method = "startWorkers",
             at = @At(
                     value = "NEW",
-                    target = "(Lnet/minecraft/client/MinecraftClient;Lnet/minecraft/world/World;)Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheLocal;"
+                    target = "(Lnet/minecraft/client/MinecraftClient;Lnet/minecraft/world/World;)Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheLocal;",
+                    remap = true
             )
     )
     private ChunkRenderCacheLocal createRenderCacheOnWorkerThread(MinecraftClient client, World world, Operation<ChunkRenderCacheLocal> original) {
