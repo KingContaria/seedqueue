@@ -70,13 +70,12 @@ public abstract class LevelLoadingScreenMixin extends Screen {
             )
     )
     private void drawClearBackground(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ignored, CallbackInfo ci) {
-        //noinspection ConstantValue
-        if ((Object) this instanceof SeedQueuePreview) {
+        this.getAsSeedQueuePreview().ifPresent(preview -> {
             // related to WorldRendererMixin#doNotClearOnWallScreen
             // the suppressed call usually renders a light blue overlay over the entire screen,
             // instead we draw it onto the preview ourselves
-            DrawableHelper.fill(matrices, 0, 0, this.width, this.height, -5323025);
-        }
+            DrawableHelper.fill(matrices, 0, 0, preview.wallScreen.width, preview.wallScreen.height, -5323025);
+        });
     }
 
     @Dynamic
