@@ -3,7 +3,7 @@ package me.contaria.seedqueue.compat;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.interfaces.sodium.SQClientChunkManager;
-import me.contaria.seedqueue.interfaces.SQWorldRenderer;
+import me.contaria.seedqueue.interfaces.worldpreview.SQWorldRenderer;
 import me.contaria.seedqueue.mixin.accessor.CameraAccessor;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.voidxwalker.worldpreview.WorldPreview;

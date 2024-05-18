@@ -4,7 +4,7 @@ import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.compat.WorldPreviewCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
-import me.contaria.seedqueue.interfaces.SQWorldRenderer;
+import me.contaria.seedqueue.interfaces.worldpreview.SQWorldRenderer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.Frustum;
