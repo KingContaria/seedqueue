@@ -42,7 +42,7 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
     @Final
     private LongSet loadedChunkPositions;
 
-    @Shadow(remap = true)
+    @Shadow
     @Final
     private Set<BlockEntity> globalBlockEntities;
 

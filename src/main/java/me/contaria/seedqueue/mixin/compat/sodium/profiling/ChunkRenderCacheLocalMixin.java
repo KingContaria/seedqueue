@@ -25,12 +25,12 @@ public abstract class ChunkRenderCacheLocalMixin {
         if (MinecraftClient.getInstance().isOnThread()) MinecraftClient.getInstance().getProfiler().swap("light_data_cache");
     }
 
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/model/light/LightPipelineProvider;<init>(Lme/jellysquid/mods/sodium/client/model/light/data/LightDataAccess;)V"), remap = true)
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/model/light/LightPipelineProvider;<init>(Lme/jellysquid/mods/sodium/client/model/light/data/LightDataAccess;)V", remap = false), remap = true)
     private void profileLightPipelineProvider(CallbackInfo ci) {
         if (MinecraftClient.getInstance().isOnThread()) MinecraftClient.getInstance().getProfiler().swap("light_pipeline_provider");
     }
 
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheLocal;createBiomeColorBlender()Lme/jellysquid/mods/sodium/client/model/quad/blender/BiomeColorBlender;"), remap = true)
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheLocal;createBiomeColorBlender()Lme/jellysquid/mods/sodium/client/model/quad/blender/BiomeColorBlender;", remap = false), remap = true)
     private void profileBiomeColorBlender(CallbackInfo ci) {
         if (MinecraftClient.getInstance().isOnThread()) MinecraftClient.getInstance().getProfiler().swap("biome_color_blender");
     }
