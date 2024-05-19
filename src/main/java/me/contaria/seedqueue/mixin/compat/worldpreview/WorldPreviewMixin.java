@@ -9,10 +9,14 @@ import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
+import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.voidxwalker.worldpreview.WorldPreview;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.render.Camera;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
@@ -89,5 +93,26 @@ public abstract class WorldPreviewMixin {
             return Integer.MAX_VALUE;
         }
         return unlimitedPackets;
+    }
+
+    @WrapWithCondition(
+            method = "render",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/gui/hud/InGameHud;render(Lnet/minecraft/client/util/math/MatrixStack;F)V"
+            )
+    )
+    private static boolean bufferInGameHudOnWall(InGameHud instance, MatrixStack matrixStack, float f) {
+        if (!(MinecraftClient.getInstance().currentScreen instanceof SeedQueueWallScreen)) {
+            return true;
+        }
+        SeedQueueWallScreen wall = (SeedQueueWallScreen) MinecraftClient.getInstance().currentScreen;
+        if (wall.shouldUseInGameHudBuffer()) {
+            if (wall.isInGameHudBuffered()) {
+                return false;
+            }
+            wall.beginBufferingInGameHud();
+        }
+        return true;
     }
 }

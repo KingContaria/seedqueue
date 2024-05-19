@@ -81,6 +81,24 @@ public abstract class LevelLoadingScreenMixin extends Screen {
     @Dynamic
     @TargetHandler(
             mixin = "me.voidxwalker.worldpreview.mixin.client.render.LevelLoadingScreenMixin",
+            name = "worldpreview$renderPauseMenu"
+    )
+    @Inject(
+            method = "@MixinSquared:Handler",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    private void bufferPauseMenuOnWall(CallbackInfo ci) {
+        this.getAsSeedQueuePreview().ifPresent(preview -> {
+            if (preview.wallScreen.shouldUseInGameHudBuffer() && !preview.wallScreen.isInGameHudBuffering()) {
+                ci.cancel();
+            }
+        });
+    }
+
+    @Dynamic
+    @TargetHandler(
+            mixin = "me.voidxwalker.worldpreview.mixin.client.render.LevelLoadingScreenMixin",
             name = "renderWorldPreview"
     )
     @Inject(
@@ -90,6 +108,15 @@ public abstract class LevelLoadingScreenMixin extends Screen {
     private void endFrame(CallbackInfo ci) {
         this.getAsSeedQueuePreview().ifPresent(preview -> {
             WorldPreviewFrame frame = preview.getWorldPreviewProperties().getFrame();
+
+            if (preview.wallScreen.isInGameHudBuffering()) {
+                preview.wallScreen.endBufferingInGameHud();
+                frame.continueWrite();
+            }
+            if (preview.wallScreen.shouldUseInGameHudBuffer() && preview.wallScreen.isInGameHudBuffered()) {
+                preview.wallScreen.drawBufferedInGameHud();
+            }
+
             frame.endWrite();
             preview.updateLastRenderFrame();
 

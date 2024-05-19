@@ -3,6 +3,7 @@ package me.contaria.seedqueue.gui.wall;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
@@ -16,18 +17,19 @@ import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.hud.DebugHud;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.client.render.BufferBuilderStorage;
-import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.render.*;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.toast.SystemToast;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.resource.Resource;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.TranslatableText;
@@ -55,6 +57,10 @@ public class SeedQueueWallScreen extends Screen {
 
     protected final SeedQueueSettingsCache settingsCache;
     private SeedQueueSettingsCache lastSettingsCache;
+
+    private Framebuffer inGameHudBuffer;
+    private boolean inGameHudBuffered;
+    private boolean inGameHudBuffering;
 
     private Layout layout;
     private SeedQueuePreview[] mainPreviews;
@@ -91,6 +97,28 @@ public class SeedQueueWallScreen extends Screen {
         this.lockedPreviews = this.layout.locked != null ? new ArrayList<>() : null;
         this.preparingPreviews = new ArrayList<>();
         this.lockTextures = this.createLockTextures();
+
+        if (SeedQueue.config.bufferInGameHud) {
+            int width = SeedQueue.config.hasSimulatedWindowSize() ? SeedQueue.config.simulatedWindowWidth : this.client.getWindow().getFramebufferWidth();
+            int height = SeedQueue.config.hasSimulatedWindowSize() ? SeedQueue.config.simulatedWindowHeight : this.client.getWindow().getFramebufferHeight();
+            if (this.inGameHudBuffer == null) {
+                this.inGameHudBuffer = new Framebuffer(width, height, true, MinecraftClient.IS_SYSTEM_MAC);
+                this.inGameHudBuffer.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+                this.inGameHudBuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
+            } else {
+                this.inGameHudBuffer.resize(width, height, MinecraftClient.IS_SYSTEM_MAC);
+            }
+            this.inGameHudBuffered = false;
+        }
+    }
+
+    @Override
+    public void removed() {
+        if (this.inGameHudBuffer != null) {
+            this.inGameHudBuffer.delete();
+            this.inGameHudBuffer = null;
+            this.inGameHudBuffered = false;
+        }
     }
 
     private Layout createLayout() {
@@ -335,6 +363,71 @@ public class SeedQueueWallScreen extends Screen {
             this.lastSettingsCache = settingsCache;
         }
         this.client.options.perspective = perspective;
+    }
+
+    public boolean shouldUseInGameHudBuffer() {
+        return this.inGameHudBuffer != null && this.settingsCache == this.lastSettingsCache;
+    }
+
+    public boolean isInGameHudBuffered() {
+        return this.inGameHudBuffered;
+    }
+
+    public boolean isInGameHudBuffering() {
+        return this.inGameHudBuffering;
+    }
+
+    public void beginBufferingInGameHud() {
+        this.inGameHudBuffer.beginWrite(true);
+        this.inGameHudBuffering = true;
+    }
+
+    public void endBufferingInGameHud() {
+        this.inGameHudBuffer.endWrite();
+        this.inGameHudBuffering = false;
+        this.inGameHudBuffered = true;
+    }
+
+    @SuppressWarnings("deprecation")
+    public void drawBufferedInGameHud() {
+        assert this.client != null;
+
+        Window window = this.client.getWindow();
+        double width = (double) window.getFramebufferWidth() / window.getScaleFactor();
+        double height = (double) window.getFramebufferHeight() / window.getScaleFactor();
+
+        // see GameRenderer#render or WorldPreview#render
+        RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
+        RenderSystem.matrixMode(5889);
+        RenderSystem.loadIdentity();
+        RenderSystem.ortho(0.0D, width, height, 0.0D, 1000.0D, 3000.0D);
+        RenderSystem.matrixMode(5888);
+        RenderSystem.loadIdentity();
+        RenderSystem.translatef(0.0F, 0.0F, -2000.0F);
+        DiffuseLighting.enableGuiDepthLighting();
+        RenderSystem.defaultAlphaFunc();
+
+        // copied from Exordium, needed because we render a transparent FrameBuffer
+        RenderSystem.disableDepthTest();
+        RenderSystem.depthMask(false);
+        RenderSystem.enableBlend();
+        RenderSystem.blendFunc(GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
+
+        this.inGameHudBuffer.beginRead();
+
+        BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
+        bufferbuilder.begin(7, VertexFormats.POSITION_TEXTURE);
+        bufferbuilder.vertex(0.0, height, -90.0).texture(0.0F, 0.0F).next();
+        bufferbuilder.vertex(width, height, -90.0).texture(1.0F, 0.0F).next();
+        bufferbuilder.vertex(width, 0.0, -90.0).texture(1.0F, 1.0F).next();
+        bufferbuilder.vertex(0.0, 0.0, -90.0).texture(0.0F, 1.0F).next();
+        bufferbuilder.end();
+        BufferRenderer.draw(bufferbuilder);
+
+        this.inGameHudBuffer.endRead();
+
+        RenderSystem.depthMask(true);
+        RenderSystem.enableDepthTest();
     }
 
     @Override

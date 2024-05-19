@@ -1,6 +1,5 @@
 package me.contaria.seedqueue.compat;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
@@ -26,6 +25,10 @@ public class WorldPreviewFrame {
         this.framebuffer.beginWrite(true);
     }
 
+    public void continueWrite() {
+        this.framebuffer.beginWrite(true);
+    }
+
     public void endWrite() {
         this.framebuffer.endWrite();
     }
@@ -40,11 +43,12 @@ public class WorldPreviewFrame {
 
     @SuppressWarnings("deprecation")
     public void draw(int width, int height) {
-        // DrawableHelper#drawTexture enables alpha test when rendering the lock image,
-        // which causes artifacts to appear when drawing the buffer, to prevent this we just make sure its disabled
+        // DrawableHelper#drawTexture enables alpha test when rendering the lock image, causing artifacts
+        // SeedQueueWallScreen#drawBufferedInGameHud enables blend
         RenderSystem.disableAlphaTest();
+        RenderSystem.disableBlend();
 
-        GlStateManager.bindTexture(this.framebuffer.colorAttachment);
+        this.framebuffer.beginRead();
 
         BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
         bufferbuilder.begin(7, VertexFormats.POSITION_TEXTURE);
@@ -54,6 +58,8 @@ public class WorldPreviewFrame {
         bufferbuilder.vertex(0.0, 0.0, -90.0).texture(0.0F, 1.0F).next();
         bufferbuilder.end();
         BufferRenderer.draw(bufferbuilder);
+
+        this.framebuffer.endRead();
     }
 
     public void delete() {

@@ -16,6 +16,7 @@
     "client.MinecraftClientMixin",
     "client.debug.DebugHudMixin",
     "client.profiling.WorldRendererMixin",
+    "compat.worldpreview.InGameHudMixin",
     "client.render.LevelLoadingScreenMixin",
     "client.render.MinecraftClientMixin",
     "client.render.WindowMixin",
