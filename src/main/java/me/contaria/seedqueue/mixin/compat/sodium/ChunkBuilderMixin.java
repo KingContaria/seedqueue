@@ -15,6 +15,7 @@ import me.jellysquid.mods.sodium.client.render.chunk.passes.BlockRenderPassManag
 import me.jellysquid.mods.sodium.client.render.pipeline.context.ChunkRenderCacheLocal;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.world.World;
+import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
@@ -126,5 +127,27 @@ public abstract class ChunkBuilderMixin {
     private @Coerce Object passWorldToWorkerThread(@Coerce SQChunkBuilder$WorkerRunnable worker) {
         worker.seedQueue$setWorldForRenderCache(this.world);
         return worker;
+    }
+
+    @WrapWithCondition(
+            method = "startWorkers",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lorg/apache/logging/log4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;)V"
+            )
+    )
+    private boolean suppressStartWorkersLogOnWall(Logger logger, String s, Object o) {
+        return !SeedQueue.isOnWall();
+    }
+
+    @WrapWithCondition(
+            method = "stopWorkers",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lorg/apache/logging/log4j/Logger;info(Ljava/lang/String;)V"
+            )
+    )
+    private boolean suppressStopWorkersLogOnWall(Logger logger, String s) {
+        return !SeedQueue.isOnWall();
     }
 }
