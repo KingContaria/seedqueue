@@ -119,28 +119,28 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean lazyUserCache = false;
 
     @Config.Category("threading")
-    @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.MAX_PRIORITY)
+    @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
     public int seedQueueThreadPriority = Thread.NORM_PRIORITY;
 
     @Config.Category("threading")
-    @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.MAX_PRIORITY)
-    public int serverThreadPriority = Thread.NORM_PRIORITY;
+    @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
+    public int serverThreadPriority = 4;
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = 0, max = 31, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public int backgroundExecutorThreads = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
 
     @Config.Category("threading")
-    @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.MAX_PRIORITY)
-    public int backgroundExecutorThreadPriority = Thread.NORM_PRIORITY;
+    @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
+    public int backgroundExecutorThreadPriority = 3;
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = 1, max = 31, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public int wallExecutorThreads = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
 
     @Config.Category("threading")
-    @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.MAX_PRIORITY)
-    public int wallExecutorThreadPriority = Thread.NORM_PRIORITY;
+    @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
+    public int wallExecutorThreadPriority = 4;
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = 0, max = 8, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
@@ -148,7 +148,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int chunkUpdateThreads = 0;
 
     @Config.Category("threading")
-    @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.MAX_PRIORITY)
+    @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
     public int chunkUpdateThreadPriority = 3;
 
     @Config.Category("experimental")
