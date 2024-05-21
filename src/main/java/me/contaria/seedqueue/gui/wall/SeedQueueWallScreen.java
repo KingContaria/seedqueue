@@ -389,13 +389,7 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     @SuppressWarnings("deprecation")
-    public void drawBufferedInGameHud() {
-        assert this.client != null;
-
-        Window window = this.client.getWindow();
-        double width = (double) window.getFramebufferWidth() / window.getScaleFactor();
-        double height = (double) window.getFramebufferHeight() / window.getScaleFactor();
-
+    public void drawBufferedInGameHud(int width, int height) {
         // see GameRenderer#render or WorldPreview#render
         RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
         RenderSystem.matrixMode(5889);

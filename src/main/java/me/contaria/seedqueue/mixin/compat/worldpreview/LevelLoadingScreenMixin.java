@@ -114,7 +114,7 @@ public abstract class LevelLoadingScreenMixin extends Screen {
                 frame.continueWrite();
             }
             if (preview.wallScreen.shouldUseInGameHudBuffer() && preview.wallScreen.isInGameHudBuffered()) {
-                preview.wallScreen.drawBufferedInGameHud();
+                preview.wallScreen.drawBufferedInGameHud(this.width, this.height);
             }
 
             frame.endWrite();
