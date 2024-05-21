@@ -30,7 +30,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-key-binding-api-v1:1.0.36+fb8d95da77"
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/atum-rewrite
-	modImplementation ("com.github.KingContaria:atum-rewrite:6067c00edb") {
+	modImplementation ("com.github.KingContaria:atum-rewrite:b7c7ba4221") {
 		transitive = false
 	}
 
