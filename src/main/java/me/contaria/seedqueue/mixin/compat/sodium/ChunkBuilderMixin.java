@@ -8,7 +8,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.compat.SodiumCompat;
 import me.contaria.seedqueue.interfaces.sodium.SQChunkBuilder$WorkerRunnable;
-import me.jellysquid.mods.sodium.client.model.vertex.type.ChunkVertexType;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuildBuffers;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuilder;
 import me.jellysquid.mods.sodium.client.render.chunk.passes.BlockRenderPassManager;
@@ -16,14 +15,8 @@ import me.jellysquid.mods.sodium.client.render.pipeline.context.ChunkRenderCache
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.world.World;
 import org.apache.logging.log4j.Logger;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Coerce;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Objects;
@@ -88,17 +81,35 @@ public abstract class ChunkBuilderMixin {
         }
     }
 
+    @Group(name = "loadCachedBuildBuffersOnWall")
     @WrapOperation(
             method = "startWorkers",
             at = @At(
                     value = "NEW",
-                    target = "(Lme/jellysquid/mods/sodium/client/model/vertex/type/ChunkVertexType;Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;)Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers;")
+                    target = "(Lme/jellysquid/mods/sodium/client/model/vertex/type/ChunkVertexType;Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;)Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers;"
+            )
     )
-    private ChunkBuildBuffers loadCachedBuildBuffersOnWall(ChunkVertexType passId, BlockRenderPassManager buffers, Operation<ChunkBuildBuffers> original) {
+    private ChunkBuildBuffers loadCachedBuildBuffersOnWall(@Coerce Object passId, BlockRenderPassManager buffers, Operation<ChunkBuildBuffers> original) {
         if (SeedQueue.isOnWall() && !SodiumCompat.WALL_BUILD_BUFFERS_POOL.isEmpty()) {
             return Objects.requireNonNull(SodiumCompat.WALL_BUILD_BUFFERS_POOL.remove(0));
         }
         return original.call(passId, buffers);
+    }
+
+    @Dynamic
+    @Group(name = "loadCachedBuildBuffersOnWall")
+    @WrapOperation(
+            method = "startWorkers",
+            at = @At(
+                    value = "NEW",
+                    target = "(Lme/jellysquid/mods/sodium/client/gl/attribute/GlVertexFormat;Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;)Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers;"
+            )
+    )
+    private ChunkBuildBuffers loadCachedBuildBuffersOnWall_macSodium(@Coerce Object format, BlockRenderPassManager buffers, Operation<ChunkBuildBuffers> original) {
+        if (SeedQueue.isOnWall() && !SodiumCompat.WALL_BUILD_BUFFERS_POOL.isEmpty()) {
+            return Objects.requireNonNull(SodiumCompat.WALL_BUILD_BUFFERS_POOL.remove(0));
+        }
+        return original.call(format, buffers);
     }
 
     @WrapOperation(
@@ -107,7 +118,8 @@ public abstract class ChunkBuilderMixin {
                     value = "NEW",
                     target = "(Lnet/minecraft/client/MinecraftClient;Lnet/minecraft/world/World;)Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheLocal;",
                     remap = true
-            )
+            ),
+            require = 0
     )
     private ChunkRenderCacheLocal createRenderCacheOnWorkerThread(MinecraftClient client, World world, Operation<ChunkRenderCacheLocal> original) {
         if (SeedQueue.isOnWall() && SeedQueue.config.createRenderCacheAsync) {
@@ -121,11 +133,13 @@ public abstract class ChunkBuilderMixin {
             method = "startWorkers",
             at = @At(
                     value = "NEW",
-                    target = "(Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder;Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers;Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheLocal;)Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder$WorkerRunnable;"
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder$WorkerRunnable;"
             )
     )
-    private @Coerce Object passWorldToWorkerThread(@Coerce SQChunkBuilder$WorkerRunnable worker) {
-        worker.seedQueue$setWorldForRenderCache(this.world);
+    private @Coerce Object passWorldToWorkerThread(@Coerce Object worker) {
+        if (worker instanceof SQChunkBuilder$WorkerRunnable) {
+            ((SQChunkBuilder$WorkerRunnable) worker).seedQueue$setWorldForRenderCache(this.world);
+        }
         return worker;
     }
 

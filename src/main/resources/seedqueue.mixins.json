@@ -16,7 +16,6 @@
     "client.MinecraftClientMixin",
     "client.debug.DebugHudMixin",
     "client.profiling.WorldRendererMixin",
-    "compat.worldpreview.InGameHudMixin",
     "client.render.LevelLoadingScreenMixin",
     "client.render.MinecraftClientMixin",
     "client.render.WindowMixin",
@@ -39,6 +38,7 @@
     "compat.standardsettings.MinecraftClientMixin",
     "compat.worldpreview.ClientPlayNetworkHandlerMixin",
     "compat.worldpreview.ClientWorldMixin",
+    "compat.worldpreview.InGameHudMixin",
     "compat.worldpreview.LevelLoadingScreenMixin",
     "compat.worldpreview.MinecraftServerMixin",
     "compat.worldpreview.ServerChunkManagerMixin",
@@ -55,5 +55,8 @@
     "server.synchronization.ScheduledTickMixin",
     "server.synchronization.WeightedBlockStateProviderMixin"
   ],
-  "plugin": "org.mcsr.speedrunapi.mixin_plugin.SpeedrunMixinConfigPlugin"
+  "plugin": "me.contaria.seedqueue.SeedQueueMixinConfigPlugin",
+  "mixins": [
+    "compat.sodium.ChunkBuilder$WorkerRunnableMixin2"
+  ]
 }
