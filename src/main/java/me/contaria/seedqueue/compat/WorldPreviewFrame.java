@@ -1,12 +1,8 @@
 package me.contaria.seedqueue.compat;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import me.contaria.seedqueue.util.FrameBufferUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormats;
 import org.jetbrains.annotations.Nullable;
 
 public class WorldPreviewFrame {
@@ -41,25 +37,8 @@ public class WorldPreviewFrame {
         return !newRenderData.equals(this.lastRenderData);
     }
 
-    @SuppressWarnings("deprecation")
     public void draw(int width, int height) {
-        // DrawableHelper#drawTexture enables alpha test when rendering the lock image, causing artifacts
-        // SeedQueueWallScreen#drawBufferedInGameHud enables blend
-        RenderSystem.disableAlphaTest();
-        RenderSystem.disableBlend();
-
-        this.framebuffer.beginRead();
-
-        BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
-        bufferbuilder.begin(7, VertexFormats.POSITION_TEXTURE);
-        bufferbuilder.vertex(0.0, height, -90.0).texture(0.0F, 0.0F).next();
-        bufferbuilder.vertex(width, height, -90.0).texture(1.0F, 0.0F).next();
-        bufferbuilder.vertex(width, 0.0, -90.0).texture(1.0F, 1.0F).next();
-        bufferbuilder.vertex(0.0, 0.0, -90.0).texture(0.0F, 1.0F).next();
-        bufferbuilder.end();
-        BufferRenderer.draw(bufferbuilder);
-
-        this.framebuffer.endRead();
+        FrameBufferUtils.draw(this.framebuffer, width, height);
     }
 
     public void delete() {

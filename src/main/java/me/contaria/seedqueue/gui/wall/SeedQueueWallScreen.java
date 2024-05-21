@@ -3,7 +3,6 @@ package me.contaria.seedqueue.gui.wall;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
@@ -15,6 +14,7 @@ import me.contaria.seedqueue.mixin.accessor.DebugHudAccessor;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
+import me.contaria.seedqueue.util.FrameBufferUtils;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
@@ -23,6 +23,8 @@ import net.minecraft.client.gui.hud.DebugHud;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.render.*;
+import net.minecraft.client.render.BufferBuilderStorage;
+import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.toast.SystemToast;
@@ -388,40 +390,8 @@ public class SeedQueueWallScreen extends Screen {
         this.inGameHudBuffered = true;
     }
 
-    @SuppressWarnings("deprecation")
     public void drawBufferedInGameHud(int width, int height) {
-        // see GameRenderer#render or WorldPreview#render
-        RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
-        RenderSystem.matrixMode(5889);
-        RenderSystem.loadIdentity();
-        RenderSystem.ortho(0.0D, width, height, 0.0D, 1000.0D, 3000.0D);
-        RenderSystem.matrixMode(5888);
-        RenderSystem.loadIdentity();
-        RenderSystem.translatef(0.0F, 0.0F, -2000.0F);
-        DiffuseLighting.enableGuiDepthLighting();
-        RenderSystem.defaultAlphaFunc();
-
-        // copied from Exordium, needed because we render a transparent FrameBuffer
-        RenderSystem.disableDepthTest();
-        RenderSystem.depthMask(false);
-        RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
-
-        this.inGameHudBuffer.beginRead();
-
-        BufferBuilder bufferbuilder = Tessellator.getInstance().getBuffer();
-        bufferbuilder.begin(7, VertexFormats.POSITION_TEXTURE);
-        bufferbuilder.vertex(0.0, height, -90.0).texture(0.0F, 0.0F).next();
-        bufferbuilder.vertex(width, height, -90.0).texture(1.0F, 0.0F).next();
-        bufferbuilder.vertex(width, 0.0, -90.0).texture(1.0F, 1.0F).next();
-        bufferbuilder.vertex(0.0, 0.0, -90.0).texture(0.0F, 1.0F).next();
-        bufferbuilder.end();
-        BufferRenderer.draw(bufferbuilder);
-
-        this.inGameHudBuffer.endRead();
-
-        RenderSystem.depthMask(true);
-        RenderSystem.enableDepthTest();
+        FrameBufferUtils.drawTranslucent(this.inGameHudBuffer, width, height);
     }
 
     @Override
