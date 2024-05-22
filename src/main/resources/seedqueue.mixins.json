@@ -24,6 +24,7 @@
     "compat.atum.CreateWorldScreenMixin",
     "compat.atum.KeyboardMixin",
     "compat.sodium.ChunkBuilder$WorkerRunnableMixin",
+    "compat.sodium.ChunkBuilder$WorkerRunnableMixin2",
     "compat.sodium.ChunkBuilderMixin",
     "compat.sodium.ChunkRenderManagerMixin",
     "compat.sodium.ChunkRenderShaderBackendMixin",
@@ -36,6 +37,7 @@
     "compat.sodium.profiling.SodiumWorldRendererMixin",
     "compat.speedrunigt.MinecraftClientMixin",
     "compat.standardsettings.MinecraftClientMixin",
+    "compat.starlight.StarLightEngineMixin",
     "compat.worldpreview.ClientPlayNetworkHandlerMixin",
     "compat.worldpreview.ClientWorldMixin",
     "compat.worldpreview.InGameHudMixin",
@@ -55,8 +57,5 @@
     "server.synchronization.ScheduledTickMixin",
     "server.synchronization.WeightedBlockStateProviderMixin"
   ],
-  "plugin": "me.contaria.seedqueue.SeedQueueMixinConfigPlugin",
-  "mixins": [
-    "compat.sodium.ChunkBuilder$WorkerRunnableMixin2"
-  ]
+  "plugin": "me.contaria.seedqueue.SeedQueueMixinConfigPlugin"
 }

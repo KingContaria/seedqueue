@@ -2,6 +2,8 @@ package me.contaria.seedqueue.mixin.compat.worldpreview;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.contaria.seedqueue.compat.WorldPreviewCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
@@ -10,14 +12,19 @@ import net.minecraft.client.sound.SoundInstance;
 import net.minecraft.client.sound.SoundManager;
 import net.minecraft.client.sound.TickableSoundInstance;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.Entity;
 import net.minecraft.network.Packet;
 import net.minecraft.network.listener.PacketListener;
 import net.minecraft.util.thread.ThreadExecutor;
+import net.minecraft.world.LightType;
 import net.minecraft.world.chunk.light.LightingProvider;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Iterator;
 import java.util.Optional;
 
 @Mixin(value = ClientPlayNetworkHandler.class, priority = 1500)
@@ -58,18 +65,24 @@ public abstract class ClientPlayNetworkHandlerMixin {
         return Optional.ofNullable(WorldPreviewCompat.SERVER_WP_PROPERTIES.get()).map(WorldPreviewProperties::getPlayer).orElse(player);
     }
 
-    @WrapWithCondition(
-            method = "onChunkData",
+    @WrapOperation(
+            method = "*",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/chunk/light/LightingProvider;doLightUpdates(IZZ)I"
+                    target = "Lnet/minecraft/client/world/ClientWorld;getEntityById(I)Lnet/minecraft/entity/Entity;"
             )
     )
-    private boolean doNotDoLightUpdatesOnServerThread(LightingProvider instance, int maxUpdateCount, boolean doSkylight, boolean skipEdgeLightPropagation) {
-        return WorldPreviewCompat.SERVER_WP_PROPERTIES.get() == null;
+    private Entity getBufferedAddedEntities(ClientWorld world, int id, Operation<Entity> original) {
+        return Optional.ofNullable(WorldPreviewCompat.SERVER_WP_PROPERTIES.get()).map(wpProperties -> wpProperties.getAddedEntity(id)).orElseGet(() -> original.call(world, id));
     }
 
-
+    @Inject(
+            method = "updateLighting",
+            at = @At("TAIL")
+    )
+    private void doLightUpdatesOnServerThread(int chunkX, int chunkZ, LightingProvider provider, LightType type, int mask, int filledMask, Iterator<byte[]> updates, boolean bl, CallbackInfo ci) {
+        provider.doLightUpdates(Integer.MAX_VALUE, true, true);
+    }
 
     // see WorldPreview's ClientPlayNetworkHandlerMixin
     @WrapWithCondition(

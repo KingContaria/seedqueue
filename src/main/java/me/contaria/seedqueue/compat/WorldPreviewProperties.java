@@ -1,6 +1,7 @@
 package me.contaria.seedqueue.compat;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.interfaces.sodium.SQClientChunkManager;
 import me.contaria.seedqueue.interfaces.worldpreview.SQWorldRenderer;
@@ -40,7 +41,7 @@ public class WorldPreviewProperties {
 
     private SeedQueueSettingsCache settingsCache;
 
-    private final List<Entity> addedEntities = new ArrayList<>();
+    private final Map<Integer, Entity> addedEntities = new Int2ObjectOpenHashMap<>();
     private final Set<ChunkPos> addedChunks = new HashSet<>();
     private final List<Pair<ChunkSectionPos, Boolean>> scheduledChunkRenders = new ArrayList<>();
 
@@ -143,8 +144,12 @@ public class WorldPreviewProperties {
         return this.frame;
     }
 
-    public synchronized void addEntity(Entity entity) {
-        this.addedEntities.add(entity);
+    public synchronized void addEntity(int id, Entity entity) {
+        this.addedEntities.put(id, entity);
+    }
+
+    public Entity getAddedEntity(int id) {
+        return this.addedEntities.get(id);
     }
 
     public synchronized void addChunk(int x, int z) {
@@ -156,9 +161,8 @@ public class WorldPreviewProperties {
     }
 
     public synchronized void loadNewData(WorldRenderer worldRenderer) {
-        for (Entity entity : this.addedEntities) {
-            this.world.addEntity(entity.getEntityId(), entity);
-        }
+        this.addedEntities.forEach(this.world::addEntity);
+        this.addedEntities.clear();
 
         ClientChunkManager chunkManager = this.world.getChunkManager();
         if (chunkManager instanceof SQClientChunkManager) {

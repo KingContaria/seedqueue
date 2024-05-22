@@ -56,6 +56,9 @@ dependencies {
 	modCompileOnly ("com.github.KingContaria:standardsettings:94b780bd6d") {
 		transitive = false
 	}
+
+	// to be replaced with jitpack once I pr it to the mcsr starlight repo
+	modCompileOnly files("libs/starlight-1.16.1-v7.jar")
 }
 
 loom {

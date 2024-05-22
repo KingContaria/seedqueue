@@ -40,7 +40,7 @@ public abstract class ClientWorldMixin {
     private void captureEntitiesFromServer(int id, Entity entity, CallbackInfo ci) {
         WorldPreviewProperties wpProperties = WorldPreviewCompat.SERVER_WP_PROPERTIES.get();
         if (wpProperties != null) {
-            wpProperties.addEntity(entity);
+            wpProperties.addEntity(id, entity);
             ci.cancel();
         }
     }

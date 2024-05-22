@@ -14,6 +14,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
+import net.minecraft.world.chunk.light.LightingProvider;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -49,6 +50,17 @@ public abstract class WorldRendererMixin implements SQWorldRenderer {
         return !SeedQueue.isOnWall();
     }
 
+    @WrapWithCondition(
+            method = "render",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/world/chunk/light/LightingProvider;doLightUpdates(IZZ)I"
+            )
+    )
+    private boolean doLightUpdatesServerSideOnWall(LightingProvider instance, int maxUpdateCount, boolean doSkylight, boolean skipEdgeLightPropagation) {
+        return !(SeedQueue.isOnWall() && SeedQueue.config.evaluatePacketsServerSide);
+    }
+
     @Inject(
             method = "scheduleChunkRender",
             at = @At("HEAD"),
@@ -67,7 +79,9 @@ public abstract class WorldRendererMixin implements SQWorldRenderer {
         Profiler profiler = this.world.getProfiler();
 
         profiler.push("light_updates");
-        this.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
+        if (!SeedQueue.config.evaluatePacketsServerSide) {
+            this.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
+        }
 
         profiler.swap("culling");
         Vec3d pos = camera.getPos();
