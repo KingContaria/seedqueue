@@ -8,9 +8,11 @@ import me.jellysquid.mods.sodium.client.render.chunk.*;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuildResult;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuilder;
 import me.jellysquid.mods.sodium.client.render.chunk.lists.ChunkRenderList;
+import me.jellysquid.mods.sodium.client.util.math.FrustumExtended;
 import me.jellysquid.mods.sodium.common.util.collections.FutureDequeDrain;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.Camera;
 import net.minecraft.util.profiler.Profiler;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -65,6 +67,12 @@ public abstract class ChunkRenderManagerMixin<T extends ChunkGraphicsState> {
     @Shadow @Final private ObjectList<ChunkRenderContainer<T>> tickableChunks;
 
     @Shadow private int visibleChunkCount;
+
+    @Shadow protected abstract void unloadPending();
+
+    @Shadow protected abstract void setup(Camera camera);
+
+    @Shadow protected abstract void iterateChunks(Camera camera, FrustumExtended frustum, int frame, boolean spectator);
 
     @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder;<init>(Lme/jellysquid/mods/sodium/client/model/vertex/type/ChunkVertexType;Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderBackend;)V"))
     private void profileCreateChunkBuilder(CallbackInfo ci) {
@@ -188,5 +196,27 @@ public abstract class ChunkRenderManagerMixin<T extends ChunkGraphicsState> {
 
         this.visibleChunkCount = 0;
         profiler.pop();
+    }
+
+    /**
+     * @author contaria
+     * @reason see JavaDocs on this mixin class
+     */
+    @Overwrite
+    public void update(Camera camera, FrustumExtended frustum, int frame, boolean spectator) {
+        Profiler profiler = MinecraftClient.getInstance().getProfiler();
+
+        profiler.push("reset");
+        this.reset();
+        profiler.swap("unload_pending");
+        this.unloadPending();
+
+        profiler.swap("setup");
+        this.setup(camera);
+        profiler.swap("iterate_chunks");
+        this.iterateChunks(camera, frustum, frame, spectator);
+        profiler.pop();
+
+        this.dirty = false;
     }
 }
