@@ -22,7 +22,7 @@ public abstract class ChunkBuilder$WorkerRunnableMixin {
             at = @At("RETURN")
     )
     private void cacheBuildBuffersOnWall(CallbackInfo ci) {
-        if (SeedQueue.config.cacheBuildBuffers) {
+        if (SeedQueue.isOnWall() && SeedQueue.config.cacheBuildBuffers) {
             SodiumCompat.WALL_BUILD_BUFFERS_POOL.add(this.bufferCache);
         }
     }
