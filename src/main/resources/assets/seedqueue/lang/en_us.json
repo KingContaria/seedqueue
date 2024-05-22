@@ -114,6 +114,8 @@
   "speedrunapi.config.seedqueue.option.doNotYieldRenderThread.description": "By default Minecraft yields the Render Thread after each frame to allocate more resources to other threads.\nWith SeedQueue, the number of threads is significantly increased, leading to potential lag when yielding the Render Thread.",
   "speedrunapi.config.seedqueue.option.bufferInGameHud": "Buffer InGame Hud",
   "speedrunapi.config.seedqueue.option.bufferInGameHud.description": "Renders the InGame Hud (including the preview pause menu) into a buffer once which then gets reused for every preview.",
+  "speedrunapi.config.seedqueue.option.reduceSchedulingBudget": "Reduce Sodium Worker Budget",
+  "speedrunapi.config.seedqueue.option.reduceSchedulingBudget.description": "Reduces the amount of Sodium chunk rebuilds scheduled per frame. This improves framerate stability at the cost of slower chunk loads.",
   "speedrunapi.config.seedqueue.option.doNotWaitForChunksToBuild": "Allow Void Previews",
   "speedrunapi.config.seedqueue.option.useWatchdog": "Watchdog",
   "speedrunapi.config.seedqueue.option.useWatchdog.description": "Launches an extra thread that prints out the main threads stacktrace every 10 seconds to diagnose freezing issues.\n§cTo update this option restart the game.",

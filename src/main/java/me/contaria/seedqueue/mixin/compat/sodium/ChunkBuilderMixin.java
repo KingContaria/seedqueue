@@ -164,4 +164,17 @@ public abstract class ChunkBuilderMixin {
     private boolean suppressStopWorkersLogOnWall(Logger logger, String s) {
         return !SeedQueue.isOnWall();
     }
+
+    @ModifyExpressionValue(
+            method = "getSchedulingBudget",
+            at = @At(
+                    value = "CONSTANT",
+                    args = "intValue=2")
+    )
+    private int reduceSchedulingBudgetOnWall(int TASK_QUEUE_LIMIT_PER_WORKER) {
+        if (SeedQueue.isOnWall() && SeedQueue.config.reduceSchedulingBudget) {
+            return 1;
+        }
+        return TASK_QUEUE_LIMIT_PER_WORKER;
+    }
 }
