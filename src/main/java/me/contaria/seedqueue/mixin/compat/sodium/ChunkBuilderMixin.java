@@ -122,7 +122,7 @@ public abstract class ChunkBuilderMixin {
             require = 0
     )
     private ChunkRenderCacheLocal createRenderCacheOnWorkerThread(MinecraftClient client, World world, Operation<ChunkRenderCacheLocal> original) {
-        if (SeedQueue.isOnWall() && SeedQueue.config.createRenderCacheAsync) {
+        if (SeedQueue.isOnWall()) {
             return null;
         }
         return original.call(client, world);

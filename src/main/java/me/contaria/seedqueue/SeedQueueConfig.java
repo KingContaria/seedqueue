@@ -158,15 +158,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean alwaysDeferChunkUpdates = false;
 
     @Config.Category("experimental")
-    public boolean cacheShaders = true;
-
-    @Config.Category("experimental")
-    public boolean cacheBuildBuffers = true;
-
-    @Config.Category("experimental")
-    public boolean createRenderCacheAsync = true;
-
-    @Config.Category("experimental")
     public boolean doNotYieldRenderThread = false;
 
     @Config.Category("experimental")

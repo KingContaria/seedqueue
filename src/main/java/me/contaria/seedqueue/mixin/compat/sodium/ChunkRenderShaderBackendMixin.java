@@ -28,7 +28,7 @@ public abstract class ChunkRenderShaderBackendMixin {
             )
     )
     private ChunkProgram cacheShadersOnWall(ChunkRenderShaderBackend<?> instance, @Coerce Object device, ChunkFogMode fogMode, GlVertexFormat<ChunkMeshAttribute> vertexFormat, Operation<ChunkProgram> original) {
-        if (SeedQueue.isOnWall() && SeedQueue.config.cacheShaders) {
+        if (SeedQueue.isOnWall()) {
             return SodiumCompat.WALL_SHADER_CACHE.computeIfAbsent(fogMode, f -> original.call(instance, device, fogMode, vertexFormat));
         }
         return original.call(instance, device, fogMode, vertexFormat);
@@ -44,7 +44,7 @@ public abstract class ChunkRenderShaderBackendMixin {
             )
     )
     private ChunkProgram cacheShadersOnWall_macSodium(ChunkRenderShaderBackend<?> instance, ChunkFogMode fogMode, GlVertexFormat<ChunkMeshAttribute> vertexFormat, Operation<ChunkProgram> original) {
-        if (SeedQueue.isOnWall() && SeedQueue.config.cacheShaders) {
+        if (SeedQueue.isOnWall()) {
             return SodiumCompat.WALL_SHADER_CACHE.computeIfAbsent(fogMode, f -> original.call(instance, fogMode, vertexFormat));
         }
         return original.call(instance, fogMode, vertexFormat);
