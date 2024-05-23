@@ -1,5 +1,6 @@
 package me.contaria.seedqueue;
 
+import com.google.gson.JsonParseException;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
@@ -16,6 +17,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Predicate;
@@ -138,6 +140,13 @@ public class SeedQueue implements ClientModInitializer {
 
             if (config.maxCapacity == 0) {
                 return;
+            }
+
+            LOGGER.info("Reloading SeedQueue Config...");
+            try {
+                SeedQueue.config.reload();
+            } catch (IOException | JsonParseException e) {
+                LOGGER.error("Failed to reload SeedQueue Config!", e);
             }
 
             LOGGER.info("Starting SeedQueue...");

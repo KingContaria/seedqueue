@@ -18,6 +18,7 @@ import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.util.tinyfd.TinyFileDialogs;
 import org.mcsr.speedrunapi.config.SpeedrunConfigAPI;
+import org.mcsr.speedrunapi.config.SpeedrunConfigContainer;
 import org.mcsr.speedrunapi.config.api.SpeedrunConfig;
 import org.mcsr.speedrunapi.config.api.SpeedrunOption;
 import org.mcsr.speedrunapi.config.api.annotations.Config;
@@ -25,6 +26,7 @@ import org.mcsr.speedrunapi.config.api.annotations.InitializeOn;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +38,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Ignored
     private static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
+
+    @Config.Ignored
+    private SpeedrunConfigContainer<?> container;
 
     @Config.Category("queue")
     @Config.Numbers.Whole.Bounds(min = 0, max = 50, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
@@ -321,6 +326,17 @@ public class SeedQueueConfig implements SpeedrunConfig {
             customLayout.add("id", new JsonPrimitive("custom"));
         }
         return new LiteralText(customLayout.get("id").getAsString());
+    }
+
+    public void reload() throws IOException, JsonParseException {
+        if (this.container != null) {
+            this.container.load();
+        }
+    }
+
+    @Override
+    public void finishInitialization(SpeedrunConfigContainer<?> container) {
+        this.container = container;
     }
 
     @Override
