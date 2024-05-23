@@ -4,8 +4,6 @@ import me.voidxwalker.autoreset.AtumCreateWorldScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 
-import java.util.Optional;
-
 public class SeedQueueThread extends Thread {
 
     private final Object lock = new Object();
@@ -46,20 +44,15 @@ public class SeedQueueThread extends Thread {
         }
     }
 
-    // TODO: currently seedqueue only pauses one entry at a time because managing that is easier, in the future we probably want to change that
-    public void pauseSeedQueueEntry() {
-        if (!SeedQueue.getEntryMatching(SeedQueueEntry::isScheduledToPause).isPresent()) {
-            SeedQueue.getEntryMatching(entry -> !entry.isScheduledToPause() && !entry.isPaused()).ifPresent(SeedQueueEntry::schedulePause);
-        }
+    private void pauseSeedQueueEntry() {
+        SeedQueue.getEntryMatching(entry -> !entry.isScheduledToPause() && !entry.isPaused()).ifPresent(SeedQueueEntry::schedulePause);
     }
 
-    public boolean unpauseSeedQueueEntry() {
-        Optional<SeedQueueEntry> entryToUnpause = SeedQueue.getEntryMatching(entry -> entry.isScheduledToPause() || (entry.isPaused() && !entry.shouldPause()));
-        if (entryToUnpause.isPresent()) {
-            entryToUnpause.get().tryToUnpause();
+    private boolean unpauseSeedQueueEntry() {
+        return SeedQueue.getEntryMatching(entry -> entry.isScheduledToPause() || (entry.isPaused() && !entry.shouldPause())).map(entry -> {
+            entry.tryToUnpause();
             return true;
-        }
-        return false;
+        }).orElse(false);
     }
 
     private void createSeedQueueEntry() {

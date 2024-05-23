@@ -41,7 +41,7 @@ public class SeedQueue implements ClientModInitializer {
                     while (true) {
                         Thread mainThread = MinecraftClient.getInstance() != null ? ((MinecraftClientAccessor) MinecraftClient.getInstance()).seedQueue$getThread() : null;
                         if (mainThread != null) {
-                            LOGGER.info("WATCHDOG | " + Arrays.toString(mainThread.getStackTrace()));
+                            LOGGER.info("WATCHDOG | {}", Arrays.toString(mainThread.getStackTrace()));
                         }
                         //noinspection BusyWait
                         Thread.sleep(10000);
@@ -106,12 +106,16 @@ public class SeedQueue implements ClientModInitializer {
 
     public static boolean shouldStopGenerating() {
         synchronized (LOCK) {
-            return getGeneratingCount() > getMaxGeneratingCount();
+            return getGeneratingCount(true) > getMaxGeneratingCount();
         }
     }
 
     private static long getGeneratingCount() {
-        long count = SEED_QUEUE.stream().filter(entry -> !entry.isPaused()).count();
+        return getGeneratingCount(false);
+    }
+
+    private static long getGeneratingCount(boolean treatScheduledAsPaused) {
+        long count = SEED_QUEUE.stream().filter(entry -> !((treatScheduledAsPaused && entry.isScheduledToPause()) || entry.isPaused())).count();
 
         // add 1 when not using wall and the main world is currently generating
         MinecraftServer currentServer = MinecraftClient.getInstance().getServer();
