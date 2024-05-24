@@ -25,9 +25,9 @@ dependencies {
 
 	// SpeedrunAPI
 	// check for the latest versions at https://jitpack.io/#kingcontaria/speedrunapi
-	modImplementation "com.github.KingContaria:SpeedrunAPI:b25af3eafb"
+	modImplementation "com.github.KingContaria:SpeedrunAPI:ce0eb2d0cc"
 	implementation(annotationProcessor "com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.1.1")
-	modImplementation "net.fabricmc.fabric-api:fabric-key-binding-api-v1:1.0.36+fb8d95da77"
+	modImplementation "com.github.tildejustin:key-binding-api:a41fc49671"
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/atum-rewrite
 	modImplementation ("com.github.KingContaria:atum-rewrite:b7c7ba4221") {
@@ -57,8 +57,8 @@ dependencies {
 		transitive = false
 	}
 
-	// to be replaced with jitpack once I pr it to the mcsr starlight repo
-	modCompileOnly files("libs/starlight-1.16.1-v7.jar")
+	// check for the latest versions at https://jitpack.io/#Minecraft-Java-Edition-Speedrunning/starlight
+	modCompileOnly "com.github.kingcontaria:starlight:13f1807cd7"
 }
 
 loom {
