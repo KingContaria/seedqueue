@@ -508,7 +508,7 @@ public class SeedQueueWallScreen extends Screen {
 
     private void playInstance(SeedQueueEntry entry) {
         assert this.client != null;
-        if (!entry.isReady() || SeedQueue.selectedEntry != null) {
+        if (MinecraftClient.getInstance().getServer() != null || !entry.isReady() || SeedQueue.selectedEntry != null) {
             return;
         }
         SeedQueue.selectedEntry = entry;
