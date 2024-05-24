@@ -166,9 +166,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean doNotYieldRenderThread = false;
 
     @Config.Category("experimental")
-    public boolean bufferInGameHud = true;
-
-    @Config.Category("experimental")
     public boolean reduceSchedulingBudget = false;
 
     @Config.Category("debug")

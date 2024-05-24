@@ -14,10 +14,8 @@ import me.contaria.seedqueue.mixin.accessor.DebugHudAccessor;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
-import me.contaria.seedqueue.util.FrameBufferUtils;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.hud.DebugHud;
 import net.minecraft.client.gui.screen.Screen;
@@ -58,10 +56,6 @@ public class SeedQueueWallScreen extends Screen {
     protected final SeedQueueSettingsCache settingsCache;
     private SeedQueueSettingsCache lastSettingsCache;
 
-    private Framebuffer inGameHudBuffer;
-    private boolean inGameHudBuffered;
-    private boolean inGameHudBuffering;
-
     private Layout layout;
     private SeedQueuePreview[] mainPreviews;
     @Nullable
@@ -97,28 +91,6 @@ public class SeedQueueWallScreen extends Screen {
         this.lockedPreviews = this.layout.locked != null ? new ArrayList<>() : null;
         this.preparingPreviews = new ArrayList<>();
         this.lockTextures = this.createLockTextures();
-
-        if (SeedQueue.config.bufferInGameHud) {
-            int width = SeedQueue.config.hasSimulatedWindowSize() ? SeedQueue.config.simulatedWindowWidth : this.client.getWindow().getFramebufferWidth();
-            int height = SeedQueue.config.hasSimulatedWindowSize() ? SeedQueue.config.simulatedWindowHeight : this.client.getWindow().getFramebufferHeight();
-            if (this.inGameHudBuffer == null) {
-                this.inGameHudBuffer = new Framebuffer(width, height, true, MinecraftClient.IS_SYSTEM_MAC);
-                this.inGameHudBuffer.setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-                this.inGameHudBuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
-            } else {
-                this.inGameHudBuffer.resize(width, height, MinecraftClient.IS_SYSTEM_MAC);
-            }
-            this.inGameHudBuffered = false;
-        }
-    }
-
-    @Override
-    public void removed() {
-        if (this.inGameHudBuffer != null) {
-            this.inGameHudBuffer.delete();
-            this.inGameHudBuffer = null;
-            this.inGameHudBuffered = false;
-        }
     }
 
     private Layout createLayout() {
@@ -363,33 +335,6 @@ public class SeedQueueWallScreen extends Screen {
             this.lastSettingsCache = settingsCache;
         }
         this.client.options.perspective = perspective;
-    }
-
-    public boolean shouldUseInGameHudBuffer() {
-        return this.inGameHudBuffer != null && this.settingsCache == this.lastSettingsCache;
-    }
-
-    public boolean isInGameHudBuffered() {
-        return this.inGameHudBuffered;
-    }
-
-    public boolean isInGameHudBuffering() {
-        return this.inGameHudBuffering;
-    }
-
-    public void beginBufferingInGameHud() {
-        this.inGameHudBuffer.beginWrite(true);
-        this.inGameHudBuffering = true;
-    }
-
-    public void endBufferingInGameHud() {
-        this.inGameHudBuffer.endWrite();
-        this.inGameHudBuffering = false;
-        this.inGameHudBuffered = true;
-    }
-
-    public void drawBufferedInGameHud(int width, int height) {
-        FrameBufferUtils.drawTranslucent(this.inGameHudBuffer, width, height);
     }
 
     @Override
