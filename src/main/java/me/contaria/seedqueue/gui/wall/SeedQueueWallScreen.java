@@ -131,10 +131,7 @@ public class SeedQueueWallScreen extends Screen {
         this.updatePreviews();
 
         profiler.swap("background");
-        if (this.client.getResourceManager().containsResource(WALL_BACKGROUND)) {
-            this.client.getTextureManager().bindTexture(WALL_BACKGROUND);
-            DrawableHelper.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
-        } else {
+        if (!this.drawTexture(WALL_BACKGROUND, matrices, this.width, this.height)) {
             this.renderBackground(matrices);
         }
 
@@ -168,10 +165,7 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         profiler.swap("overlay");
-        if (this.client.getResourceManager().containsResource(WALL_OVERLAY)) {
-            this.client.getTextureManager().bindTexture(WALL_OVERLAY);
-            DrawableHelper.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
-        }
+        this.drawTexture(WALL_OVERLAY, matrices, this.width, this.height);
 
         profiler.swap("reset");
         this.resetViewport();
@@ -194,10 +188,9 @@ public class SeedQueueWallScreen extends Screen {
             profiler.push("set_viewport");
             this.setViewport(pos);
             if (instance == null || !instance.shouldRender()) {
-                if (group.instance_background && this.client.getResourceManager().containsResource(INSTANCE_BACKGROUND)) {
+                if (group.instance_background) {
                     profiler.swap("instance_background");
-                    this.client.getTextureManager().bindTexture(INSTANCE_BACKGROUND);
-                    DrawableHelper.drawTexture(matrices, 0, 0, 0.0f, 0.0f, this.width, this.height, this.width, this.height);
+                    this.drawTexture(INSTANCE_BACKGROUND, matrices, this.width, this.height);
                 }
                 profiler.pop();
                 return;
@@ -223,9 +216,19 @@ public class SeedQueueWallScreen extends Screen {
             if (instance.lock == null) {
                 instance.lock = this.lockTextures.get(new Random().nextInt(this.lockTextures.size()));
             }
-            this.client.getTextureManager().bindTexture(instance.lock.id);
             double scale = this.client.getWindow().getScaleFactor();
-            DrawableHelper.drawTexture(matrices, (int) (pos.x / scale), (int) (pos.y / scale), 0.0f, 0.0f, (int) (pos.height * instance.lock.aspectRatio / scale), (int) (pos.height / scale), (int) (pos.height * instance.lock.aspectRatio / scale), (int) (pos.height / scale));
+            this.drawTexture(
+                    instance.lock.id,
+                    matrices,
+                    (int) (pos.x / scale),
+                    (int) (pos.y / scale),
+                    0.0f,
+                    0.0f,
+                    (int) Math.min(pos.width / scale, pos.height * instance.lock.aspectRatio / scale),
+                    (int) (pos.height / scale),
+                    (int) (pos.height * instance.lock.aspectRatio / scale),
+                    (int) (pos.height / scale)
+            );
         }
     }
 
@@ -586,6 +589,22 @@ public class SeedQueueWallScreen extends Screen {
                 this.resetInstance(this.mainPreviews[i]);
             }
         }
+    }
+
+    private boolean drawTexture(Identifier texture, MatrixStack matrices, int width, int height) {
+        return this.drawTexture(texture, matrices, 0, 0, 0.0f, 0.0f, width, height, width, height);
+    }
+
+    private boolean drawTexture(Identifier texture, MatrixStack matrices, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight) {
+        assert this.client != null;
+        if (this.client.getResourceManager().containsResource(texture)) {
+            RenderSystem.enableBlend();
+            this.client.getTextureManager().bindTexture(texture);
+            DrawableHelper.drawTexture(matrices, x, y, u, v, width, height, textureWidth, textureHeight);
+            RenderSystem.disableBlend();
+            return true;
+        }
+        return false;
     }
 
     private void playSound(SoundEvent sound) {
