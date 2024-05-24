@@ -58,7 +58,7 @@ dependencies {
 	}
 
 	// check for the latest versions at https://jitpack.io/#Minecraft-Java-Edition-Speedrunning/starlight
-	modCompileOnly "com.github.kingcontaria:starlight:13f1807cd7"
+	modCompileOnly "com.github.Minecraft-Java-Edition-Speedrunning:starlight:635c28baf9"
 }
 
 loom {
