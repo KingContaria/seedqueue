@@ -87,10 +87,13 @@ public class SeedQueue implements ClientModInitializer {
     }
 
     public static void discard(SeedQueueEntry seedQueueEntry) {
+        boolean shouldDiscard;
         synchronized (LOCK) {
-            SEED_QUEUE.remove(seedQueueEntry);
+            shouldDiscard = SEED_QUEUE.remove(seedQueueEntry);
         }
-        seedQueueEntry.discard();
+        if (shouldDiscard) {
+            seedQueueEntry.discard();
+        }
         ping();
     }
 

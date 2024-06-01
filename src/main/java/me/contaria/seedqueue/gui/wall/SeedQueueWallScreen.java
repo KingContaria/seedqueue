@@ -504,16 +504,16 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void playInstance(SeedQueuePreview instance) {
-        if (instance.hasBeenRendered()) {
-            this.playInstance(instance.getSeedQueueEntry());
+        assert this.client != null;
+        SeedQueueEntry entry = instance.getSeedQueueEntry();
+        if (this.client.getServer() == null && SeedQueue.selectedEntry == null && instance.hasBeenRendered() && entry.isReady()) {
+            this.playInstance(entry);
+            this.removePreview(instance);
         }
     }
 
     private void playInstance(SeedQueueEntry entry) {
         assert this.client != null;
-        if (MinecraftClient.getInstance().getServer() != null || !entry.isReady() || SeedQueue.selectedEntry != null) {
-            return;
-        }
         SeedQueue.selectedEntry = entry;
         this.client.openScreen(this.createWorldScreen);
     }
@@ -545,21 +545,25 @@ public class SeedQueueWallScreen extends Screen {
         SeedQueue.discard(seedQueueEntry);
 
         profiler.swap("remove_preview");
-        for (int i = 0; i < this.mainPreviews.length; i++) {
-            if (this.mainPreviews[i] == instance) {
-                this.mainPreviews[i] = null;
-            }
-        }
-        this.preparingPreviews.remove(instance);
-        if (this.lockedPreviews != null) {
-            this.lockedPreviews.remove(instance);
-        }
+        this.removePreview(instance);
 
         profiler.swap("play_sound");
         this.playSound(SeedQueueSounds.RESET_INSTANCE);
         profiler.pop();
         profiler.pop();
         return true;
+    }
+
+    private void removePreview(SeedQueuePreview preview) {
+        for (int i = 0; i < this.mainPreviews.length; i++) {
+            if (this.mainPreviews[i] == preview) {
+                this.mainPreviews[i] = null;
+            }
+        }
+        this.preparingPreviews.remove(preview);
+        if (this.lockedPreviews != null) {
+            this.lockedPreviews.remove(preview);
+        }
     }
 
     private void resetAllInstances() {

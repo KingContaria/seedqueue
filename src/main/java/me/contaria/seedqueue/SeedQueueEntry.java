@@ -135,8 +135,8 @@ public class SeedQueueEntry {
 
     public boolean lock() {
         if (!this.locked) {
-            SeedQueue.ping();
             this.locked = true;
+            SeedQueue.ping();
             return true;
         }
         return false;
