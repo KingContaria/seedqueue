@@ -7,6 +7,8 @@ import me.contaria.seedqueue.gui.config.SeedQueueKeybindingsScreen;
 import me.contaria.seedqueue.keybindings.SeedQueueKeyBindings;
 import me.contaria.seedqueue.keybindings.SeedQueueMultiKeyBinding;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ConfirmScreen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ScreenTexts;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.toast.SystemToast;
@@ -123,6 +125,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Category("performance")
     public boolean lazyUserCache = false;
 
+    @Config.Category("advanced")
+    public boolean showAdvancedSettings = false;
+
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
     public int seedQueueThreadPriority = Thread.NORM_PRIORITY;
@@ -233,17 +238,14 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public @Nullable SpeedrunOption<?> parseField(Field field, SpeedrunConfig config, String... idPrefix) {
         if ("useWall".equals(field.getName())) {
             return new SpeedrunConfigAPI.CustomOption.Builder<Boolean>(config, this, field, idPrefix)
-                    .fromJson(((option, config_, configStorage, optionField, jsonElement) -> option.set(jsonElement.getAsBoolean())))
-                    .toJson(((option, config_, configStorage, optionField) -> new JsonPrimitive(option.get())))
                     .createWidget((option, config_, configStorage, optionField) -> {
                         if (!this.canUseWall) {
                             ButtonWidget button = new ButtonWidget(0, 0, 150, 20, new TranslatableText("seedqueue.menu.config.useWall.notAvailable"), b -> {}, ((b, matrices, mouseX, mouseY) -> {
-                                MinecraftClient client = MinecraftClient.getInstance();
-                                List<StringRenderable> tooltip = new ArrayList<>(client.textRenderer.wrapLines(new TranslatableText("seedqueue.menu.config.useWall.notAvailable.tooltip"), 200));
+                                List<StringRenderable> tooltip = new ArrayList<>(MinecraftClient.getInstance().textRenderer.wrapLines(new TranslatableText("seedqueue.menu.config.useWall.notAvailable.tooltip"), 200));
                                 for (int i = 1; i <= 3; i++) {
                                     tooltip.add(new TranslatableText("seedqueue.menu.config.useWall.notAvailable.tooltip." + i));
                                 }
-                                Objects.requireNonNull(client.currentScreen).renderTooltip(matrices, tooltip, mouseX, mouseY);
+                                Objects.requireNonNull(MinecraftClient.getInstance().currentScreen).renderTooltip(matrices, tooltip, mouseX, mouseY);
                             }));
                             button.active = false;
                             return button;
@@ -255,10 +257,26 @@ public class SeedQueueConfig implements SpeedrunConfig {
                     })
                     .build();
         }
+        if ("showAdvancedSettings".equals(field.getName())) {
+            return new SpeedrunConfigAPI.CustomOption.Builder<Boolean>(config, this, field, idPrefix)
+                    .createWidget((option, config_, configStorage, optionField) -> new ButtonWidget(0, 0, 150, 20, ScreenTexts.getToggleText(option.get()), button -> {
+                        if (!option.get()) {
+                            Screen configScreen = MinecraftClient.getInstance().currentScreen;
+                            MinecraftClient.getInstance().openScreen(new ConfirmScreen(confirm -> {
+                                option.set(confirm);
+                                MinecraftClient.getInstance().openScreen(configScreen);
+                            }, new TranslatableText("seedqueue.menu.config.showAdvancedSettings.confirm.title"), new TranslatableText("seedqueue.menu.config.showAdvancedSettings.confirm.message"), ScreenTexts.YES, ScreenTexts.CANCEL));
+                        } else {
+                            option.set(false);
+                            MinecraftClient.getInstance().openScreen(MinecraftClient.getInstance().currentScreen);
+                        }
+                    }))
+                    .build();
+        }
         if (JsonObject.class.equals(field.getType())) {
             return new SpeedrunConfigAPI.CustomOption.Builder<JsonObject>(config, this, field, idPrefix)
-                    .fromJson(((option, config_, configStorage, optionField, jsonElement) -> option.set(jsonElement.isJsonNull() ? null : jsonElement.getAsJsonObject())))
-                    .toJson(((option, config_, configStorage, optionField) -> Optional.ofNullable((JsonElement) option.get()).orElse(JsonNull.INSTANCE)))
+                    .fromJson((option, config_, configStorage, optionField, jsonElement) -> option.set(jsonElement.isJsonNull() ? null : jsonElement.getAsJsonObject()))
+                    .toJson((option, config_, configStorage, optionField) -> Optional.ofNullable((JsonElement) option.get()).orElse(JsonNull.INSTANCE))
                     .createWidget((option, config_, configStorage, optionField) -> new ButtonWidget(0, 0, 150, 20, this.getCustomLayoutText(option.get()), button -> {
                         if (option.get() != null) {
                             option.set(null);
@@ -282,7 +300,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
         }
         if (SeedQueueMultiKeyBinding[].class.equals(field.getType())) {
             return new SpeedrunConfigAPI.CustomOption.Builder<SeedQueueMultiKeyBinding[]>(config, this, field, idPrefix)
-                    .fromJson(((option, config_, configStorage, optionField, jsonElement) -> {
+                    .fromJson((option, config_, configStorage, optionField, jsonElement) -> {
                         for (SeedQueueMultiKeyBinding keyBinding : option.get()) {
                             List<InputUtil.Key> keys = new ArrayList<>();
                             JsonElement keyJsonElement = jsonElement.getAsJsonObject().get(keyBinding.getTranslationKey());
@@ -294,8 +312,8 @@ public class SeedQueueConfig implements SpeedrunConfig {
                             }
                             keyBinding.setKeys(keys);
                         }
-                    }))
-                    .toJson(((option, config_, configStorage, optionField) -> {
+                    })
+                    .toJson((option, config_, configStorage, optionField) -> {
                         JsonObject jsonObject = new JsonObject();
                         for (SeedQueueMultiKeyBinding keyBinding : option.get()) {
                             JsonArray jsonArray = new JsonArray();
@@ -305,7 +323,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
                             jsonObject.add(keyBinding.getTranslationKey(), jsonArray);
                         }
                         return jsonObject;
-                    }))
+                    })
                     .setter((option, config_, configStorage, optionField, value) -> {
                         throw new UnsupportedOperationException();
                     })
@@ -334,6 +352,14 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Override
     public void finishInitialization(SpeedrunConfigContainer<?> container) {
         this.container = container;
+    }
+
+    @Override
+    public boolean shouldShowCategory(String category) {
+        if (!this.showAdvancedSettings) {
+            return !category.equals("threading") && !category.equals("experimental") && !category.equals("debug");
+        }
+        return true;
     }
 
     @Override

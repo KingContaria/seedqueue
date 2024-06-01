@@ -10,6 +10,9 @@
   "seedqueue.menu.config.useWall.notAvailable.tooltip.2": " - StandardSettings",
   "seedqueue.menu.config.useWall.notAvailable.tooltip.3": " - WorldPreview",
 
+  "seedqueue.menu.config.showAdvancedSettings.confirm.title": "Are you sure you want to enable Advanced Settings?",
+  "seedqueue.menu.config.showAdvancedSettings.confirm.message": "Please only use these options if you know what they do or if you've been instructed to do so by someone who does!",
+
   "seedqueue.menu.keys": "Wall Keybindings",
   "seedqueue.menu.keys.configure": "Configure...",
   "seedqueue.menu.keys.primary": "Primary Key",
@@ -30,6 +33,7 @@
   "speedrunapi.config.seedqueue.category.chunkmap": "Chunkmap Settings",
   "speedrunapi.config.seedqueue.category.wall": "Wall Screen Settings",
   "speedrunapi.config.seedqueue.category.performance": "Performance Settings",
+  "speedrunapi.config.seedqueue.category.advanced": "Advanced Settings",
   "speedrunapi.config.seedqueue.category.threading": "Threading Settings",
   "speedrunapi.config.seedqueue.category.experimental": "Experimental Settings",
   "speedrunapi.config.seedqueue.category.debug": "Debug Settings",
@@ -83,6 +87,7 @@
   "speedrunapi.config.seedqueue.option.usePerThreadSurfaceBuilders.description": "Instead of synchronizing access to surface builders between instances, create multiple copies to be used in parallel.\n§cTo update this option restart the game.",
   "speedrunapi.config.seedqueue.option.lazyUserCache": "Lazy UserCache",
   "speedrunapi.config.seedqueue.option.lazyUserCache.description": "When launching a world on the SeedQueue Thread, creating a UserCache for a world takes a considerable amount of time and may slow down your resets. If this option is enabled, the UserCache will be build when joining the world instead.",
+  "speedrunapi.config.seedqueue.option.showAdvancedSettings": "Show Advanced Settings",
   "speedrunapi.config.seedqueue.option.seedQueueThreadPriority": "SeedQueue Thread Priority",
   "speedrunapi.config.seedqueue.option.seedQueueThreadPriority.description": "Sets the thread priority for the SeedQueue Thread which creates seeds to generate.",
   "speedrunapi.config.seedqueue.option.serverThreadPriority": "Server Thread Priority",
