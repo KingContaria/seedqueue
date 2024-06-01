@@ -39,6 +39,9 @@ import java.util.Optional;
 public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Ignored
+    public static final int AUTO = 0;
+
+    @Config.Ignored
     private static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
 
     @Config.Ignored
@@ -134,16 +137,16 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int serverThreadPriority = 4;
 
     @Config.Category("threading")
-    @Config.Numbers.Whole.Bounds(min = 0, max = 31, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    public int backgroundExecutorThreads = Math.max(1, PROCESSORS / 2);
+    @Config.Numbers.Whole.Bounds(min = 0, max = 32, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    public int backgroundExecutorThreads = AUTO;
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
     public int backgroundExecutorThreadPriority = 3;
 
     @Config.Category("threading")
-    @Config.Numbers.Whole.Bounds(min = 1, max = 31, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    public int wallExecutorThreads = Math.max(1, PROCESSORS);
+    @Config.Numbers.Whole.Bounds(min = 0, max = 32, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    public int wallExecutorThreads = AUTO;
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
@@ -151,8 +154,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = 0, max = 8, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    @Config.Access(setter = "setChunkUpdateThreads")
-    public int chunkUpdateThreads = 0;
+    public int chunkUpdateThreads = AUTO;
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
@@ -201,14 +203,25 @@ public class SeedQueueConfig implements SpeedrunConfig {
         SeedQueue.config = this;
     }
 
-    @SuppressWarnings("unused")
-    public void setChunkUpdateThreads(int chunkUpdateThreads) {
-        this.chunkUpdateThreads = Math.min(PROCESSORS, chunkUpdateThreads);
+    public int getBackgroundExecutorThreads() {
+        if (this.backgroundExecutorThreads == AUTO) {
+            return Math.max(1, Math.min(this.maxConcurrently, PROCESSORS));
+        }
+        return this.backgroundExecutorThreads;
     }
 
-    @SuppressWarnings("unused")
-    public void setBackgroundExecutorThreads(int backgroundExecutorThreads) {
-        this.backgroundExecutorThreads = Math.min(PROCESSORS, backgroundExecutorThreads);
+    public int getWallExecutorThreads() {
+        if (this.wallExecutorThreads == AUTO) {
+            return Math.max(1, PROCESSORS);
+        }
+        return this.wallExecutorThreads;
+    }
+
+    public int getChunkUpdateThreads() {
+        if (this.chunkUpdateThreads == AUTO) {
+            return Math.min(Math.max(2, (int) Math.ceil((double) PROCESSORS / this.maxConcurrently_onWall)), PROCESSORS);
+        }
+        return this.chunkUpdateThreads;
     }
 
     public boolean shouldUseWall() {

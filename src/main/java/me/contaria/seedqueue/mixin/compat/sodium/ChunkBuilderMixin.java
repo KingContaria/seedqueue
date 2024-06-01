@@ -38,8 +38,8 @@ public abstract class ChunkBuilderMixin {
             at = @At("RETURN")
     )
     private static int modifyChunkUpdateThreads(int optimalThreadCount) {
-        if (SeedQueue.isOnWall() && SeedQueue.config.chunkUpdateThreads > 0) {
-            return SeedQueue.config.chunkUpdateThreads;
+        if (SeedQueue.isOnWall()) {
+            return SeedQueue.config.getChunkUpdateThreads();
         }
         return optimalThreadCount;
     }

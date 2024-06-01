@@ -23,9 +23,9 @@ public abstract class UtilMixin {
     )
     private static int setSeedQueueWorkerThreads(int threads, @Local(argsOnly = true) String name) {
         if (name.equals("SeedQueue")) {
-            return SeedQueue.config.backgroundExecutorThreads;
+            return SeedQueue.config.getBackgroundExecutorThreads();
         } else if (name.equals("SeedQueue Wall")) {
-            return SeedQueue.config.wallExecutorThreads;
+            return SeedQueue.config.getWallExecutorThreads();
         }
         return threads;
     }
