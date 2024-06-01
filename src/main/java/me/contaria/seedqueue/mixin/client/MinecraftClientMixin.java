@@ -162,7 +162,7 @@ public abstract class MinecraftClientMixin {
                 return userCache;
             }
         }
-        if (SeedQueue.inQueue() && SeedQueue.config.lazyUserCache) {
+        if (SeedQueue.inQueue() && SeedQueue.config.shouldUseWall()) {
             // creating the UserCache is quite expensive compared to the rest of the server creation, so we do it lazily (see "loadServer")
             return null;
         }

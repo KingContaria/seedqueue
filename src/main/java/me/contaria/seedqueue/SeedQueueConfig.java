@@ -122,9 +122,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Category("performance")
     public boolean usePerThreadSurfaceBuilders = false;
 
-    @Config.Category("performance")
-    public boolean lazyUserCache = false;
-
     @Config.Category("advanced")
     public boolean showAdvancedSettings = false;
 
