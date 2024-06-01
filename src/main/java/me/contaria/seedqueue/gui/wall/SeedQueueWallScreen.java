@@ -519,7 +519,7 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void lockInstance(SeedQueuePreview instance) {
-        if (instance.getSeedQueueEntry().lock()) {
+        if (instance.hasBeenRendered() && instance.getSeedQueueEntry().lock()) {
             this.playSound(SeedQueueSounds.LOCK_INSTANCE);
         }
     }
