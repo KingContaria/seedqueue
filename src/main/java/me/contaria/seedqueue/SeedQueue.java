@@ -63,7 +63,9 @@ public class SeedQueue implements ClientModInitializer {
         synchronized (LOCK) {
             if (selectedEntry != null) {
                 currentEntry = selectedEntry;
-                SEED_QUEUE.remove(selectedEntry);
+                if (!SEED_QUEUE.remove(selectedEntry)) {
+                    throw new IllegalStateException("SeedQueue selectedEntry is not part of the queue!");
+                }
                 selectedEntry = null;
             } else {
                 currentEntry = SEED_QUEUE.poll();
