@@ -29,6 +29,8 @@ dependencies {
 	implementation(annotationProcessor "com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.1.1")
 	modImplementation "com.github.tildejustin:key-binding-api:a41fc49671"
 
+	include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.4.0-beta.1")))
+
 	// check for the latest versions at https://jitpack.io/#kingcontaria/atum-rewrite
 	modImplementation ("com.github.KingContaria:atum-rewrite:b7c7ba4221") {
 		transitive = false

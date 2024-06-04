@@ -88,8 +88,6 @@
   "speedrunapi.config.seedqueue.option.backgroundPreviews.description": "Builds previews in the background before they start being rendered, allowing for a smoother transition when loading a new preview onto the Wall Screen.",
   "speedrunapi.config.seedqueue.option.freezeLockedPreviews": "Freeze Locked Previews",
   "speedrunapi.config.seedqueue.option.freezeLockedPreviews.description": "If enabled, locked instances will not be sent any new chunks to render and if Preview Render Updates is not set to Every Frame it won't have to redraw the preview anymore.",
-  "speedrunapi.config.seedqueue.option.usePerThreadSurfaceBuilders": "Multi Surface Builders",
-  "speedrunapi.config.seedqueue.option.usePerThreadSurfaceBuilders.description": "Instead of synchronizing access to surface builders between instances, create multiple copies to be used in parallel.\n§cTo update this option restart the game.",
   "speedrunapi.config.seedqueue.option.showAdvancedSettings": "Show Advanced Settings",
   "speedrunapi.config.seedqueue.option.seedQueueThreadPriority": "SeedQueue Thread Priority",
   "speedrunapi.config.seedqueue.option.seedQueueThreadPriority.description": "Sets the thread priority for the SeedQueue Thread which creates seeds to generate.",

@@ -81,7 +81,8 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
             method = "shutdown",
             at = @At(
                     value = "INVOKE",
-                    target = "Lorg/apache/logging/log4j/Logger;info(Ljava/lang/String;)V"
+                    target = "Lorg/apache/logging/log4j/Logger;info(Ljava/lang/String;)V",
+                    remap = false
             )
     )
     private boolean suppressSavingLogsInQueue(Logger instance, String s) {

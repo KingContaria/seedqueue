@@ -121,9 +121,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Category("performance")
     public boolean freezeLockedPreviews = false;
 
-    @Config.Category("performance")
-    public boolean usePerThreadSurfaceBuilders = false;
-
     @Config.Category("advanced")
     public boolean showAdvancedSettings = false;
 

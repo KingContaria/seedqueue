@@ -1,16 +1,17 @@
 package me.contaria.seedqueue.mixin.server.synchronization;
 
-import com.mojang.serialization.Codec;
-import me.contaria.seedqueue.SeedQueue;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BlockState;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.surfacebuilder.ConfiguredSurfaceBuilder;
 import net.minecraft.world.gen.surfacebuilder.SurfaceBuilder;
-import net.minecraft.world.gen.surfacebuilder.SurfaceConfig;
-import org.spongepowered.asm.mixin.*;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -28,9 +29,6 @@ public abstract class BiomeMixin {
     protected ConfiguredSurfaceBuilder<?> surfaceBuilder;
 
     @Unique
-    private ThreadLocal<ConfiguredSurfaceBuilder<?>> threadSafeSurfaceBuilder;
-
-    @Unique
     private boolean synchronizedAccess;
 
     @Inject(
@@ -42,11 +40,7 @@ public abstract class BiomeMixin {
         while (clas != SurfaceBuilder.class) {
             try {
                 clas.getDeclaredMethod(initSeed, long.class);
-                if (SeedQueue.config.usePerThreadSurfaceBuilders) {
-                    this.threadSafeSurfaceBuilder = new ThreadLocal<>();
-                } else {
-                    this.synchronizedAccess = true;
-                }
+                this.synchronizedAccess = true;
                 break;
             } catch (NoSuchMethodException e) {
                 clas = clas.getSuperclass();
@@ -54,39 +48,16 @@ public abstract class BiomeMixin {
         }
     }
 
-    /**
-     * @author contaria
-     * @reason Synchronize building surface to avoid corruption/crashes.
-     */
-    @Overwrite
-    public void buildSurface(Random random, Chunk chunk, int x, int z, int worldHeight, double noise, BlockState defaultBlock, BlockState defaultFluid, int seaLevel, long seed) {
-        ConfiguredSurfaceBuilder<?> surfaceBuilder = this.getThreadSafeSurfaceBuilder();
+    @WrapMethod(
+            method = "buildSurface"
+    )
+    private void synchronizeBuildSurface(Random random, Chunk chunk, int x, int z, int worldHeight, double noise, BlockState defaultBlock, BlockState defaultFluid, int seaLevel, long seed, Operation<Void> original) {
         if (this.synchronizedAccess) {
             synchronized (this.surfaceBuilder.surfaceBuilder) {
-                surfaceBuilder.initSeed(seed);
-                surfaceBuilder.generate(random, chunk, (Biome) (Object) this, x, z, worldHeight, noise, defaultBlock, defaultFluid, seaLevel, seed);
+                original.call(random, chunk, x, z, worldHeight, noise, defaultBlock, defaultFluid, seaLevel, seed);
             }
         } else {
-            surfaceBuilder.initSeed(seed);
-            surfaceBuilder.generate(random, chunk, (Biome) (Object) this, x, z, worldHeight, noise, defaultBlock, defaultFluid, seaLevel, seed);
+            original.call(random, chunk, x, z, worldHeight, noise, defaultBlock, defaultFluid, seaLevel, seed);
         }
-    }
-
-    @Unique
-    private ConfiguredSurfaceBuilder<?> getThreadSafeSurfaceBuilder() {
-        if (this.threadSafeSurfaceBuilder != null) {
-            if (this.threadSafeSurfaceBuilder.get() == null) {
-                try {
-                    this.threadSafeSurfaceBuilder.set(ConfiguredSurfaceBuilder.class.getConstructor(SurfaceBuilder.class, SurfaceConfig.class).newInstance(this.surfaceBuilder.surfaceBuilder.getClass().getConstructor(Codec.class).newInstance(this.surfaceBuilder.surfaceBuilder.configuredCodec()), this.surfaceBuilder.config));
-                } catch (ReflectiveOperationException e) {
-                    SeedQueue.LOGGER.warn("Failed to construct per thread surface builder for " + Registry.SURFACE_BUILDER.getId(this.surfaceBuilder.surfaceBuilder) + ", falling back to synchronized building.");
-                    this.threadSafeSurfaceBuilder = null;
-                    this.synchronizedAccess = true;
-                    return this.surfaceBuilder;
-                }
-            }
-            return this.threadSafeSurfaceBuilder.get();
-        }
-        return this.surfaceBuilder;
     }
 }
