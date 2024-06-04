@@ -131,8 +131,8 @@ public abstract class ServerChunkManagerMixin {
             )
     )
     private int modifyCullingWindowWidth(int width) {
-        if (!this.isActiveServer() && SeedQueue.config.hasSimulatedWindowSize()) {
-            return SeedQueue.config.simulatedWindowWidth;
+        if (!this.isActiveServer()) {
+            return SeedQueue.config.simulatedWindowSize.width();
         }
         return width;
     }
@@ -150,8 +150,8 @@ public abstract class ServerChunkManagerMixin {
             )
     )
     private int modifyCullingWindowHeight(int height) {
-        if (!this.isActiveServer() && SeedQueue.config.hasSimulatedWindowSize()) {
-            return SeedQueue.config.simulatedWindowHeight;
+        if (!this.isActiveServer()) {
+            return SeedQueue.config.simulatedWindowSize.height();
         }
         return height;
     }

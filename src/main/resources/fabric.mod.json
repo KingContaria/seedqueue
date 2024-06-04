@@ -13,8 +13,8 @@
 		}
 	],
 	"contact": {
-		"homepage": "",
-		"sources": ""
+		"sources": "https://github.com/KingContaria/seedqueue",
+		"issues": "https://github.com/KingContaria/seedqueue/issues"
 	},
 	"license": "MIT",
 	"environment": "client",

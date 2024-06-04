@@ -2,8 +2,10 @@ package me.contaria.seedqueue;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.gui.config.SeedQueueKeybindingsScreen;
+import me.contaria.seedqueue.gui.config.SeedQueueWindowSizeWidget;
 import me.contaria.seedqueue.keybindings.SeedQueueKeyBindings;
 import me.contaria.seedqueue.keybindings.SeedQueueMultiKeyBinding;
 import net.minecraft.client.MinecraftClient;
@@ -77,14 +79,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int columns = 2;
 
     @Config.Category("wall")
-    @Config.Numbers.Whole.Bounds(min = 0, max = 16384, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    @Config.Numbers.TextField
-    public int simulatedWindowWidth;
-
-    @Config.Category("wall")
-    @Config.Numbers.Whole.Bounds(min = 0, max = 16384, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    @Config.Numbers.TextField
-    public int simulatedWindowHeight;
+    public final WindowSize simulatedWindowSize = new WindowSize();
 
     @Config.Category("wall")
     public boolean replaceLockedPreviews = true;
@@ -214,14 +209,10 @@ public class SeedQueueConfig implements SpeedrunConfig {
         return this.canUseWall && this.maxCapacity > 0 && this.useWall;
     }
 
-    public boolean hasSimulatedWindowSize() {
-        return this.simulatedWindowWidth != 0 && this.simulatedWindowHeight != 0;
-    }
-
     // see Window#calculateScaleFactor
     public int calculateSimulatedScaleFactor(int guiScale, boolean forceUnicodeFont) {
         int scaleFactor = 1;
-        while (scaleFactor != guiScale && scaleFactor < this.simulatedWindowWidth && scaleFactor < this.simulatedWindowHeight && this.simulatedWindowWidth / (scaleFactor + 1) >= 320 && this.simulatedWindowHeight / (scaleFactor + 1) >= 240) {
+        while (scaleFactor != guiScale && scaleFactor < this.simulatedWindowSize.width() && scaleFactor < this.simulatedWindowSize.height() && this.simulatedWindowSize.width() / (scaleFactor + 1) >= 320 && this.simulatedWindowSize.height() / (scaleFactor + 1) >= 240) {
             scaleFactor++;
         }
         if (forceUnicodeFont) {
@@ -267,6 +258,16 @@ public class SeedQueueConfig implements SpeedrunConfig {
                             MinecraftClient.getInstance().openScreen(MinecraftClient.getInstance().currentScreen);
                         }
                     }))
+                    .build();
+        }
+        if (WindowSize.class.equals(field.getType())) {
+            return new SpeedrunConfigAPI.CustomOption.Builder<WindowSize>(config, this, field, idPrefix)
+                    .fromJson((option, config_, configStorage, optionField, jsonElement) -> option.get().fromJson(jsonElement.getAsJsonObject()))
+                    .toJson((option, config_, configStorage, optionField) -> option.get().toJson())
+                    .setter((option, config_, configStorage, optionField, value) -> {
+                        throw new UnsupportedOperationException();
+                    })
+                    .createWidget((option, config_, configStorage, optionField) -> new SeedQueueWindowSizeWidget(option.get()))
                     .build();
         }
         if (SeedQueueMultiKeyBinding[].class.equals(field.getType())) {
@@ -325,5 +326,49 @@ public class SeedQueueConfig implements SpeedrunConfig {
         TRUE,
         TRANSPARENT,
         FALSE
+    }
+
+    public static class WindowSize {
+        private int width;
+        private int height;
+
+        public int width() {
+            if (this.width == 0) {
+                this.width = MinecraftClient.getInstance().getWindow().getWidth();
+            }
+            return this.width;
+        }
+
+        public void setWidth(int width) {
+            this.width = Math.max(0, Math.min(16384, width));
+        }
+
+        public int height() {
+            if (this.height == 0) {
+                this.height = MinecraftClient.getInstance().getWindow().getHeight();
+            }
+            return this.height;
+        }
+
+        public void setHeight(int height) {
+            this.height = Math.max(0, Math.min(16384, height));
+        }
+
+        public void init() {
+            this.width();
+            this.height();
+        }
+
+        public void fromJson(JsonObject jsonObject) {
+            this.setWidth(jsonObject.get("width").getAsInt());
+            this.setHeight(jsonObject.get("height").getAsInt());
+        }
+
+        public JsonObject toJson() {
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.add("width", new JsonPrimitive(this.width));
+            jsonObject.add("height", new JsonPrimitive(this.height));
+            return jsonObject;
+        }
     }
 }

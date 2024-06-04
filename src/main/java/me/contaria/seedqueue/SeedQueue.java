@@ -153,6 +153,7 @@ public class SeedQueue implements ClientModInitializer {
             } catch (IOException | JsonParseException e) {
                 LOGGER.error("Failed to reload SeedQueue Config!", e);
             }
+            SeedQueue.config.simulatedWindowSize.init();
 
             LOGGER.info("Starting SeedQueue...");
 

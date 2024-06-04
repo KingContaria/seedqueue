@@ -21,7 +21,7 @@ public abstract class WindowMixin {
     )
     private int modifyWidthOnWall(int width) {
         if (this.shouldModifyWindowSize()) {
-            return SeedQueue.config.simulatedWindowWidth;
+            return SeedQueue.config.simulatedWindowSize.width();
         }
         return width;
     }
@@ -32,7 +32,7 @@ public abstract class WindowMixin {
     )
     private int modifyScaledWidthOnWall(int width) {
         if (this.shouldModifyWindowSize()) {
-            return SeedQueue.config.simulatedWindowWidth / this.modifiedScaleFactor();
+            return SeedQueue.config.simulatedWindowSize.width() / this.modifiedScaleFactor();
         }
         return width;
     }
@@ -46,7 +46,7 @@ public abstract class WindowMixin {
     )
     private int modifyHeightOnWall(int height) {
         if (this.shouldModifyWindowSize()) {
-            return SeedQueue.config.simulatedWindowHeight;
+            return SeedQueue.config.simulatedWindowSize.height();
         }
         return height;
     }
@@ -57,7 +57,7 @@ public abstract class WindowMixin {
     )
     private int modifyScaledHeightOnWall(int height) {
         if (this.shouldModifyWindowSize()) {
-            return SeedQueue.config.simulatedWindowHeight / this.modifiedScaleFactor();
+            return SeedQueue.config.simulatedWindowSize.height() / this.modifiedScaleFactor();
         }
         return height;
     }
@@ -75,7 +75,7 @@ public abstract class WindowMixin {
 
     @Unique
     private boolean shouldModifyWindowSize() {
-        return MinecraftClient.getInstance().isOnThread() && SeedQueue.isOnWall() && ModCompat.worldpreview$isRenderingPreview() && SeedQueue.config.hasSimulatedWindowSize();
+        return MinecraftClient.getInstance().isOnThread() && SeedQueue.isOnWall() && ModCompat.worldpreview$isRenderingPreview();
     }
 
     @Unique
