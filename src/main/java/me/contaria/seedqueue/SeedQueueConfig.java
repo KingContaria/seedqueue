@@ -1,7 +1,7 @@
 package me.contaria.seedqueue;
 
-import com.google.gson.*;
-import com.google.gson.stream.JsonReader;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.gui.config.SeedQueueKeybindingsScreen;
 import me.contaria.seedqueue.keybindings.SeedQueueKeyBindings;
@@ -11,13 +11,9 @@ import net.minecraft.client.gui.screen.ConfirmScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ScreenTexts;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.toast.SystemToast;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.StringRenderable;
-import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.util.tinyfd.TinyFileDialogs;
 import org.mcsr.speedrunapi.config.SpeedrunConfigAPI;
 import org.mcsr.speedrunapi.config.SpeedrunConfigContainer;
 import org.mcsr.speedrunapi.config.api.SpeedrunConfig;
@@ -25,14 +21,11 @@ import org.mcsr.speedrunapi.config.api.SpeedrunOption;
 import org.mcsr.speedrunapi.config.api.annotations.Config;
 import org.mcsr.speedrunapi.config.api.annotations.InitializeOn;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @InitializeOn(InitializeOn.InitPoint.PRELAUNCH)
 public class SeedQueueConfig implements SpeedrunConfig {
@@ -82,9 +75,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Category("wall")
     @Config.Numbers.Whole.Bounds(min = 1, max = 10, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public int columns = 2;
-
-    @Config.Category("wall")
-    public JsonObject customLayout = null;
 
     @Config.Category("wall")
     @Config.Numbers.Whole.Bounds(min = 0, max = 16384, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
@@ -279,31 +269,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
                     }))
                     .build();
         }
-        if (JsonObject.class.equals(field.getType())) {
-            return new SpeedrunConfigAPI.CustomOption.Builder<JsonObject>(config, this, field, idPrefix)
-                    .fromJson((option, config_, configStorage, optionField, jsonElement) -> option.set(jsonElement.isJsonNull() ? null : jsonElement.getAsJsonObject()))
-                    .toJson((option, config_, configStorage, optionField) -> Optional.ofNullable((JsonElement) option.get()).orElse(JsonNull.INSTANCE))
-                    .createWidget((option, config_, configStorage, optionField) -> new ButtonWidget(0, 0, 150, 20, this.getCustomLayoutText(option.get()), button -> {
-                        if (option.get() != null) {
-                            option.set(null);
-                        } else {
-                            String file = TinyFileDialogs.tinyfd_openFileDialog("Upload Custom Wall Layout", null, null, null, false);
-                            if (file != null) {
-                                try (JsonReader reader = new JsonReader(new FileReader(file))) {
-                                    JsonObject jsonObject = new JsonParser().parse(reader).getAsJsonObject();
-                                    if (!jsonObject.has("id")) {
-                                        jsonObject.add("id", new JsonPrimitive(new File(file).getName()));
-                                    }
-                                    option.set(jsonObject);
-                                } catch (Exception e) {
-                                    MinecraftClient.getInstance().getToastManager().add(new SystemToast(SystemToast.Type.PACK_COPY_FAILURE, new LiteralText("Failed to load!"), new LiteralText(e.getMessage())));
-                                }
-                            }
-                        }
-                        button.setMessage(this.getCustomLayoutText(option.get()));
-                    }))
-                    .build();
-        }
         if (SeedQueueMultiKeyBinding[].class.equals(field.getType())) {
             return new SpeedrunConfigAPI.CustomOption.Builder<SeedQueueMultiKeyBinding[]>(config, this, field, idPrefix)
                     .fromJson((option, config_, configStorage, optionField, jsonElement) -> {
@@ -325,16 +290,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
                     .build();
         }
         return SpeedrunConfig.super.parseField(field, config, idPrefix);
-    }
-
-    private Text getCustomLayoutText(JsonObject customLayout) {
-        if (customLayout == null) {
-            return new TranslatableText("speedrunapi.config.seedqueue.option.customLayout.upload");
-        }
-        if (!customLayout.has("id")) {
-            customLayout.add("id", new JsonPrimitive("custom"));
-        }
-        return new LiteralText(customLayout.get("id").getAsString());
     }
 
     public void reload() throws IOException, JsonParseException {

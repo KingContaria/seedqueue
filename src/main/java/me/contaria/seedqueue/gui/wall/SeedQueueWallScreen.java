@@ -3,6 +3,7 @@ package me.contaria.seedqueue.gui.wall;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
@@ -38,6 +39,9 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,6 +52,7 @@ public class SeedQueueWallScreen extends Screen {
     private static final Identifier WALL_BACKGROUND = new Identifier("seedqueue", "textures/gui/wall/background.png");
     private static final Identifier WALL_OVERLAY = new Identifier("seedqueue", "textures/gui/wall/overlay.png");
     private static final Identifier INSTANCE_BACKGROUND = new Identifier("seedqueue", "textures/gui/wall/instance_background.png");
+    private static final Identifier CUSTOM_LAYOUT = new Identifier("seedqueue", "wall/custom_layout.json");
 
     private final Screen createWorldScreen;
 
@@ -87,6 +92,10 @@ public class SeedQueueWallScreen extends Screen {
     protected void init() {
         assert this.client != null;
         this.layout = this.createLayout();
+        System.out.println("e");
+        for (Layout.Pos pos : this.layout.main.positions) {
+            System.out.println(pos.x + ", " + pos.y + ", " + pos.width + ", " + pos.height);
+        }
         this.mainPreviews = new SeedQueuePreview[this.layout.main.size()];
         this.lockedPreviews = this.layout.locked != null ? new ArrayList<>() : null;
         this.preparingPreviews = new ArrayList<>();
@@ -95,9 +104,14 @@ public class SeedQueueWallScreen extends Screen {
 
     private Layout createLayout() {
         assert this.client != null;
-        if (SeedQueue.config.customLayout != null) {
-            try {
-                return Layout.fromJson(SeedQueue.config.customLayout);
+        if (this.client.getResourceManager().containsResource(CUSTOM_LAYOUT)) {
+            try (Reader reader = new InputStreamReader(this.client.getResourceManager().getResource(CUSTOM_LAYOUT).getInputStream(), StandardCharsets.UTF_8)) {
+                System.out.println(new JsonParser().parse(reader).getAsJsonObject());
+            } catch (Exception e) {
+                SeedQueue.LOGGER.warn("Failed to parse custom wall layout!", e);
+            }
+            try (Reader reader = new InputStreamReader(this.client.getResourceManager().getResource(CUSTOM_LAYOUT).getInputStream(), StandardCharsets.UTF_8)) {
+                return Layout.fromJson(new JsonParser().parse(reader).getAsJsonObject());
             } catch (Exception e) {
                 SeedQueue.LOGGER.warn("Failed to parse custom wall layout!", e);
             }
@@ -146,15 +160,15 @@ public class SeedQueueWallScreen extends Screen {
             }
         }
         int i = 0;
-        profiler.swap("render_more");
-        for (Layout.Group group : this.layout.more) {
+        profiler.swap("render_preparing");
+        for (Layout.Group group : this.layout.preparing) {
             int offset = i;
             for (; i < group.size(); i++) {
                 this.renderInstance(i < this.preparingPreviews.size() ? this.preparingPreviews.get(i) : null, group, group.getPos(i - offset), matrices, delta);
             }
         }
 
-        profiler.swap("build_more");
+        profiler.swap("build_preparing");
         for (; i < this.preparingPreviews.size(); i++) {
             SeedQueuePreview preparingInstance = this.preparingPreviews.get(i);
             profiler.push("load_settings");
@@ -191,6 +205,10 @@ public class SeedQueueWallScreen extends Screen {
                 if (group.instance_background) {
                     profiler.swap("instance_background");
                     this.drawTexture(INSTANCE_BACKGROUND, matrices, this.width, this.height);
+                }
+                if (instance != null) {
+                    profiler.swap("build_chunks");
+                    instance.buildChunks();
                 }
                 profiler.pop();
                 return;
@@ -299,7 +317,8 @@ public class SeedQueueWallScreen extends Screen {
         this.preparingPreviews.sort(Comparator.comparing(SeedQueuePreview::shouldRender, Comparator.reverseOrder()));
         for (int i = 0; i < this.mainPreviews.length && !this.preparingPreviews.isEmpty() && this.preparingPreviews.get(0).shouldRender(); i++) {
             if (this.mainPreviews[i] == null && !this.blockedMainPositions.contains(i)) {
-                this.preparingPreviews.remove(this.mainPreviews[i] = this.preparingPreviews.remove(0));
+                this.mainPreviews[i] = this.preparingPreviews.remove(0);
+                System.out.println("added main " + this.mainPreviews[i].getSeedQueueEntry().getServer().getSaveProperties().getLevelName());
             }
         }
     }
@@ -310,6 +329,7 @@ public class SeedQueueWallScreen extends Screen {
         if (this.preparingPreviews.size() < capacity) {
             int budget = Math.max(1, urgent);
             for (SeedQueueEntry entry : this.getAvailableSeedQueueEntries()) {
+                System.out.println("added preparing " + entry.getServer().getSaveProperties().getLevelName());
                 this.preparingPreviews.add(new SeedQueuePreview(this, entry));
                 if (--budget <= 0) {
                     break;
@@ -461,8 +481,8 @@ public class SeedQueueWallScreen extends Screen {
         double y = mouseY * scale;
 
         // we traverse the layout in reverse to catch the top rendered instance
-        for (int i = this.layout.more.length - 1; i >= 0; i--) {
-            Optional<SeedQueuePreview> instance = this.getInstance(this.layout.more[i], x, y).filter(index -> index < this.preparingPreviews.size()).map(this.preparingPreviews::get);
+        for (int i = this.layout.preparing.length - 1; i >= 0; i--) {
+            Optional<SeedQueuePreview> instance = this.getInstance(this.layout.preparing[i], x, y).filter(index -> index < this.preparingPreviews.size()).map(this.preparingPreviews::get);
             if (instance.isPresent()) {
                 return instance.get();
             }
@@ -741,16 +761,16 @@ public class SeedQueueWallScreen extends Screen {
         private final Group main;
         @Nullable
         private final Group locked;
-        private final Group[] more;
+        private final Group[] preparing;
 
         public Layout(@NotNull Group main) {
             this(main, null, new Group[0]);
         }
 
-        public Layout(@NotNull Group main, @Nullable Group locked, Group[] more) {
+        public Layout(@NotNull Group main, @Nullable Group locked, Group[] preparing) {
             this.main = main;
             this.locked = locked;
-            this.more = more;
+            this.preparing = preparing;
 
             if (this.main.cosmetic) {
                 throw new IllegalStateException("Main Group may not be cosmetic!");
@@ -762,7 +782,7 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         public static Layout fromJson(JsonObject jsonObject) throws JsonParseException {
-            return new Layout(Group.fromJson(jsonObject.getAsJsonObject("main")), jsonObject.has("locked") ? Group.fromJson(jsonObject.getAsJsonObject("locked")) : null, jsonObject.has("more") ? Group.fromJson(jsonObject.getAsJsonArray("more")) : new Group[0]);
+            return new Layout(Group.fromJson(jsonObject.getAsJsonObject("main")), jsonObject.has("locked") ? Group.fromJson(jsonObject.getAsJsonObject("locked")) : null, jsonObject.has("preparing") ? Group.fromJson(jsonObject.getAsJsonArray("preparing")) : new Group[0]);
         }
 
         public static class Group {

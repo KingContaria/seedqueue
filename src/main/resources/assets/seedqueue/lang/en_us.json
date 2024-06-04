@@ -66,8 +66,6 @@
   "speedrunapi.config.seedqueue.option.columns": "Columns",
   "speedrunapi.config.seedqueue.option.simulatedWindowWidth": "Simulated Window Width",
   "speedrunapi.config.seedqueue.option.simulatedWindowHeight": "Simulated Window Height",
-  "speedrunapi.config.seedqueue.option.customLayout": "Custom Layout",
-  "speedrunapi.config.seedqueue.option.customLayout.upload": "Upload...",
   "speedrunapi.config.seedqueue.option.replaceLockedPreviews": "Replace Locked Instances",
   "speedrunapi.config.seedqueue.option.replaceLockedPreviews.description": "If disabled, a locked instance will only get replaced once Reset All or Focus Reset is used.",
   "speedrunapi.config.seedqueue.option.resetCooldown": "Reset Cooldown",
