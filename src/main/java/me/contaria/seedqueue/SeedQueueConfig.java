@@ -12,7 +12,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ScreenTexts;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.toast.SystemToast;
-import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.StringRenderable;
 import net.minecraft.text.Text;
@@ -312,25 +311,13 @@ public class SeedQueueConfig implements SpeedrunConfig {
             return new SpeedrunConfigAPI.CustomOption.Builder<SeedQueueMultiKeyBinding[]>(config, this, field, idPrefix)
                     .fromJson((option, config_, configStorage, optionField, jsonElement) -> {
                         for (SeedQueueMultiKeyBinding keyBinding : option.get()) {
-                            List<InputUtil.Key> keys = new ArrayList<>();
-                            JsonElement keyJsonElement = jsonElement.getAsJsonObject().get(keyBinding.getTranslationKey());
-                            if (keyJsonElement == null) {
-                                continue;
-                            }
-                            for (JsonElement key : keyJsonElement.getAsJsonArray()) {
-                                keys.add(InputUtil.fromTranslationKey(key.getAsString()));
-                            }
-                            keyBinding.setKeys(keys);
+                            keyBinding.fromJson(jsonElement.getAsJsonObject().get(keyBinding.getTranslationKey()));
                         }
                     })
                     .toJson((option, config_, configStorage, optionField) -> {
                         JsonObject jsonObject = new JsonObject();
                         for (SeedQueueMultiKeyBinding keyBinding : option.get()) {
-                            JsonArray jsonArray = new JsonArray();
-                            for (InputUtil.Key key : keyBinding.getKeys()) {
-                                jsonArray.add(new JsonPrimitive(key.getTranslationKey()));
-                            }
-                            jsonObject.add(keyBinding.getTranslationKey(), jsonArray);
+                            jsonObject.add(keyBinding.getTranslationKey(), keyBinding.toJson());
                         }
                         return jsonObject;
                     })
