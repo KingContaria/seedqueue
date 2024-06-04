@@ -92,10 +92,6 @@ public class SeedQueueWallScreen extends Screen {
     protected void init() {
         assert this.client != null;
         this.layout = this.createLayout();
-        System.out.println("e");
-        for (Layout.Pos pos : this.layout.main.positions) {
-            System.out.println(pos.x + ", " + pos.y + ", " + pos.width + ", " + pos.height);
-        }
         this.mainPreviews = new SeedQueuePreview[this.layout.main.size()];
         this.lockedPreviews = this.layout.locked != null ? new ArrayList<>() : null;
         this.preparingPreviews = new ArrayList<>();
@@ -105,11 +101,6 @@ public class SeedQueueWallScreen extends Screen {
     private Layout createLayout() {
         assert this.client != null;
         if (this.client.getResourceManager().containsResource(CUSTOM_LAYOUT)) {
-            try (Reader reader = new InputStreamReader(this.client.getResourceManager().getResource(CUSTOM_LAYOUT).getInputStream(), StandardCharsets.UTF_8)) {
-                System.out.println(new JsonParser().parse(reader).getAsJsonObject());
-            } catch (Exception e) {
-                SeedQueue.LOGGER.warn("Failed to parse custom wall layout!", e);
-            }
             try (Reader reader = new InputStreamReader(this.client.getResourceManager().getResource(CUSTOM_LAYOUT).getInputStream(), StandardCharsets.UTF_8)) {
                 return Layout.fromJson(new JsonParser().parse(reader).getAsJsonObject());
             } catch (Exception e) {
@@ -318,7 +309,6 @@ public class SeedQueueWallScreen extends Screen {
         for (int i = 0; i < this.mainPreviews.length && !this.preparingPreviews.isEmpty() && this.preparingPreviews.get(0).shouldRender(); i++) {
             if (this.mainPreviews[i] == null && !this.blockedMainPositions.contains(i)) {
                 this.mainPreviews[i] = this.preparingPreviews.remove(0);
-                System.out.println("added main " + this.mainPreviews[i].getSeedQueueEntry().getServer().getSaveProperties().getLevelName());
             }
         }
     }
@@ -329,7 +319,6 @@ public class SeedQueueWallScreen extends Screen {
         if (this.preparingPreviews.size() < capacity) {
             int budget = Math.max(1, urgent);
             for (SeedQueueEntry entry : this.getAvailableSeedQueueEntries()) {
-                System.out.println("added preparing " + entry.getServer().getSaveProperties().getLevelName());
                 this.preparingPreviews.add(new SeedQueuePreview(this, entry));
                 if (--budget <= 0) {
                     break;
