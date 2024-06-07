@@ -382,7 +382,7 @@ public class SeedQueueWallScreen extends Screen {
             this.lockInstance(instance);
         }
         if (SeedQueueKeyBindings.reset.matchesMouse(button)) {
-            this.resetInstance(instance, true);
+            this.resetInstance(instance, true, false);
         }
         if (SeedQueueKeyBindings.focusReset.matchesMouse(button)) {
             if (instance.getSeedQueueEntry().isReady()) {
@@ -450,7 +450,7 @@ public class SeedQueueWallScreen extends Screen {
             this.lockInstance(instance);
         }
         if (SeedQueueKeyBindings.reset.matchesKey(keyCode, scanCode)) {
-            this.resetInstance(instance, true);
+            this.resetInstance(instance, true, false);
         }
         if (SeedQueueKeyBindings.focusReset.matchesKey(keyCode, scanCode)) {
             if (instance.getSeedQueueEntry().isReady()) {
@@ -534,10 +534,10 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void resetInstance(SeedQueuePreview instance) {
-        this.resetInstance(instance, false);
+        this.resetInstance(instance, false, false);
     }
 
-    private boolean resetInstance(SeedQueuePreview instance, boolean ignoreLock) {
+    private boolean resetInstance(SeedQueuePreview instance, boolean ignoreLock, boolean ignoreResetCooldown) {
         Profiler profiler = MinecraftClient.getInstance().getProfiler();
 
         if (instance == null) {
@@ -545,7 +545,7 @@ public class SeedQueueWallScreen extends Screen {
         }
         profiler.push("reset_instance");
         SeedQueueEntry seedQueueEntry = instance.getSeedQueueEntry();
-        if (!instance.hasBeenRendered() || (seedQueueEntry.isLocked() && !ignoreLock) || System.currentTimeMillis() - instance.firstRenderTime < SeedQueue.config.resetCooldown || SeedQueue.selectedEntry == seedQueueEntry) {
+        if (!instance.hasBeenRendered() || (seedQueueEntry.isLocked() && !ignoreLock) || (System.currentTimeMillis() - instance.firstRenderTime < SeedQueue.config.resetCooldown && !ignoreResetCooldown) || SeedQueue.selectedEntry == seedQueueEntry) {
             profiler.pop();
             return false;
         }
@@ -649,7 +649,7 @@ public class SeedQueueWallScreen extends Screen {
             return;
         }
         for (SeedQueuePreview instance : this.mainPreviews) {
-            if (this.resetInstance(instance, true)) {
+            if (this.resetInstance(instance, true, true)) {
                 this.benchmarkedSeeds++;
                 if (this.benchmarkedSeeds == SeedQueue.config.benchmarkResets) {
                     double time = Math.round((System.currentTimeMillis() - this.benchmarkStart) / 10.0) / 100.0;
