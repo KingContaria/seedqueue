@@ -122,9 +122,6 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     }
 
     public boolean shouldRender() {
-        if (SeedQueue.config.doNotWaitForChunksToBuild) {
-            return true;
-        }
         if (this.hasBeenRendered()) {
             return true;
         }

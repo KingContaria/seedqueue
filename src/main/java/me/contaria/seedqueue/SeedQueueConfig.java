@@ -157,9 +157,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean useWatchdog = false;
 
     @Config.Category("debug")
-    public boolean doNotWaitForChunksToBuild = false;
-
-    @Config.Category("debug")
     public boolean showDebugMenu = false;
 
     @Config.Category("debug")
