@@ -1,8 +1,8 @@
 {
   "seedqueue.menu.clearing": "Clearing SeedQueue...",
 
-  "seedqueue.menu.benchmark": "SeedQueue Benchmark",
-  "seedqueue.menu.benchmark.result": "Reset %s seeds in %ss",
+  "seedqueue.menu.benchmark.title": "SeedQueue Benchmark",
+  "seedqueue.menu.benchmark.result": "%s resets in %ss (%s RPS)",
 
   "seedqueue.menu.config.useWall.notAvailable": "§c§oNot Available",
   "seedqueue.menu.config.useWall.notAvailable.tooltip": "Using the Wall Screen requires the following mods to be installed:",
@@ -33,6 +33,8 @@
   "seedqueue.key.resetRow": "Reset Row",
   "seedqueue.key.resetColumn": "Reset Column",
   "seedqueue.key.playNextLock": "Play Next Lock",
+  "seedqueue.key.startBenchmark": "Start Benchmark",
+  "seedqueue.key.cancelBenchmark": "Stop Benchmark",
 
   "speedrunapi.config.seedqueue.category.queue": "Queue Settings",
   "speedrunapi.config.seedqueue.category.chunkmap": "Chunkmap Settings",
@@ -119,5 +121,5 @@
   "speedrunapi.config.seedqueue.option.showDebugMenu": "Show Debug Menu",
   "speedrunapi.config.seedqueue.option.showDebugMenu.description": "Renders an FPS Graph and a Profiler on top of the Wall Screen.",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "Benchmark Resets",
-  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "Every time the wall screen is opened, a benchmark will start for the given amount of resets.\nWhen the benchmark finishes it logs the results."
+  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "The default amount of resets done when starting a benchmark.\nYou can start a benchmark using the \"Start Benchmark\" keybind and cancel it before it reaches the configured amount of resets using the \"Stop Benchmark\" keybind."
 }

@@ -24,14 +24,14 @@ import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.sound.PositionedSoundInstance;
+import net.minecraft.client.sound.SoundInstance;
+import net.minecraft.client.sound.SoundManager;
 import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.toast.SystemToast;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.LiteralText;
-import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.profiler.Profiler;
 import org.jetbrains.annotations.NotNull;
@@ -77,8 +77,10 @@ public class SeedQueueWallScreen extends Screen {
     @Nullable
     private Layout.Pos currentPos;
 
-    private final long benchmarkStart = System.currentTimeMillis();
-    private int benchmarkedSeeds;
+    protected long benchmarkStart;
+    protected int benchmarkedSeeds;
+    protected int benchmarkGoal;
+    protected long benchmarkFinish;
 
     public SeedQueueWallScreen(Screen createWorldScreen) {
         super(LiteralText.EMPTY);
@@ -354,6 +356,14 @@ public class SeedQueueWallScreen extends Screen {
         assert this.client != null;
 
         if (this.isBenchmarking()) {
+            if (SeedQueueKeyBindings.cancelBenchmark.matchesMouse(button)) {
+                this.stopBenchmark();
+            }
+            return true;
+        }
+
+        if (SeedQueueKeyBindings.startBenchmark.matchesMouse(button)) {
+            this.startBenchmark();
             return true;
         }
 
@@ -403,6 +413,9 @@ public class SeedQueueWallScreen extends Screen {
         double mouseY = this.client.mouse.getY() * window.getScaledWidth() / window.getWidth();
 
         if (this.isBenchmarking()) {
+            if (SeedQueueKeyBindings.cancelBenchmark.matchesKey(keyCode, scanCode)) {
+                this.stopBenchmark();
+            }
             return true;
         }
 
@@ -410,6 +423,11 @@ public class SeedQueueWallScreen extends Screen {
             ModCompat.standardsettings$onWorldJoin();
             Atum.stopRunning();
             this.client.openScreen(new TitleScreen());
+            return true;
+        }
+
+        if (SeedQueueKeyBindings.startBenchmark.matchesKey(keyCode, scanCode)) {
+            this.startBenchmark();
             return true;
         }
 
@@ -643,7 +661,7 @@ public class SeedQueueWallScreen extends Screen {
         }
     }
 
-    public void tickBenchmark() {
+    private void startBenchmark() {
         assert this.client != null;
         if (!this.isBenchmarking()) {
             return;
@@ -659,10 +677,43 @@ public class SeedQueueWallScreen extends Screen {
                 }
             }
         }
+        this.benchmarkStart = System.currentTimeMillis();
+        this.benchmarkedSeeds = 0;
+        this.benchmarkGoal = SeedQueue.config.benchmarkResets;
+        this.client.getToastManager().clear();
+        this.client.getToastManager().add(new SeedQueueBenchmarkToast(this));
     }
 
-    private boolean isBenchmarking() {
-        return this.benchmarkedSeeds < SeedQueue.config.benchmarkResets;
+    private void stopBenchmark() {
+        if (this.isBenchmarking()) {
+            this.benchmarkGoal = this.benchmarkedSeeds;
+            this.finishBenchmark();
+        }
+    }
+
+    private void finishBenchmark() {
+        this.benchmarkFinish = System.currentTimeMillis();
+        SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds.", this.benchmarkedSeeds, Math.round((this.benchmarkFinish - this.benchmarkStart) / 10.0) / 100.0);
+    }
+
+    public void tickBenchmark() {
+        if (!this.isBenchmarking()) {
+            return;
+        }
+        for (SeedQueuePreview instance : this.mainPreviews) {
+            if (this.resetInstance(instance, true, true)) {
+                this.benchmarkedSeeds++;
+                if (!this.isBenchmarking()) {
+                    this.finishBenchmark();
+                } else if (this.benchmarkedSeeds % 100 == 0) {
+                    SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds...", this.benchmarkedSeeds, Math.round((System.currentTimeMillis() - this.benchmarkStart) / 10.0) / 100.0);
+                }
+            }
+        }
+    }
+
+    protected boolean isBenchmarking() {
+        return this.benchmarkedSeeds < this.benchmarkGoal;
     }
 
     public static WorldRenderer getOrCreateWorldRenderer(ClientWorld world) {

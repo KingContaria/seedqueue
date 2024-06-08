@@ -19,8 +19,16 @@ public class SeedQueueMultiKeyBinding {
     private final List<InputUtil.Key> secondaryKeys;
     private final List<InputUtil.Key> blockingKeys;
 
+    public SeedQueueMultiKeyBinding(String translationKey) {
+        this(translationKey, "seedqueue.key.categories.builtin");
+    }
+
     public SeedQueueMultiKeyBinding(String translationKey, String category) {
         this(translationKey, category, InputUtil.UNKNOWN_KEY);
+    }
+
+    public SeedQueueMultiKeyBinding(String translationKey, int code) {
+        this(translationKey, "seedqueue.key.categories.builtin", code);
     }
 
     public SeedQueueMultiKeyBinding(String translationKey, String category, int code) {
