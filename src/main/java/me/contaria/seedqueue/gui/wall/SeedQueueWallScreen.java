@@ -392,15 +392,10 @@ public class SeedQueueWallScreen extends Screen {
             this.lockInstance(instance);
         }
         if (SeedQueueKeyBindings.reset.matchesMouse(button)) {
-            this.resetInstance(instance, true, false);
+            this.resetInstance(instance, true, false, true);
         }
         if (SeedQueueKeyBindings.focusReset.matchesMouse(button)) {
-            if (instance.getSeedQueueEntry().isReady()) {
-                this.playInstance(instance);
-            } else {
-                this.lockInstance(instance);
-            }
-            this.resetAllInstances();
+            this.focusReset(instance);
         }
         return true;
     }
@@ -468,15 +463,10 @@ public class SeedQueueWallScreen extends Screen {
             this.lockInstance(instance);
         }
         if (SeedQueueKeyBindings.reset.matchesKey(keyCode, scanCode)) {
-            this.resetInstance(instance, true, false);
+            this.resetInstance(instance, true, false, true);
         }
         if (SeedQueueKeyBindings.focusReset.matchesKey(keyCode, scanCode)) {
-            if (instance.getSeedQueueEntry().isReady()) {
-                this.playInstance(instance);
-            } else {
-                this.lockInstance(instance);
-            }
-            this.resetAllInstances();
+            this.focusReset(instance);
         }
         return true;
     }
@@ -551,11 +541,7 @@ public class SeedQueueWallScreen extends Screen {
         }
     }
 
-    private void resetInstance(SeedQueuePreview instance) {
-        this.resetInstance(instance, false, false);
-    }
-
-    private boolean resetInstance(SeedQueuePreview instance, boolean ignoreLock, boolean ignoreResetCooldown) {
+    private boolean resetInstance(SeedQueuePreview instance, boolean ignoreLock, boolean ignoreResetCooldown, boolean playSound) {
         Profiler profiler = MinecraftClient.getInstance().getProfiler();
 
         if (instance == null) {
@@ -574,8 +560,10 @@ public class SeedQueueWallScreen extends Screen {
         profiler.swap("remove_preview");
         this.removePreview(instance);
 
-        profiler.swap("play_sound");
-        this.playSound(SeedQueueSounds.RESET_INSTANCE);
+        if (playSound) {
+            profiler.swap("play_sound");
+            this.playSound(SeedQueueSounds.RESET_INSTANCE);
+        }
         profiler.pop();
         profiler.pop();
         return true;
@@ -594,19 +582,30 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void resetAllInstances() {
+        boolean playSound = !this.playSound(SeedQueueSounds.RESET_ALL);
         for (SeedQueuePreview instance : this.mainPreviews) {
-            this.resetInstance(instance);
+            this.resetInstance(instance, false, false, playSound);
         }
         this.blockedMainPositions.clear();
+    }
+
+    private void focusReset(SeedQueuePreview instance) {
+        if (instance.getSeedQueueEntry().isReady()) {
+            this.playInstance(instance);
+        } else {
+            this.lockInstance(instance);
+        }
+        this.resetAllInstances();
     }
 
     private void resetColumn(double mouseX) {
         assert this.client != null;
         double x = mouseX * this.client.getWindow().getScaleFactor();
+        boolean playSound = !this.playSound(SeedQueueSounds.RESET_COLUMN);
         for (int i = 0; i < this.mainPreviews.length; i++) {
             Layout.Pos pos = this.layout.main.getPos(i);
             if (x >= pos.x && x <= pos.x + pos.width) {
-                this.resetInstance(this.mainPreviews[i]);
+                this.resetInstance(this.mainPreviews[i], false, false, playSound);
             }
         }
     }
@@ -614,10 +613,11 @@ public class SeedQueueWallScreen extends Screen {
     private void resetRow(double mouseY) {
         assert this.client != null;
         double y = mouseY * this.client.getWindow().getScaleFactor();
+        boolean playSound = !this.playSound(SeedQueueSounds.RESET_ROW);
         for (int i = 0; i < this.mainPreviews.length; i++) {
             Layout.Pos pos = this.layout.main.getPos(i);
             if (y >= pos.y && y <= pos.y + pos.height) {
-                this.resetInstance(this.mainPreviews[i]);
+                this.resetInstance(this.mainPreviews[i], false, false, playSound);
             }
         }
     }
@@ -638,18 +638,20 @@ public class SeedQueueWallScreen extends Screen {
         return false;
     }
 
-    private void playSound(SoundEvent sound) {
-        if (this.isBenchmarking()) {
-            return;
-        }
-
+    private boolean playSound(SoundEvent sound) {
         assert this.client != null;
+        SoundInstance soundInstance = PositionedSoundInstance.master(sound, 1.0f);
+        soundInstance.getSoundSet(this.client.getSoundManager());
+        if (soundInstance.getSound().equals(SoundManager.MISSING_SOUND)) {
+            return false;
+        }
         if (this.nextSoundFrame < this.frame) {
-            this.client.getSoundManager().play(PositionedSoundInstance.master(sound, 1.0f));
+            this.client.getSoundManager().play(soundInstance);
             this.nextSoundFrame = this.frame;
         } else {
-            this.client.getSoundManager().play(PositionedSoundInstance.master(sound, 1.0f), ++this.nextSoundFrame - this.frame);
+            this.client.getSoundManager().play(soundInstance, ++this.nextSoundFrame - this.frame);
         }
+        return true;
     }
 
     public void populateResetCooldowns() {
@@ -663,25 +665,12 @@ public class SeedQueueWallScreen extends Screen {
 
     private void startBenchmark() {
         assert this.client != null;
-        if (!this.isBenchmarking()) {
-            return;
-        }
-        for (SeedQueuePreview instance : this.mainPreviews) {
-            if (this.resetInstance(instance, true, true)) {
-                this.benchmarkedSeeds++;
-                if (this.benchmarkedSeeds == SeedQueue.config.benchmarkResets) {
-                    double time = Math.round((System.currentTimeMillis() - this.benchmarkStart) / 10.0) / 100.0;
-                    this.client.getToastManager().add(new SystemToast(SystemToast.Type.WORLD_BACKUP, new TranslatableText("seedqueue.menu.benchmark"), new TranslatableText("seedqueue.menu.benchmark.result", this.benchmarkedSeeds, time)));
-                    SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds.", this.benchmarkedSeeds, time);
-                    break;
-                }
-            }
-        }
         this.benchmarkStart = System.currentTimeMillis();
         this.benchmarkedSeeds = 0;
         this.benchmarkGoal = SeedQueue.config.benchmarkResets;
         this.client.getToastManager().clear();
         this.client.getToastManager().add(new SeedQueueBenchmarkToast(this));
+        this.playSound(SeedQueueSounds.START_BENCHMARK);
     }
 
     private void stopBenchmark() {
@@ -694,6 +683,7 @@ public class SeedQueueWallScreen extends Screen {
     private void finishBenchmark() {
         this.benchmarkFinish = System.currentTimeMillis();
         SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds.", this.benchmarkedSeeds, Math.round((this.benchmarkFinish - this.benchmarkStart) / 10.0) / 100.0);
+        this.playSound(SeedQueueSounds.FINISH_BENCHMARK);
     }
 
     public void tickBenchmark() {
@@ -701,7 +691,7 @@ public class SeedQueueWallScreen extends Screen {
             return;
         }
         for (SeedQueuePreview instance : this.mainPreviews) {
-            if (this.resetInstance(instance, true, true)) {
+            if (this.resetInstance(instance, true, true, false)) {
                 this.benchmarkedSeeds++;
                 if (!this.isBenchmarking()) {
                     this.finishBenchmark();

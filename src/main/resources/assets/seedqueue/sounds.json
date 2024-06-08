@@ -8,5 +8,25 @@
     "sounds": [
       "seedqueue:reset_instance"
     ]
+  },
+  "reset_all": {
+    "sounds": [
+    ]
+  },
+  "reset_column": {
+    "sounds": [
+    ]
+  },
+  "reset_row": {
+    "sounds": [
+    ]
+  },
+  "start_benchmark": {
+    "sounds": [
+    ]
+  },
+  "finish_benchmark": {
+    "sounds": [
+    ]
   }
 }
