@@ -25,7 +25,7 @@ dependencies {
 
 	// SpeedrunAPI
 	// check for the latest versions at https://jitpack.io/#kingcontaria/speedrunapi
-	modImplementation "com.github.KingContaria:SpeedrunAPI:6ed9d1cabe"
+	modImplementation "com.github.KingContaria:SpeedrunAPI:b25f6939e8"
 	implementation(annotationProcessor "com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.1.1")
 	modImplementation "com.github.tildejustin:key-binding-api:a41fc49671"
 
