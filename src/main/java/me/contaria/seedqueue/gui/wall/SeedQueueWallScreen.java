@@ -666,8 +666,17 @@ public class SeedQueueWallScreen extends Screen {
     private void startBenchmark() {
         assert this.client != null;
         this.benchmarkStart = System.currentTimeMillis();
-        this.benchmarkedSeeds = 0;
         this.benchmarkGoal = SeedQueue.config.benchmarkResets;
+        if (this.benchmarkGoal == 0) {
+            // show a failure toast here
+            SeedQueue.LOGGER.warn("BENCHMARK | Could not start benchmark because Benchmark Resets is set to 0.");
+            return;
+        }
+        // tick benchmark once to reset all current previews
+        // this doesn't cover background previews or queued seeds
+        this.benchmarkedSeeds = Integer.MIN_VALUE;
+        this.tickBenchmark();
+        this.benchmarkedSeeds = 0;
         this.client.getToastManager().clear();
         this.client.getToastManager().add(new SeedQueueBenchmarkToast(this));
         this.playSound(SeedQueueSounds.START_BENCHMARK);
@@ -690,7 +699,7 @@ public class SeedQueueWallScreen extends Screen {
         if (!this.isBenchmarking()) {
             return;
         }
-        for (SeedQueuePreview instance : this.mainPreviews) {
+        for (SeedQueuePreview instance : this.getInstances()) {
             if (this.resetInstance(instance, true, true, false)) {
                 this.benchmarkedSeeds++;
                 if (!this.isBenchmarking()) {
