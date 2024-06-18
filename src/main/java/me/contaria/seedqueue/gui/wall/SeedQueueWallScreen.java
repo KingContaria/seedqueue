@@ -377,7 +377,7 @@ public class SeedQueueWallScreen extends Screen {
             this.resetRow(mouseY);
         }
         if (SeedQueueKeyBindings.playNextLock.matchesMouse(button)) {
-            SeedQueue.getEntryMatching(SeedQueueEntry::isLocked).ifPresent(this::playInstance);
+            this.playNextLock();
         }
 
         SeedQueuePreview instance = this.getInstance(mouseX, mouseY);
@@ -435,7 +435,7 @@ public class SeedQueueWallScreen extends Screen {
             this.resetAllInstances();
         }
         if (SeedQueueKeyBindings.playNextLock.matchesKey(keyCode, scanCode)) {
-            SeedQueue.getEntryMatching(SeedQueueEntry::isLocked).ifPresent(this::playInstance);
+            this.playNextLock();
         }
         if (SeedQueueKeyBindings.resetColumn.matchesKey(keyCode, scanCode)) {
             this.resetColumn(mouseX);
@@ -523,16 +523,19 @@ public class SeedQueueWallScreen extends Screen {
     private void playInstance(SeedQueuePreview instance) {
         assert this.client != null;
         SeedQueueEntry entry = instance.getSeedQueueEntry();
-        if (this.client.getServer() == null && SeedQueue.selectedEntry == null && instance.hasBeenRendered() && entry.isReady()) {
-            this.playInstance(entry);
+        if (instance.hasBeenRendered() && this.playInstance(entry)) {
             this.removePreview(instance);
         }
     }
 
-    private void playInstance(SeedQueueEntry entry) {
+    private boolean playInstance(SeedQueueEntry entry) {
         assert this.client != null;
+        if (this.client.getServer() != null || SeedQueue.selectedEntry != null || !entry.isReady()) {
+            return false;
+        }
         SeedQueue.selectedEntry = entry;
         this.client.openScreen(this.createWorldScreen);
+        return true;
     }
 
     private void lockInstance(SeedQueuePreview instance) {
@@ -569,7 +572,19 @@ public class SeedQueueWallScreen extends Screen {
         return true;
     }
 
+    private SeedQueuePreview getPreview(SeedQueueEntry entry) {
+        for (SeedQueuePreview preview : this.getInstances()) {
+            if (entry == preview.getSeedQueueEntry()) {
+                return preview;
+            }
+        }
+        return null;
+    }
+
     private void removePreview(SeedQueuePreview preview) {
+        if (preview == null) {
+            return;
+        }
         for (int i = 0; i < this.mainPreviews.length; i++) {
             if (this.mainPreviews[i] == preview) {
                 this.mainPreviews[i] = null;
@@ -620,6 +635,13 @@ public class SeedQueueWallScreen extends Screen {
                 this.resetInstance(this.mainPreviews[i], false, false, playSound);
             }
         }
+    }
+
+    private void playNextLock() {
+        SeedQueue.getEntryMatching(entry -> entry.isLocked() && entry.isReady()).ifPresent(entry -> {
+            this.playInstance(entry);
+            this.removePreview(this.getPreview(entry));
+        });
     }
 
     private boolean drawTexture(Identifier texture, MatrixStack matrices, int width, int height) {
