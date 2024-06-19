@@ -841,7 +841,7 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         public static Layout grid(int rows, int columns, int width, int height) {
-            return new Layout(Group.grid(rows, columns, 0, 0, width, height, false, true));
+            return new Layout(Group.grid(rows, columns, 0, 0, width, height, 0, false, true));
         }
 
         public static Layout fromJson(JsonObject jsonObject) throws JsonParseException {
@@ -870,11 +870,13 @@ public class SeedQueueWallScreen extends Screen {
                 return this.positions.length;
             }
 
-            public static Group grid(int rows, int columns, int x, int y, int width, int height, boolean cosmetic, boolean instance_background) {
+            public static Group grid(int rows, int columns, int x, int y, int width, int height, int padding, boolean cosmetic, boolean instance_background) {
                 Pos[] positions = new Pos[rows * columns];
+                int columnWidth = (width - padding * (columns - 1)) / columns;
+                int rowHeight = (height - padding * (rows - 1)) / rows;
                 for (int row = 0; row < rows; row++) {
                     for (int column = 0; column < columns; column++) {
-                        positions[row * columns + column] = new Pos(x + column * width / columns, y + row * height / rows, width / columns, height / rows);
+                        positions[row * columns + column] = new Pos(x + column * columnWidth + padding * column, y + row * rowHeight + padding * row, columnWidth, rowHeight);
                     }
                 }
                 return new Group(positions, cosmetic, instance_background);
@@ -899,7 +901,7 @@ public class SeedQueueWallScreen extends Screen {
                     }
                     return new Group(positions, cosmetic, instance_background);
                 }
-                return Group.grid(jsonObject.get("rows").getAsInt(), jsonObject.get("columns").getAsInt(), jsonObject.get("x").getAsInt(), jsonObject.get("y").getAsInt(), jsonObject.get("width").getAsInt(), jsonObject.get("height").getAsInt(), cosmetic, instance_background);
+                return Group.grid(jsonObject.get("rows").getAsInt(), jsonObject.get("columns").getAsInt(), jsonObject.get("x").getAsInt(), jsonObject.get("y").getAsInt(), jsonObject.get("width").getAsInt(), jsonObject.get("height").getAsInt(), jsonObject.has("padding") ? jsonObject.get("padding").getAsInt() : 0, cosmetic, instance_background);
             }
         }
 
