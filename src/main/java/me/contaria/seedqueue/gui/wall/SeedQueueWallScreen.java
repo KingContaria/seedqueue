@@ -1,9 +1,6 @@
 package me.contaria.seedqueue.gui.wall;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
@@ -46,7 +43,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class SeedQueueWallScreen extends Screen {
-
     private static final Set<WorldRenderer> WORLD_RENDERERS = new HashSet<>();
 
     private static final Identifier WALL_BACKGROUND = new Identifier("seedqueue", "textures/gui/wall/background.png");
@@ -840,12 +836,40 @@ public class SeedQueueWallScreen extends Screen {
             }
         }
 
+        public static int getX(JsonObject jsonObject) {
+            return getAsInt(jsonObject, "x", MinecraftClient.getInstance().getWindow().getWidth());
+        }
+
+        public static int getY(JsonObject jsonObject) {
+            return getAsInt(jsonObject, "y", MinecraftClient.getInstance().getWindow().getHeight());
+        }
+
+        public static int getWidth(JsonObject jsonObject) {
+            return getAsInt(jsonObject, "width", MinecraftClient.getInstance().getWindow().getWidth());
+        }
+
+        public static int getHeight(JsonObject jsonObject) {
+            return getAsInt(jsonObject, "height", MinecraftClient.getInstance().getWindow().getHeight());
+        }
+
+        private static int getAsInt(JsonObject jsonObject, String name, int windowSize) {
+            JsonPrimitive jsonPrimitive = jsonObject.getAsJsonPrimitive(name);
+            if (jsonPrimitive.isNumber() && jsonPrimitive.toString().contains(".")) {
+                return (int) (windowSize * jsonPrimitive.getAsDouble());
+            }
+            return jsonPrimitive.getAsInt();
+        }
+
         public static Layout grid(int rows, int columns, int width, int height) {
             return new Layout(Group.grid(rows, columns, 0, 0, width, height, 0, false, true));
         }
 
         public static Layout fromJson(JsonObject jsonObject) throws JsonParseException {
-            return new Layout(Group.fromJson(jsonObject.getAsJsonObject("main")), jsonObject.has("locked") ? Group.fromJson(jsonObject.getAsJsonObject("locked")) : null, jsonObject.has("preparing") ? Group.fromJson(jsonObject.getAsJsonArray("preparing")) : new Group[0]);
+            return new Layout(
+                    Group.fromJson(jsonObject.getAsJsonObject("main"), SeedQueue.config.rows, SeedQueue.config.columns),
+                    jsonObject.has("locked") ? Group.fromJson(jsonObject.getAsJsonObject("locked")) : null,
+                    jsonObject.has("preparing") ? Group.fromJson(jsonObject.getAsJsonArray("preparing")) : new Group[0]
+            );
         }
 
         public static class Group {
@@ -882,7 +906,7 @@ public class SeedQueueWallScreen extends Screen {
                 return new Group(positions, cosmetic, instance_background);
             }
 
-            public static Group[] fromJson(JsonArray jsonArray) {
+            public static Group[] fromJson(JsonArray jsonArray) throws JsonParseException {
                 Group[] groups = new Group[jsonArray.size()];
                 for (int i = 0; i < jsonArray.size(); i++) {
                     groups[i] = Group.fromJson(jsonArray.get(i).getAsJsonObject());
@@ -891,17 +915,29 @@ public class SeedQueueWallScreen extends Screen {
             }
 
             public static Group fromJson(JsonObject jsonObject) throws JsonParseException {
+                return fromJson(jsonObject, null, null);
+            }
+
+            public static Group fromJson(JsonObject jsonObject, Integer defaultRows, Integer defaultColumns) throws JsonParseException {
                 boolean cosmetic = jsonObject.has("cosmetic") && jsonObject.get("cosmetic").getAsBoolean();
                 boolean instance_background = !jsonObject.has("instance_background") || jsonObject.get("instance_background").getAsBoolean();
                 if (jsonObject.has("positions")) {
                     JsonArray positionsArray = jsonObject.get("positions").getAsJsonArray();
                     Pos[] positions = new Pos[positionsArray.size()];
                     for (int i = 0; i < positionsArray.size(); i++) {
-                        positions[i] = (Pos.fromJson(positionsArray.get(i).getAsJsonObject()));
+                        positions[i] = Pos.fromJson(positionsArray.get(i).getAsJsonObject());
                     }
                     return new Group(positions, cosmetic, instance_background);
                 }
-                return Group.grid(jsonObject.get("rows").getAsInt(), jsonObject.get("columns").getAsInt(), jsonObject.get("x").getAsInt(), jsonObject.get("y").getAsInt(), jsonObject.get("width").getAsInt(), jsonObject.get("height").getAsInt(), jsonObject.has("padding") ? jsonObject.get("padding").getAsInt() : 0, cosmetic, instance_background);
+                return Group.grid(
+                        jsonObject.has("rows") || defaultRows == null ? jsonObject.get("rows").getAsInt() : defaultRows,
+                        jsonObject.has("columns") || defaultColumns == null ? jsonObject.get("columns").getAsInt() : defaultColumns,
+                        Layout.getX(jsonObject),
+                        Layout.getY(jsonObject),
+                        Layout.getWidth(jsonObject),
+                        Layout.getHeight(jsonObject),
+                        jsonObject.has("padding") ? jsonObject.get("padding").getAsInt() : 0, cosmetic, instance_background
+                );
             }
         }
 
@@ -919,7 +955,12 @@ public class SeedQueueWallScreen extends Screen {
             }
 
             private static Pos fromJson(JsonObject jsonObject) throws JsonParseException {
-                return new Pos(jsonObject.get("x").getAsInt(), jsonObject.get("y").getAsInt(), jsonObject.get("width").getAsInt(), jsonObject.get("height").getAsInt());
+                return new Pos(
+                        Layout.getX(jsonObject),
+                        Layout.getY(jsonObject),
+                        Layout.getWidth(jsonObject),
+                        Layout.getHeight(jsonObject)
+                );
             }
         }
     }
