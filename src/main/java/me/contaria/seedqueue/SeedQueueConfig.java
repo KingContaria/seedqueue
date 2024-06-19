@@ -82,9 +82,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public final WindowSize simulatedWindowSize = new WindowSize();
 
     @Config.Category("wall")
-    public boolean replaceLockedPreviews = true;
-
-    @Config.Category("wall")
     @Config.Numbers.Whole.Bounds(max = 1000)
     public int resetCooldown = 150;
 

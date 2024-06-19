@@ -67,8 +67,6 @@
   "speedrunapi.config.seedqueue.option.rows": "Rows",
   "speedrunapi.config.seedqueue.option.columns": "Columns",
   "speedrunapi.config.seedqueue.option.simulatedWindowSize": "Simulated Window Size",
-  "speedrunapi.config.seedqueue.option.replaceLockedPreviews": "Replace Locked Instances",
-  "speedrunapi.config.seedqueue.option.replaceLockedPreviews.description": "If disabled, a locked preview that is moved to the locked group will only get replaced once Reset All or Focus Reset is used.",
   "speedrunapi.config.seedqueue.option.resetCooldown": "Reset Cooldown",
   "speedrunapi.config.seedqueue.option.resetCooldown.value": "%sms",
   "speedrunapi.config.seedqueue.option.resetCooldown.value.1000": "1 second",

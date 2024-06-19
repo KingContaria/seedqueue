@@ -288,7 +288,7 @@ public class SeedQueueWallScreen extends Screen {
                 if (instance != null && instance.getSeedQueueEntry().isLocked()) {
                     this.lockedPreviews.add(instance);
                     this.mainPreviews[i] = null;
-                    if (!SeedQueue.config.replaceLockedPreviews) {
+                    if (!this.layout.replaceLockedInstances) {
                         this.blockedMainPositions.add(i);
                     }
                 }
@@ -821,15 +821,17 @@ public class SeedQueueWallScreen extends Screen {
         @Nullable
         private final Group locked;
         private final Group[] preparing;
+        private final boolean replaceLockedInstances;
 
         public Layout(@NotNull Group main) {
-            this(main, null, new Group[0]);
+            this(main, null, new Group[0], true);
         }
 
-        public Layout(@NotNull Group main, @Nullable Group locked, Group[] preparing) {
+        public Layout(@NotNull Group main, @Nullable Group locked, Group[] preparing, boolean replaceLockedInstances) {
             this.main = main;
             this.locked = locked;
             this.preparing = preparing;
+            this.replaceLockedInstances = replaceLockedInstances;
 
             if (this.main.cosmetic) {
                 throw new IllegalStateException("Main Group may not be cosmetic!");
@@ -868,7 +870,8 @@ public class SeedQueueWallScreen extends Screen {
             return new Layout(
                     Group.fromJson(jsonObject.getAsJsonObject("main"), SeedQueue.config.rows, SeedQueue.config.columns),
                     jsonObject.has("locked") ? Group.fromJson(jsonObject.getAsJsonObject("locked")) : null,
-                    jsonObject.has("preparing") ? Group.fromJson(jsonObject.getAsJsonArray("preparing")) : new Group[0]
+                    jsonObject.has("preparing") ? Group.fromJson(jsonObject.getAsJsonArray("preparing")) : new Group[0],
+                    jsonObject.has("replaceLockedInstances") && jsonObject.get("replaceLockedInstances").getAsBoolean()
             );
         }
 
