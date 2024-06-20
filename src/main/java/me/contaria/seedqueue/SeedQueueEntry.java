@@ -112,11 +112,18 @@ public class SeedQueueEntry {
         ((SQMinecraftServer) this.server).seedQueue$schedulePause();
     }
 
+    public boolean canUnpause() {
+        return this.isScheduledToPause() || (this.isPaused() && !this.shouldPause());
+    }
+
     public void unpause() {
         ((SQMinecraftServer) this.server).seedQueue$unpause();
     }
 
     public void tryToUnpause() {
+        // to avoid a race condition within SeedQueueThread#pauseSeedQueueEntry
+        // where the server would be scheduled to pause but then pause because it finishes loading,
+        // we synchronize on the server object and recheck pause state before trying to unpause
         synchronized (this.server) {
             if (this.isPaused() && this.shouldPause()) {
                 return;

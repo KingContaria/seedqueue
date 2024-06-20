@@ -4,6 +4,8 @@ import me.voidxwalker.autoreset.AtumCreateWorldScreen;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 
+import java.util.Optional;
+
 public class SeedQueueThread extends Thread {
 
     private final Object lock = new Object();
@@ -45,7 +47,12 @@ public class SeedQueueThread extends Thread {
     }
 
     private void pauseSeedQueueEntry() {
-        SeedQueue.getEntryMatching(entry -> !entry.isScheduledToPause() && !entry.isPaused()).ifPresent(SeedQueueEntry::schedulePause);
+        // try to pause not locked entries first
+        Optional<SeedQueueEntry> entry = SeedQueue.getEntryMatching(e -> !e.isLocked() && e.canUnpause());
+        if (!entry.isPresent()) {
+            entry = SeedQueue.getEntryMatching(SeedQueueEntry::canUnpause);
+        }
+        entry.ifPresent(SeedQueueEntry::schedulePause);
     }
 
     private boolean unpauseSeedQueueEntry() {
