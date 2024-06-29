@@ -1,7 +1,6 @@
 package me.contaria.seedqueue.mixin.server;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.contaria.seedqueue.SeedQueue;
@@ -16,7 +15,6 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.thread.ReentrantThreadExecutor;
 import net.minecraft.world.SaveProperties;
 import net.minecraft.world.level.ServerWorldProperties;
-import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -75,18 +73,6 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
         }
         thread.setName(thread.getName() + " - " + this.saveProperties.getLevelName());
         return thread;
-    }
-
-    @WrapWithCondition(
-            method = "shutdown",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lorg/apache/logging/log4j/Logger;info(Ljava/lang/String;)V",
-                    remap = false
-            )
-    )
-    private boolean suppressSavingLogsInQueue(Logger instance, String s) {
-        return !(SeedQueue.isActive() && this.getEntry() != null);
     }
 
     @Inject(
