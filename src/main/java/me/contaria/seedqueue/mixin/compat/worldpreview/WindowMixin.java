@@ -1,4 +1,4 @@
-package me.contaria.seedqueue.mixin.client.render;
+package me.contaria.seedqueue.mixin.compat.worldpreview;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import me.contaria.seedqueue.SeedQueue;
