@@ -1,5 +1,6 @@
 package me.contaria.seedqueue.gui.wall;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
@@ -9,21 +10,23 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.LevelLoadingScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.render.DiffuseLighting;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+import org.jetbrains.annotations.Nullable;
 import org.mcsr.speedrunapi.config.SpeedrunConfigAPI;
 
 import java.util.Arrays;
 import java.util.Objects;
 
 public class SeedQueuePreview extends LevelLoadingScreen {
-
-    public final SeedQueueWallScreen wallScreen;
+    public final SeedQueueWallScreen wall;
     private final SeedQueueEntry seedQueueEntry;
-    private final WorldPreviewProperties worldPreviewProperties;
-    private final WorldRenderer worldRenderer;
+    @Nullable
+    private WorldPreviewProperties worldPreviewProperties;
+    private WorldRenderer worldRenderer;
 
     protected SeedQueueWallScreen.LockTexture lock;
 
@@ -31,18 +34,27 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     protected int lastRenderFrame = Integer.MIN_VALUE;
     protected Long firstRenderTime;
 
-    public SeedQueuePreview(SeedQueueWallScreen wallScreen, SeedQueueEntry seedQueueEntry) {
+    public SeedQueuePreview(SeedQueueWallScreen wall, SeedQueueEntry seedQueueEntry) {
         super(seedQueueEntry.getWorldGenerationProgressTracker());
-        this.wallScreen = wallScreen;
+        this.wall = wall;
         this.seedQueueEntry = seedQueueEntry;
-        this.worldPreviewProperties = Objects.requireNonNull(seedQueueEntry.getWorldPreviewProperties());
-        this.worldRenderer = SeedQueueWallScreen.getOrCreateWorldRenderer(this.worldPreviewProperties.getWorld());
 
-        if (this.worldPreviewProperties.getSettingsCache() == null) {
-            this.worldPreviewProperties.setSettingsCache(this.wallScreen.settingsCache);
-        }
-
+        this.updateWorldPreviewProperties();
         this.initScreen();
+    }
+
+    private void updateWorldPreviewProperties() {
+        if (this.worldPreviewProperties == (this.worldPreviewProperties = this.seedQueueEntry.getWorldPreviewProperties())) {
+            return;
+        }
+        if (this.worldPreviewProperties != null) {
+            this.worldRenderer = SeedQueueWallScreen.getOrCreateWorldRenderer(this.worldPreviewProperties.getWorld());
+            if (this.worldPreviewProperties.getSettingsCache() == null) {
+                this.worldPreviewProperties.setSettingsCache(this.wall.settingsCache);
+            }
+        } else {
+            this.worldRenderer = null;
+        }
     }
 
     private void initScreen() {
@@ -50,8 +62,15 @@ public class SeedQueuePreview extends LevelLoadingScreen {
             WorldPreview.inPreview = true;
 
             // forceUnicodeFont is not being loaded from the settings cache because it is not included in SeedQueueSettingsCache.PREVIEW_SETTINGS
-            int scale = SeedQueue.config.calculateSimulatedScaleFactor((int) this.worldPreviewProperties.getSettingsCache().getValue("guiScale"), MinecraftClient.getInstance().options.forceUnicodeFont);
-            this.init(MinecraftClient.getInstance(), SeedQueue.config.simulatedWindowSize.width() / scale, SeedQueue.config.simulatedWindowSize.height() / scale);
+            int scale = SeedQueue.config.calculateSimulatedScaleFactor(
+                    this.worldPreviewProperties != null ? (int) this.worldPreviewProperties.getSettingsCache().getValue("guiScale") : MinecraftClient.getInstance().options.guiScale,
+                    MinecraftClient.getInstance().options.forceUnicodeFont
+            );
+            this.init(
+                    MinecraftClient.getInstance(),
+                    SeedQueue.config.simulatedWindowSize.width() / scale,
+                    SeedQueue.config.simulatedWindowSize.height() / scale
+            );
 
             if (Boolean.TRUE.equals(SpeedrunConfigAPI.getConfigValue("standardsettings", "autoF3Esc"))) {
                 Text backToGame = new TranslatableText("menu.returnToGame");
@@ -76,30 +95,59 @@ public class SeedQueuePreview extends LevelLoadingScreen {
         return false;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         assert this.client != null;
 
-        this.worldPreviewProperties.loadNewData(this.worldRenderer);
-        this.runAsPreview(() -> super.render(matrices, mouseX, mouseY, delta));
+        this.updateWorldPreviewProperties();
 
-        if (!this.hasBeenRendered()) {
-            this.firstRenderFrame = this.wallScreen.frame;
+        if (this.worldPreviewProperties != null && this.shouldRender()) {
+            this.worldPreviewProperties.loadNewData(this.worldRenderer);
+            this.runAsPreview(() -> super.render(matrices, mouseX, mouseY, delta));
+            if (!this.hasBeenRendered()) {
+                this.firstRenderFrame = this.wall.frame;
+            }
+        } else {
+            this.build();
+            // run as preview to set WorldPreview#renderingPreview
+            // this ensures simulated window size is used in WindowMixin
+            WorldPreview.runAsPreview(() -> {
+                // see WorldPreview#render
+                RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
+                RenderSystem.matrixMode(5889);
+                RenderSystem.loadIdentity();
+                RenderSystem.ortho(0.0D, this.width, this.height, 0.0D, 1000.0D, 3000.0D);
+                RenderSystem.matrixMode(5888);
+                RenderSystem.loadIdentity();
+                RenderSystem.translatef(0.0F, 0.0F, -2000.0F);
+                DiffuseLighting.enableGuiDepthLighting();
+                RenderSystem.defaultAlphaFunc();
+
+                super.render(matrices, mouseX, mouseY, delta);
+            });
         }
     }
 
-    public void buildChunks() {
-        this.worldPreviewProperties.loadNewData(this.worldRenderer);
-        this.runAsPreview(() -> WorldPreview.runAsPreview(() -> {
-            WorldPreview.tickPackets();
-            WorldPreview.tickEntities();
-            this.worldPreviewProperties.buildChunks();
-        }));
+    public void build() {
+        this.updateWorldPreviewProperties();
+        if (this.worldPreviewProperties != null) {
+            this.worldPreviewProperties.loadNewData(this.worldRenderer);
+            this.runAsPreview(() -> WorldPreview.runAsPreview(() -> {
+                WorldPreview.tickPackets();
+                WorldPreview.tickEntities();
+                this.worldPreviewProperties.buildChunks();
+            }));
+        }
     }
 
     private void runAsPreview(Runnable runnable) {
+        if (this.worldPreviewProperties == null) {
+            throw new IllegalStateException("Tried to run as preview but preview is null!");
+        }
+
         WorldRenderer worldPreviewRenderer = WorldPreview.worldRenderer;
-        WorldPreview.worldRenderer = this.getWorldRenderer();
+        WorldPreview.worldRenderer = this.worldRenderer;
         this.worldPreviewProperties.apply();
         WorldPreview.inPreview = true;
 
@@ -113,8 +161,11 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     }
 
     public void printDebug() {
-        WorldRenderer worldRenderer = this.getWorldRenderer();
-        SeedQueue.LOGGER.info("SeedQueue-DEBUG | Instance: {}, Seed: {}, Chunks: {} ({}), locked: {}, paused: {}, ready: {}", this.seedQueueEntry.getSession().getDirectoryName(), this.seedQueueEntry.getServer().getOverworld().getSeed(), worldRenderer.getChunksDebugString(), worldRenderer.isTerrainRenderComplete(), this.seedQueueEntry.isLocked(), this.seedQueueEntry.isPaused(), this.seedQueueEntry.isReady());
+        if (this.worldRenderer != null) {
+            SeedQueue.LOGGER.info("SeedQueue-DEBUG | Instance: {}, Seed: {}, World Gen %: {}, Chunks: {} ({}), locked: {}, paused: {}, ready: {}", this.seedQueueEntry.getSession().getDirectoryName(), this.seedQueueEntry.getServer().getSaveProperties().getGeneratorOptions().getSeed(), Objects.requireNonNull(this.seedQueueEntry.getWorldGenerationProgressTracker()).getProgressPercentage(), this.worldRenderer.getChunksDebugString(), this.worldRenderer.isTerrainRenderComplete(), this.seedQueueEntry.isLocked(), this.seedQueueEntry.isPaused(), this.seedQueueEntry.isReady());
+        } else {
+            SeedQueue.LOGGER.info("SeedQueue-DEBUG | Instance: {}, Seed: {}, World Gen %: {}", this.seedQueueEntry.getSession().getDirectoryName(), this.seedQueueEntry.getServer().getSaveProperties().getGeneratorOptions().getSeed(), Objects.requireNonNull(this.seedQueueEntry.getWorldGenerationProgressTracker()).getProgressPercentage());
+        }
     }
 
     public void printStacktrace() {
@@ -122,13 +173,15 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     }
 
     public boolean shouldRender() {
+        if (this.worldPreviewProperties == null) {
+            return false;
+        }
         if (this.hasBeenRendered()) {
             return true;
         }
-        WorldRenderer worldRenderer = this.getWorldRenderer();
-        if (((WorldRendererAccessor) worldRenderer).seedQueue$getCompletedChunkCount() == 0) {
+        if (((WorldRendererAccessor) this.worldRenderer).seedQueue$getCompletedChunkCount() == 0) {
             // this checks for instances that are ready to be loaded but do not have any chunks built, to avoid keeping them invisible forever we have to flush them through the system
-            return this.seedQueueEntry.isPaused() && worldRenderer.isTerrainRenderComplete() && this.worldPreviewProperties.getPacketQueue().isEmpty();
+            return this.seedQueueEntry.isPaused() && this.worldRenderer.isTerrainRenderComplete() && this.worldPreviewProperties.getPacketQueue().isEmpty();
         }
         return true;
     }
@@ -138,21 +191,21 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     }
 
     public void updateLastRenderFrame() {
-        this.lastRenderFrame = this.wallScreen.frame;
+        this.lastRenderFrame = this.wall.frame;
     }
 
     public boolean shouldRenderPreview() {
         if (this.seedQueueEntry.isLocked() && SeedQueue.config.freezeLockedPreviews) {
             return false;
         }
-        return this.wallScreen.frame - this.lastRenderFrame >= SeedQueue.config.wallFPS / SeedQueue.config.previewFPS;
+        return this.wall.frame - this.lastRenderFrame >= SeedQueue.config.wallFPS / SeedQueue.config.previewFPS;
     }
 
     public SeedQueueEntry getSeedQueueEntry() {
         return this.seedQueueEntry;
     }
 
-    public WorldPreviewProperties getWorldPreviewProperties() {
+    public @Nullable WorldPreviewProperties getWorldPreviewProperties() {
         return this.worldPreviewProperties;
     }
 

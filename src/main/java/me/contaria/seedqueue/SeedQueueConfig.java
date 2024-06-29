@@ -65,7 +65,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int chunkMapScale = 2;
 
     @Config.Ignored
-    public boolean canUseWall = ModCompat.HAS_WORLDPREVIEW && ModCompat.HAS_STANDARDSETTINGS && ModCompat.HAS_SODIUM;
+    public final boolean canUseWall = ModCompat.HAS_WORLDPREVIEW && ModCompat.HAS_STANDARDSETTINGS && ModCompat.HAS_SODIUM;
 
     @Config.Category("wall")
     public boolean useWall = false;
@@ -84,6 +84,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Category("wall")
     @Config.Numbers.Whole.Bounds(max = 1000)
     public int resetCooldown = 150;
+
+    @Config.Category("wall")
+    public boolean waitForPreviewSetup = true;
 
     @Config.Category("wall")
     public boolean bypassWall = false;

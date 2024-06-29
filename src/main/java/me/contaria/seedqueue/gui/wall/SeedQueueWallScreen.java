@@ -52,6 +52,7 @@ public class SeedQueueWallScreen extends Screen {
 
     private final Screen createWorldScreen;
 
+    @Nullable
     private final DebugHud debugHud;
 
     protected final SeedQueueSettingsCache settingsCache;
@@ -81,7 +82,7 @@ public class SeedQueueWallScreen extends Screen {
     public SeedQueueWallScreen(Screen createWorldScreen) {
         super(LiteralText.EMPTY);
         this.createWorldScreen = createWorldScreen;
-        this.debugHud = new DebugHud(MinecraftClient.getInstance());
+        this.debugHud = SeedQueue.config.showDebugMenu ? new DebugHud(MinecraftClient.getInstance()) : null;
         this.preparingPreviews = new ArrayList<>(SeedQueue.config.backgroundPreviews);
         this.lastSettingsCache = this.settingsCache = SeedQueueSettingsCache.create();
     }
@@ -163,7 +164,7 @@ public class SeedQueueWallScreen extends Screen {
             profiler.push("load_settings");
             this.loadPreviewSettings(preparingInstance);
             profiler.swap("build");
-            preparingInstance.buildChunks();
+            preparingInstance.build();
             profiler.pop();
         }
 
@@ -174,7 +175,7 @@ public class SeedQueueWallScreen extends Screen {
         this.resetViewport();
         this.loadPreviewSettings(this.settingsCache, 0);
 
-        if (SeedQueue.config.showDebugMenu) {
+        if (this.debugHud != null) {
             profiler.swap("fps_graph");
             ((DebugHudAccessor) this.debugHud).seedQueue$drawMetricsData(matrices, this.client.getMetricsData(), 0, this.width / 2, true);
         }
@@ -190,14 +191,16 @@ public class SeedQueueWallScreen extends Screen {
         try {
             profiler.push("set_viewport");
             this.setViewport(pos);
-            if (instance == null || !instance.shouldRender()) {
-                if (group.instance_background) {
+            if (instance == null || (SeedQueue.config.waitForPreviewSetup && !instance.shouldRender())) {
+                if (!SeedQueue.config.waitForPreviewSetup && this.layout.main == group) {
+                    this.renderBackground(matrices);
+                } else if (group.instance_background) {
                     profiler.swap("instance_background");
                     this.drawTexture(INSTANCE_BACKGROUND, matrices, this.width, this.height);
                 }
                 if (instance != null) {
                     profiler.swap("build_chunks");
-                    instance.buildChunks();
+                    instance.build();
                 }
                 profiler.pop();
                 return;
@@ -304,7 +307,10 @@ public class SeedQueueWallScreen extends Screen {
 
     private void updateMainPreviews() {
         this.preparingPreviews.sort(Comparator.comparing(SeedQueuePreview::shouldRender, Comparator.reverseOrder()));
-        for (int i = 0; i < this.mainPreviews.length && !this.preparingPreviews.isEmpty() && this.preparingPreviews.get(0).shouldRender(); i++) {
+        for (int i = 0; i < this.mainPreviews.length && !this.preparingPreviews.isEmpty(); i++) {
+            if (SeedQueue.config.waitForPreviewSetup && !this.preparingPreviews.get(0).shouldRender()) {
+                break;
+            }
             if (this.mainPreviews[i] == null && !this.blockedMainPositions.contains(i)) {
                 this.mainPreviews[i] = this.preparingPreviews.remove(0);
             }
@@ -330,12 +336,20 @@ public class SeedQueueWallScreen extends Screen {
     private List<SeedQueueEntry> getAvailableSeedQueueEntries() {
         List<SeedQueueEntry> entries = new ArrayList<>(SeedQueue.SEED_QUEUE);
         entries.removeAll(this.getInstances().stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
-        entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldGenerationProgressTracker() == null || seedQueueEntry.getWorldPreviewProperties() == null);
+        entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldGenerationProgressTracker() == null);
+        if (SeedQueue.config.waitForPreviewSetup) {
+            entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldPreviewProperties() == null);
+        }
         return entries;
     }
 
     private void loadPreviewSettings(SeedQueuePreview instance) {
-        this.loadPreviewSettings(instance.getWorldPreviewProperties().getSettingsCache(), instance.getWorldPreviewProperties().getPerspective());
+        WorldPreviewProperties wpProperties = instance.getWorldPreviewProperties();
+        if (wpProperties != null) {
+            this.loadPreviewSettings(wpProperties.getSettingsCache(), wpProperties.getPerspective());
+        } else {
+            this.loadPreviewSettings(this.settingsCache, 0);
+        }
     }
 
     private void loadPreviewSettings(SeedQueueSettingsCache settingsCache, int perspective) {
