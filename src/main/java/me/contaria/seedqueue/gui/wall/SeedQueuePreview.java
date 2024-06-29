@@ -1,6 +1,5 @@
 package me.contaria.seedqueue.gui.wall;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
@@ -10,7 +9,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.LevelLoadingScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.render.DiffuseLighting;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
@@ -95,7 +93,6 @@ public class SeedQueuePreview extends LevelLoadingScreen {
         return false;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         assert this.client != null;
@@ -113,17 +110,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
             // run as preview to set WorldPreview#renderingPreview
             // this ensures simulated window size is used in WindowMixin
             WorldPreview.runAsPreview(() -> {
-                // see WorldPreview#render
-                RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
-                RenderSystem.matrixMode(5889);
-                RenderSystem.loadIdentity();
-                RenderSystem.ortho(0.0D, this.width, this.height, 0.0D, 1000.0D, 3000.0D);
-                RenderSystem.matrixMode(5888);
-                RenderSystem.loadIdentity();
-                RenderSystem.translatef(0.0F, 0.0F, -2000.0F);
-                DiffuseLighting.enableGuiDepthLighting();
-                RenderSystem.defaultAlphaFunc();
-
+                this.wall.setOrtho(this.width, this.height);
                 super.render(matrices, mouseX, mouseY, delta);
             });
         }

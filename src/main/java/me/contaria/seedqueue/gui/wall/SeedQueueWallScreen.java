@@ -226,19 +226,20 @@ public class SeedQueueWallScreen extends Screen {
             if (instance.lock == null) {
                 instance.lock = this.lockTextures.get(new Random().nextInt(this.lockTextures.size()));
             }
-            double scale = this.client.getWindow().getScaleFactor();
+            this.setOrtho(this.client.getWindow().getWidth(), this.client.getWindow().getHeight());
             this.drawTexture(
                     instance.lock.id,
                     matrices,
-                    (int) (pos.x / scale),
-                    (int) (pos.y / scale),
+                    pos.x,
+                    pos.y,
                     0.0f,
                     0.0f,
-                    (int) Math.min(pos.width / scale, pos.height * instance.lock.aspectRatio / scale),
-                    (int) (pos.height / scale),
-                    (int) (pos.height * instance.lock.aspectRatio / scale),
-                    (int) (pos.height / scale)
+                    (int) Math.min(pos.width, pos.height * instance.lock.aspectRatio),
+                    pos.height,
+                    (int) (pos.height * instance.lock.aspectRatio),
+                    pos.height
             );
+            this.resetOrtho();
         }
     }
 
@@ -255,22 +256,29 @@ public class SeedQueueWallScreen extends Screen {
         }
     }
 
-    @SuppressWarnings("deprecation")
     private void resetViewport() {
         assert this.client != null;
         Window window = this.client.getWindow();
         RenderSystem.viewport(0, 0, window.getFramebufferWidth(), window.getFramebufferHeight());
+        this.setOrtho((double) window.getFramebufferWidth() / window.getScaleFactor(), (double) window.getFramebufferHeight() / window.getScaleFactor());
+        this.currentPos = null;
+    }
+
+    @SuppressWarnings("deprecation")
+    protected void setOrtho(double width, double height) {
         // see GameRenderer#render or WorldPreview#render
         // we need this to reset RenderSystem.ortho after simulating a different window size
         RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
         RenderSystem.matrixMode(5889);
         RenderSystem.loadIdentity();
-        RenderSystem.ortho(0.0D, (double) window.getFramebufferWidth() / window.getScaleFactor(), (double) window.getFramebufferHeight() / window.getScaleFactor(), 0.0D, 1000.0D, 3000.0D);
+        RenderSystem.ortho(0.0D, width, height, 0.0D, 1000.0D, 3000.0D);
         RenderSystem.matrixMode(5888);
         RenderSystem.loadIdentity();
         RenderSystem.translatef(0.0F, 0.0F, -2000.0F);
+    }
 
-        this.currentPos = null;
+    private void resetOrtho() {
+        this.setOrtho(this.width, this.height);
     }
 
     private void updatePreviews() {
@@ -459,7 +467,7 @@ public class SeedQueueWallScreen extends Screen {
             return true;
         }
 
-        if (keyCode == GLFW.GLFW_KEY_F3) {
+        if (SeedQueue.config.showDebugMenu && keyCode == GLFW.GLFW_KEY_F3) {
             instance.printDebug();
             if (Screen.hasShiftDown()) {
                 instance.printStacktrace();
