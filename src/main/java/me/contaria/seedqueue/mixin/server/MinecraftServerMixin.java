@@ -98,6 +98,17 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
         this.seedQueue$tryPausingServer();
     }
 
+    @Inject(
+            method = "loadWorld",
+            at = @At("TAIL")
+    )
+    private void discardWorldPreviewPropertiesOnLoad(CallbackInfo ci) {
+        SeedQueueEntry entry = this.getEntry();
+        if (entry != null && !SeedQueue.config.shouldUseWall()) {
+            entry.discardWorldPreviewProperties();
+        }
+    }
+
     @WrapOperation(
             method = "runServer",
             at = @At(

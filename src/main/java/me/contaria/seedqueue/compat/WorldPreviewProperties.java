@@ -1,35 +1,26 @@
 package me.contaria.seedqueue.compat;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import me.contaria.seedqueue.SeedQueue;
-import me.contaria.seedqueue.interfaces.sodium.SQClientChunkManager;
 import me.contaria.seedqueue.interfaces.worldpreview.SQWorldRenderer;
 import me.contaria.seedqueue.mixin.accessor.CameraAccessor;
-import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.voidxwalker.worldpreview.WorldPreview;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.DiffuseLighting;
-import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.util.math.Vector3f;
-import net.minecraft.client.world.ClientChunkManager;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
 import net.minecraft.network.Packet;
-import net.minecraft.util.Pair;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.ChunkSectionPos;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.profiler.DummyProfiler;
 import net.minecraft.util.profiler.Profiler;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Queue;
 
 public class WorldPreviewProperties {
 
@@ -40,10 +31,6 @@ public class WorldPreviewProperties {
     private final Queue<Packet<?>> packetQueue;
 
     private SeedQueueSettingsCache settingsCache;
-
-    private final Map<Integer, Entity> addedEntities = new Int2ObjectOpenHashMap<>();
-    private final Set<ChunkPos> addedChunks = new HashSet<>();
-    private final List<Pair<ChunkSectionPos, Boolean>> scheduledChunkRenders = new ArrayList<>();
 
     @Nullable
     private WorldPreviewFrame frame;
@@ -144,41 +131,6 @@ public class WorldPreviewProperties {
         return this.frame;
     }
 
-    public synchronized void addEntity(int id, Entity entity) {
-        this.addedEntities.put(id, entity);
-    }
-
-    public Entity getAddedEntity(int id) {
-        return this.addedEntities.get(id);
-    }
-
-    public synchronized void addChunk(int x, int z) {
-        this.addedChunks.add(new ChunkPos(x, z));
-    }
-
-    public synchronized void scheduleChunkRender(int x, int y, int z, boolean important) {
-        this.scheduledChunkRenders.add(new Pair<>(ChunkSectionPos.from(x, y, z), important));
-    }
-
-    public synchronized void loadNewData(WorldRenderer worldRenderer) {
-        this.addedEntities.forEach(this.world::addEntity);
-        this.addedEntities.clear();
-
-        ClientChunkManager chunkManager = this.world.getChunkManager();
-        if (chunkManager instanceof SQClientChunkManager) {
-            for (ChunkPos chunk : this.addedChunks) {
-                ((SQClientChunkManager) chunkManager).seedQueue$addChunkToSodiumListener(chunk.x, chunk.z);
-            }
-        }
-        this.addedChunks.clear();
-
-        for (Pair<ChunkSectionPos, Boolean> chunk : this.scheduledChunkRenders) {
-            ChunkSectionPos pos = chunk.getLeft();
-            ((WorldRendererAccessor) worldRenderer).seedQueue$scheduleChunkRender(pos.getX(), pos.getY(), pos.getZ(), chunk.getRight());
-        }
-        this.scheduledChunkRenders.clear();
-    }
-
     public synchronized void discard() {
         Profiler profiler = MinecraftClient.getInstance().isOnThread() ? MinecraftClient.getInstance().getProfiler() : DummyProfiler.INSTANCE;
 
@@ -189,10 +141,6 @@ public class WorldPreviewProperties {
             SeedQueue.runOnMainThread(this.frame::delete);
         }
         this.frame = null;
-        profiler.swap("clear_new_data");
-        this.addedEntities.clear();
-        this.addedChunks.clear();
-        this.scheduledChunkRenders.clear();
         profiler.pop();
     }
 }

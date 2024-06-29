@@ -4,24 +4,18 @@ import com.bawnorton.mixinsquared.TargetHandler;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
-import me.contaria.seedqueue.compat.WorldPreviewCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.options.Option;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.network.OffThreadException;
 import net.minecraft.network.Packet;
 import net.minecraft.server.world.ServerChunkManager;
 import net.minecraft.server.world.ServerWorld;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.Queue;
 
@@ -154,66 +148,6 @@ public abstract class ServerChunkManagerMixin {
             return SeedQueue.config.simulatedWindowSize.height();
         }
         return height;
-    }
-
-    @Dynamic
-    @TargetHandler(
-            mixin = "me.voidxwalker.worldpreview.mixin.server.ServerChunkManagerMixin",
-            name = "processChunk"
-    )
-    @ModifyArg(
-            method = "@MixinSquared:Handler",
-            at = @At(
-                    value = "INVOKE",
-                    target = "java/util/Queue.addAll(Ljava/util/Collection;)Z"
-            )
-    )
-    private Collection<Packet<?>> evaluateChunkDataServerSide(Collection<Packet<?>> packets) {
-        return this.evaluateDataServerSide(packets);
-    }
-
-    @Dynamic
-    @TargetHandler(
-            mixin = "me.voidxwalker.worldpreview.mixin.server.ServerChunkManagerMixin",
-            name = "processEntity"
-    )
-    @ModifyArg(
-            method = "@MixinSquared:Handler",
-            at = @At(
-                    value = "INVOKE",
-                    target = "java/util/Queue.addAll(Ljava/util/Collection;)Z"
-            )
-    )
-    private Collection<Packet<?>> evaluateEntityDataServerSide(Collection<Packet<?>> packets) {
-        return this.evaluateDataServerSide(packets);
-    }
-
-    @Unique
-    private Collection<Packet<?>> evaluateDataServerSide(Collection<Packet<?>> packets) {
-        if (!SeedQueue.config.evaluatePacketsServerSide) {
-            return packets;
-        }
-        return this.getWorldPreviewProperties().map(wpProperties -> {
-            ClientPlayNetworkHandler networkHandler = wpProperties.getPlayer().networkHandler;
-            Collection<Packet<?>> missedPackets = new ArrayList<>();
-            try {
-                WorldPreviewCompat.SERVER_WP_PROPERTIES.set(wpProperties);
-                for (Packet<?> packet : packets) {
-                    try {
-                        //noinspection unchecked
-                        ((Packet<ClientPlayNetworkHandler>) packet).apply(networkHandler);
-                    } catch (OffThreadException e) {
-                        missedPackets.add(packet);
-                    }
-                }
-            } finally {
-                WorldPreviewCompat.SERVER_WP_PROPERTIES.remove();
-            }
-            if (!missedPackets.isEmpty()) {
-                SeedQueue.LOGGER.warn("Failed to evaluate {} packets serverside", missedPackets.size());
-            }
-            return missedPackets;
-        }).orElse(packets);
     }
 
     @Unique

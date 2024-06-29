@@ -13,7 +13,4 @@ public interface WorldRendererAccessor {
 
     @Invoker("getCompletedChunkCount")
     int seedQueue$getCompletedChunkCount();
-
-    @Invoker("scheduleChunkRender")
-    void seedQueue$scheduleChunkRender(int x, int y, int z, boolean important);
 }

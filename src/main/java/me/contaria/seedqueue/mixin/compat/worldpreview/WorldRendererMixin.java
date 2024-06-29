@@ -2,8 +2,6 @@ package me.contaria.seedqueue.mixin.compat.worldpreview;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import me.contaria.seedqueue.SeedQueue;
-import me.contaria.seedqueue.compat.WorldPreviewCompat;
-import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.interfaces.worldpreview.SQWorldRenderer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Camera;
@@ -14,13 +12,10 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.Matrix4f;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.profiler.Profiler;
-import net.minecraft.world.chunk.light.LightingProvider;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(WorldRenderer.class)
 public abstract class WorldRendererMixin implements SQWorldRenderer {
@@ -50,38 +45,12 @@ public abstract class WorldRendererMixin implements SQWorldRenderer {
         return !SeedQueue.isOnWall();
     }
 
-    @WrapWithCondition(
-            method = "render",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/chunk/light/LightingProvider;doLightUpdates(IZZ)I"
-            )
-    )
-    private boolean doLightUpdatesServerSideOnWall(LightingProvider instance, int maxUpdateCount, boolean doSkylight, boolean skipEdgeLightPropagation) {
-        return !(SeedQueue.isOnWall() && SeedQueue.config.evaluatePacketsServerSide);
-    }
-
-    @Inject(
-            method = "scheduleChunkRender",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void captureScheduledChunkRebuildsFromServer(int x, int y, int z, boolean important, CallbackInfo ci) {
-        WorldPreviewProperties wpProperties = WorldPreviewCompat.SERVER_WP_PROPERTIES.get();
-        if (wpProperties != null) {
-            wpProperties.scheduleChunkRender(x, y, z, important);
-            ci.cancel();
-        }
-    }
-
     @Override
     public void seedQueue$buildChunks(MatrixStack matrices, Camera camera, Matrix4f projectionMatrix) {
         Profiler profiler = this.world.getProfiler();
 
         profiler.push("light_updates");
-        if (!SeedQueue.config.evaluatePacketsServerSide) {
-            this.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
-        }
+        this.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);
 
         profiler.swap("culling");
         Vec3d pos = camera.getPos();

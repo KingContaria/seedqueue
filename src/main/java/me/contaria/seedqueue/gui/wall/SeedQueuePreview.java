@@ -100,7 +100,6 @@ public class SeedQueuePreview extends LevelLoadingScreen {
         this.updateWorldPreviewProperties();
 
         if (this.worldPreviewProperties != null && this.shouldRender()) {
-            this.worldPreviewProperties.loadNewData(this.worldRenderer);
             this.runAsPreview(() -> super.render(matrices, mouseX, mouseY, delta));
             if (!this.hasBeenRendered()) {
                 this.firstRenderFrame = this.wall.frame;
@@ -119,7 +118,6 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     public void build() {
         this.updateWorldPreviewProperties();
         if (this.worldPreviewProperties != null) {
-            this.worldPreviewProperties.loadNewData(this.worldRenderer);
             this.runAsPreview(() -> WorldPreview.runAsPreview(() -> {
                 WorldPreview.tickPackets();
                 WorldPreview.tickEntities();

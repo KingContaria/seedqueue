@@ -142,9 +142,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int chunkUpdateThreadPriority = 3;
 
     @Config.Category("experimental")
-    public boolean evaluatePacketsServerSide = false;
-
-    @Config.Category("experimental")
     public boolean alwaysDeferChunkUpdates = false;
 
     @Config.Category("experimental")
