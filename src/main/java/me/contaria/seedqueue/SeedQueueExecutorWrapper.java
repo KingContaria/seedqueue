@@ -46,7 +46,7 @@ public class SeedQueueExecutorWrapper implements Executor {
 
     private synchronized static Executor getOrCreateBackgroundExecutor() {
         if (SEEDQUEUE_BACKGROUND_EXECUTOR == null) {
-            SEEDQUEUE_WALL_EXECUTOR = createExecutor("SeedQueue", SeedQueue.config.getBackgroundExecutorThreads(), SeedQueue.config.backgroundExecutorThreadPriority);
+            SEEDQUEUE_BACKGROUND_EXECUTOR = createExecutor("SeedQueue", SeedQueue.config.getBackgroundExecutorThreads(), SeedQueue.config.backgroundExecutorThreadPriority);
         }
         return SEEDQUEUE_BACKGROUND_EXECUTOR;
     }
