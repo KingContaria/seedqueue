@@ -44,7 +44,6 @@
     "compat.worldpreview.render.WorldRendererMixin",
     "server.IntegratedServerMixin",
     "server.MinecraftServerMixin",
-    "server.QueueingWorldGenerationProgressListenerMixin",
     "server.synchronization.BiomeMixin",
     "server.synchronization.DirectionTransformationMixin",
     "server.synchronization.ScheduledTickMixin",

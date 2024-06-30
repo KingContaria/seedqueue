@@ -18,6 +18,7 @@ import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
+import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressTracker;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
@@ -189,6 +190,53 @@ public abstract class MinecraftClientMixin {
         return original.call(serverFactory);
     }
 
+    @WrapOperation(
+            method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/client/MinecraftClient;server:Lnet/minecraft/server/integrated/IntegratedServer;",
+                    opcode = Opcodes.PUTFIELD
+            )
+    )
+    private void queueServer(MinecraftClient client, IntegratedServer server, Operation<Void> original, @Local LevelStorage.Session session, @Local MinecraftClient.IntegratedResourceManager resourceManager, @Local YggdrasilAuthenticationService yggdrasilAuthenticationService, @Local MinecraftSessionService minecraftSessionService, @Local GameProfileRepository gameProfileRepository, @Local UserCache userCache) {
+        if (SeedQueue.inQueue()) {
+            ((SQMinecraftServer) server).seedQueue$setExecutor(SeedQueueExecutorWrapper.SEEDQUEUE_EXECUTOR);
+            SeedQueue.add(new SeedQueueEntry(server, session, resourceManager, yggdrasilAuthenticationService, minecraftSessionService, gameProfileRepository, userCache));
+            return;
+        }
+        original.call(client, server);
+        if (SeedQueue.currentEntry != null) {
+            ((SQMinecraftServer) server).seedQueue$resetExecutor();
+            SeedQueue.currentEntry.unpause();
+        }
+    }
+
+    @WrapOperation(
+            method = "method_17533",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/util/concurrent/atomic/AtomicReference;set(Ljava/lang/Object;)V",
+                    remap = false
+            )
+    )
+    private void saveWorldGenerationProgressTracker(AtomicReference<?> instance, Object tracker, Operation<Void> original) {
+        SeedQueueEntry entry;
+        Thread currentThread = Thread.currentThread();
+        // in a loop to avoid the probably never happening race condition
+        // where this is called before MinecraftClient#server has been set
+        do {
+            // if the server is set that means we are not in queue and should proceed as normal
+            if (this.server != null && currentThread == this.server.getThread()) {
+                original.call(instance, tracker);
+                return;
+            }
+            entry = SeedQueue.getEntry(currentThread);
+        } while (entry == null);
+
+        ((SQWorldGenerationProgressTracker) tracker).seedQueue$mute();
+        entry.setWorldGenerationProgressTracker((WorldGenerationProgressTracker) tracker);
+    }
+
     @Inject(
             method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
             at = @At(
@@ -200,11 +248,13 @@ public abstract class MinecraftClientMixin {
     )
     private void loadWorldGenerationProgressTracker(CallbackInfo ci) {
         if (!SeedQueue.inQueue() && SeedQueue.currentEntry != null) {
-            WorldGenerationProgressTracker tracker;
-            do {
-                tracker = SeedQueue.currentEntry.getWorldGenerationProgressTracker();
-            } while (tracker == null);
-            this.worldGenProgressTracker.set(SeedQueue.currentEntry.getWorldGenerationProgressTracker());
+            WorldGenerationProgressTracker tracker = SeedQueue.currentEntry.getWorldGenerationProgressTracker();
+            // tracker could be null if the SeedQueueEntry is loaded before the server creates the tracker,
+            // in that case the vanilla logic will loop and wait for the tracker to be created
+            if (tracker != null) {
+                ((SQWorldGenerationProgressTracker) tracker).seedQueue$unmute();
+                this.worldGenProgressTracker.set(tracker);
+            }
         }
     }
 
@@ -250,53 +300,6 @@ public abstract class MinecraftClientMixin {
         if (SeedQueue.inQueue()) {
             throw new SeedQueueException("Failed to load legacy world!");
         }
-    }
-
-    @WrapOperation(
-            method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
-            at = @At(
-                    value = "FIELD",
-                    target = "Lnet/minecraft/client/MinecraftClient;server:Lnet/minecraft/server/integrated/IntegratedServer;",
-                    opcode = Opcodes.PUTFIELD
-            )
-    )
-    private void queueServer(MinecraftClient client, IntegratedServer server, Operation<Void> original, @Local LevelStorage.Session session, @Local MinecraftClient.IntegratedResourceManager resourceManager, @Local YggdrasilAuthenticationService yggdrasilAuthenticationService, @Local MinecraftSessionService minecraftSessionService, @Local GameProfileRepository gameProfileRepository, @Local UserCache userCache) {
-        if (SeedQueue.inQueue()) {
-            ((SQMinecraftServer) server).seedQueue$setExecutor(SeedQueueExecutorWrapper.SEEDQUEUE_EXECUTOR);
-            SeedQueue.add(new SeedQueueEntry(server, session, resourceManager, yggdrasilAuthenticationService, minecraftSessionService, gameProfileRepository, userCache));
-            return;
-        }
-        original.call(client, server);
-        if (SeedQueue.currentEntry != null) {
-            ((SQMinecraftServer) server).seedQueue$resetExecutor();
-            SeedQueue.currentEntry.unpause();
-        }
-    }
-
-    @WrapOperation(
-            method = "method_17533",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Ljava/util/concurrent/atomic/AtomicReference;set(Ljava/lang/Object;)V",
-                    remap = false
-            )
-    )
-    private void saveWorldGenerationProgressTracker(AtomicReference<?> instance, Object value, Operation<Void> original) {
-        SeedQueueEntry entry;
-        Thread currentThread = Thread.currentThread();
-        // in a loop to avoid the probably never happening race condition
-        // where this is called before MinecraftClient#server has been set
-        do {
-            // if the server is set that means we are not in queue and should proceed as normal
-            if (this.server != null && currentThread == this.server.getThread()) {
-                original.call(instance, value);
-                return;
-            }
-            entry = SeedQueue.getEntry(currentThread);
-        } while (entry == null);
-
-        WorldGenerationProgressTracker tracker = (WorldGenerationProgressTracker) value;
-        entry.setWorldGenerationProgressTracker(tracker);
     }
 
     @Inject(

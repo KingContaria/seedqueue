@@ -1,16 +1,20 @@
 package me.contaria.seedqueue.mixin.client;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
-import me.contaria.seedqueue.SeedQueue;
+import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressTracker;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.server.WorldGenerationProgressLogger;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.ChunkStatus;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(WorldGenerationProgressTracker.class)
-public abstract class WorldGenerationProgressTrackerMixin {
+public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGenerationProgressTracker {
+
+    @Unique
+    private boolean muted;
 
     @WrapWithCondition(
             method = "start(Lnet/minecraft/util/math/ChunkPos;)V",
@@ -20,7 +24,7 @@ public abstract class WorldGenerationProgressTrackerMixin {
             )
     )
     private boolean muteWorldGenTracker_inQueue(WorldGenerationProgressLogger logger, ChunkPos spawnPos) {
-        return SeedQueue.getEntry(Thread.currentThread()) == null;
+        return !this.muted;
     }
 
     @WrapWithCondition(
@@ -31,7 +35,7 @@ public abstract class WorldGenerationProgressTrackerMixin {
             )
     )
     private boolean muteWorldGenTracker_inQueue(WorldGenerationProgressLogger logger, ChunkPos pos, ChunkStatus status) {
-        return SeedQueue.getEntry(Thread.currentThread()) == null;
+        return !this.muted;
     }
 
     @WrapWithCondition(
@@ -42,6 +46,16 @@ public abstract class WorldGenerationProgressTrackerMixin {
             )
     )
     private boolean muteWorldGenTracker_inQueue(WorldGenerationProgressLogger logger) {
-        return SeedQueue.getEntry(Thread.currentThread()) == null;
+        return !this.muted;
+    }
+
+    @Override
+    public void seedQueue$mute() {
+        this.muted = true;
+    }
+
+    @Override
+    public void seedQueue$unmute() {
+        this.muted = false;
     }
 }
