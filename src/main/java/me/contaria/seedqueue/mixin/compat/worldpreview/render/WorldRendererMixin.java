@@ -1,4 +1,4 @@
-package me.contaria.seedqueue.mixin.compat.worldpreview;
+package me.contaria.seedqueue.mixin.compat.worldpreview.render;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import me.contaria.seedqueue.SeedQueue;

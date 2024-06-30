@@ -1,4 +1,4 @@
-package me.contaria.seedqueue.mixin.compat.worldpreview;
+package me.contaria.seedqueue.mixin.compat.worldpreview.render;
 
 import com.bawnorton.mixinsquared.TargetHandler;
 import me.contaria.seedqueue.compat.WorldPreviewFrameBuffer;
