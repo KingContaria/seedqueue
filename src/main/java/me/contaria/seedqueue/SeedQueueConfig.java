@@ -119,7 +119,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = 0, max = 32, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    private int backgroundExecutorThreads = AUTO;
+    protected int backgroundExecutorThreads = AUTO;
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
@@ -127,7 +127,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = 0, max = 32, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    private int wallExecutorThreads = AUTO;
+    protected int wallExecutorThreads = AUTO;
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
