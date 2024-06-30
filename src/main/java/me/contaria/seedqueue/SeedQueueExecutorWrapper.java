@@ -5,6 +5,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SeedQueueExecutorWrapper implements Executor {
     public static final Executor SEEDQUEUE_EXECUTOR = command -> getSeedqueueExecutor().execute(command);
@@ -33,41 +36,46 @@ public class SeedQueueExecutorWrapper implements Executor {
     }
 
     private static Executor getSeedqueueExecutor() {
+        // if Max Generating Seeds is set to 0 while not on wall,
+        // this will ensure the background executor is never created
         if (SeedQueue.isOnWall() || SeedQueue.config.maxConcurrently == 0) {
-            return getWallExecutor();
+            return getOrCreateWallExecutor();
         }
-        return getBackgroundExecutor();
+        return getOrCreateBackgroundExecutor();
     }
 
-    private static Executor getBackgroundExecutor() {
+    private synchronized static Executor getOrCreateBackgroundExecutor() {
         if (SEEDQUEUE_BACKGROUND_EXECUTOR == null) {
-            SEEDQUEUE_BACKGROUND_EXECUTOR = createBackgroundExecutor();
+            SEEDQUEUE_WALL_EXECUTOR = createExecutor("SeedQueue", SeedQueue.config.getBackgroundExecutorThreads(), SeedQueue.config.backgroundExecutorThreadPriority);
         }
         return SEEDQUEUE_BACKGROUND_EXECUTOR;
     }
 
-    private static synchronized ExecutorService createBackgroundExecutor() {
-        return SEEDQUEUE_BACKGROUND_EXECUTOR != null ? SEEDQUEUE_BACKGROUND_EXECUTOR : UtilAccessor.seedQueue$createWorkerExecutor("SeedQueue");
-    }
-
-    private static Executor getWallExecutor() {
+    private synchronized static Executor getOrCreateWallExecutor() {
         if (SEEDQUEUE_WALL_EXECUTOR == null) {
-            SEEDQUEUE_WALL_EXECUTOR = createWallExecutor();
+            SEEDQUEUE_WALL_EXECUTOR = createExecutor("SeedQueue Wall", SeedQueue.config.getWallExecutorThreads(), SeedQueue.config.wallExecutorThreadPriority);
         }
         return SEEDQUEUE_WALL_EXECUTOR;
     }
 
-    private static synchronized ExecutorService createWallExecutor() {
-        return SEEDQUEUE_WALL_EXECUTOR != null ? SEEDQUEUE_WALL_EXECUTOR : UtilAccessor.seedQueue$createWorkerExecutor("SeedQueue Wall");
+    // see Util#createWorker
+    private static ExecutorService createExecutor(String name, int threads, int priority) {
+        AtomicInteger threadCount = new AtomicInteger();
+        return new ForkJoinPool(threads, pool -> {
+            ForkJoinWorkerThread thread = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+            thread.setName("Worker-" + name + "-" + threadCount.getAndIncrement());
+            thread.setPriority(priority);
+            return thread;
+        }, UtilAccessor::seedQueue$uncaughtExceptionHandler, true);
     }
 
     public static void shutdownExecutors() {
         if (SEEDQUEUE_BACKGROUND_EXECUTOR != null) {
-            UtilAccessor.seedQueue$shutdownWorkerExecutor(SEEDQUEUE_BACKGROUND_EXECUTOR);
+            UtilAccessor.seedQueue$attemptShutdown(SEEDQUEUE_BACKGROUND_EXECUTOR);
             SEEDQUEUE_BACKGROUND_EXECUTOR = null;
         }
         if (SEEDQUEUE_WALL_EXECUTOR != null) {
-            UtilAccessor.seedQueue$shutdownWorkerExecutor(SEEDQUEUE_WALL_EXECUTOR);
+            UtilAccessor.seedQueue$attemptShutdown(SEEDQUEUE_WALL_EXECUTOR);
             SEEDQUEUE_WALL_EXECUTOR = null;
         }
     }

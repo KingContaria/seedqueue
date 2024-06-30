@@ -45,7 +45,6 @@
     "server.IntegratedServerMixin",
     "server.MinecraftServerMixin",
     "server.QueueingWorldGenerationProgressListenerMixin",
-    "server.UtilMixin",
     "server.synchronization.BiomeMixin",
     "server.synchronization.DirectionTransformationMixin",
     "server.synchronization.ScheduledTickMixin",

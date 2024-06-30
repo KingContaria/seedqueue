@@ -29,11 +29,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
 @InitializeOn(InitializeOn.InitPoint.PRELAUNCH)
 public class SeedQueueConfig implements SpeedrunConfig {
-
     @Config.Ignored
-    public static final int AUTO = 0;
+    static final int AUTO = 0;
 
     @Config.Ignored
     private static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
@@ -119,7 +119,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = 0, max = 32, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    public int backgroundExecutorThreads = AUTO;
+    private int backgroundExecutorThreads = AUTO;
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
@@ -127,7 +127,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = 0, max = 32, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    public int wallExecutorThreads = AUTO;
+    private int wallExecutorThreads = AUTO;
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
@@ -135,7 +135,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = 0, max = 8, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
-    public int chunkUpdateThreads = AUTO;
+    private int chunkUpdateThreads = AUTO;
 
     @Config.Category("threading")
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
