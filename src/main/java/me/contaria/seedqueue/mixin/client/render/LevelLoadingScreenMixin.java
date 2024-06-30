@@ -1,18 +1,13 @@
 package me.contaria.seedqueue.mixin.client.render;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueConfig;
 import me.contaria.seedqueue.gui.wall.SeedQueuePreview;
-import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.LevelLoadingScreen;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.profiler.Profiler;
 import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -46,31 +41,12 @@ public abstract class LevelLoadingScreenMixin {
         }
     }
 
-    @WrapOperation(
-            method = "render",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/screen/LevelLoadingScreen;drawChunkMap(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/gui/WorldGenerationProgressTracker;IIII)V"
-            )
-    )
-    private void profileChunkMapOnWall(MatrixStack matrices, WorldGenerationProgressTracker progress, int i, int j, int k, int l, Operation<Void> original) {
-        //noinspection ConstantValue
-        if ((Object) this instanceof SeedQueuePreview) {
-            Profiler profiler = MinecraftClient.getInstance().getProfiler();
-            profiler.push("chunkmap");
-            original.call(matrices, progress, i, j, k, l);
-            profiler.pop();
-        } else {
-            original.call(matrices, progress, i, j, k, l);
-        }
-    }
-
     @Inject(
             method = "drawChunkMap",
             at = @At("HEAD")
     )
     private static void setColorModifier(MatrixStack matrixStack, WorldGenerationProgressTracker tracker, int i, int j, int k, int l, CallbackInfo ci, @Share("colorModifier") LocalIntRef colorModifier) {
-        if (isSeedQueueChunkMap(tracker) && !SeedQueue.isOnWall() && SeedQueue.config.chunkMapVisibility == SeedQueueConfig.ChunkMapVisibility.TRANSPARENT) {
+        if (!SeedQueue.isOnWall() && SeedQueue.config.chunkMapVisibility == SeedQueueConfig.ChunkMapVisibility.TRANSPARENT && SeedQueue.getEntryMatching(entry -> tracker == entry.getWorldGenerationProgressTracker()).isPresent()) {
             colorModifier.set(TRANSPARENT_MODIFIER);
         } else {
             colorModifier.set(NO_MODIFIER);
@@ -109,10 +85,5 @@ public abstract class LevelLoadingScreenMixin {
     )
     private static int transparentSeedQueueChunkMap_sodium(int color, @Share("colorModifier") LocalIntRef colorModifier) {
         return color & colorModifier.get();
-    }
-
-    @Unique
-    private static boolean isSeedQueueChunkMap(WorldGenerationProgressTracker tracker) {
-        return !tracker.equals(((MinecraftClientAccessor) MinecraftClient.getInstance()).seedQueue$getWorldGenProgressTracker().get());
     }
 }

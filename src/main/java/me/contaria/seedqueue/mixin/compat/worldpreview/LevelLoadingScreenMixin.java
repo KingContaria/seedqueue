@@ -1,7 +1,7 @@
 package me.contaria.seedqueue.mixin.compat.worldpreview;
 
 import com.bawnorton.mixinsquared.TargetHandler;
-import me.contaria.seedqueue.compat.WorldPreviewFrame;
+import me.contaria.seedqueue.compat.WorldPreviewFrameBuffer;
 import me.contaria.seedqueue.gui.wall.SeedQueuePreview;
 import me.voidxwalker.worldpreview.WorldPreview;
 import net.minecraft.client.MinecraftClient;
@@ -44,11 +44,11 @@ public abstract class LevelLoadingScreenMixin extends Screen {
     )
     private void drawClearBackground(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ignored, CallbackInfo ci) {
         this.getAsSeedQueuePreview().ifPresent(preview -> {
-            WorldPreviewFrame frame = Objects.requireNonNull(preview.getWorldPreviewProperties()).getFrame();
+            WorldPreviewFrameBuffer frameBuffer = Objects.requireNonNull(preview.getWorldPreviewProperties()).getOrCreateFrameBuffer();
 
             String renderData = preview.getWorldRenderer().getChunksDebugString() + "\n" + preview.getWorldRenderer().getEntitiesDebugString();
-            if (frame.isEmpty() || (frame.isDirty(renderData) && preview.shouldRenderPreview())) {
-                frame.beginWrite(renderData);
+            if (frameBuffer.isEmpty() || (frameBuffer.isDirty(renderData) && preview.shouldRenderPreview())) {
+                frameBuffer.beginWrite(renderData);
 
                 // related to WorldRendererMixin#doNotClearOnWallScreen
                 // the suppressed call usually renders a light blue overlay over the entire screen,
@@ -57,12 +57,13 @@ public abstract class LevelLoadingScreenMixin extends Screen {
                 return;
             }
 
+            // this can not be SeedQueuePreview#build because that updates and resets WorldPreviewProperties
             WorldPreview.runAsPreview(() -> {
                 WorldPreview.tickPackets();
                 WorldPreview.tickEntities();
                 preview.getWorldPreviewProperties().buildChunks();
             });
-            frame.draw(this.width, this.height);
+            frameBuffer.draw(this.width, this.height);
             ci.cancel();
         });
     }
@@ -78,14 +79,14 @@ public abstract class LevelLoadingScreenMixin extends Screen {
     )
     private void endFrame(CallbackInfo ci) {
         this.getAsSeedQueuePreview().ifPresent(preview -> {
-            WorldPreviewFrame frame = Objects.requireNonNull(preview.getWorldPreviewProperties()).getFrame();
+            WorldPreviewFrameBuffer frameBuffer = Objects.requireNonNull(preview.getWorldPreviewProperties()).getOrCreateFrameBuffer();
 
-            frame.endWrite();
+            frameBuffer.endWrite();
             preview.updateLastRenderFrame();
 
             MinecraftClient.getInstance().getFramebuffer().beginWrite(true);
             preview.wall.refreshViewport();
-            frame.draw(this.width, this.height);
+            frameBuffer.draw(this.width, this.height);
         });
     }
 

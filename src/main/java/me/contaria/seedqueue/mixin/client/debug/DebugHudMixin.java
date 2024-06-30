@@ -15,7 +15,7 @@ public abstract class DebugHudMixin {
             method = "getRightText",
             at = @At("RETURN")
     )
-    private List<String> modifyRightText(List<String> debugText) {
+    private List<String> addSeedQueueDebugText(List<String> debugText) {
         if (SeedQueue.isActive()) {
             debugText.addAll(SeedQueue.getDebugText());
         }

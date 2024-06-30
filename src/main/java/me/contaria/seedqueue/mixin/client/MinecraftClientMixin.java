@@ -18,7 +18,6 @@ import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
-import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressListener;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
@@ -33,6 +32,7 @@ import net.minecraft.util.UserCache;
 import net.minecraft.util.registry.RegistryTracker;
 import net.minecraft.world.SaveProperties;
 import net.minecraft.world.level.storage.LevelStorage;
+import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
@@ -204,36 +204,51 @@ public abstract class MinecraftClientMixin {
             do {
                 tracker = SeedQueue.currentEntry.getWorldGenerationProgressTracker();
             } while (tracker == null);
-            ((SQWorldGenerationProgressListener) tracker).seedQueue$unmute();
             this.worldGenProgressTracker.set(SeedQueue.currentEntry.getWorldGenerationProgressTracker());
         }
     }
 
+    @WrapOperation(
+            method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lorg/apache/logging/log4j/Logger;warn(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V",
+                    ordinal = 0,
+                    remap = false
+            )
+    )
+    private void throwSeedQueueException_createSessionFailure(Logger logger, String message, Object p0, Object p1, Operation<Void> original) {
+        if (SeedQueue.inQueue()) {
+            throw new SeedQueueException("Failed to read level data!", (Throwable) p1);
+        }
+        original.call(logger, message, p0, p1);
+    }
+
+    @WrapOperation(
+            method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lorg/apache/logging/log4j/Logger;warn(Ljava/lang/String;Ljava/lang/Throwable;)V",
+                    remap = false
+            )
+    )
+    private void throwSeedQueueException_loadDataPacksFailure(Logger logger, String message, Throwable t, Operation<Void> original) {
+        if (SeedQueue.inQueue()) {
+            throw new SeedQueueException("Failed to load datapacks!", t);
+        }
+        original.call(logger, message, t);
+    }
+
     @Inject(
             method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
-            at = {
-                    @At(
-                            value = "INVOKE",
-                            target = "Lorg/apache/logging/log4j/Logger;warn(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V",
-                            ordinal = 0,
-                            shift = At.Shift.AFTER,
-                            remap = false
-                    ),
-                    @At(
-                            value = "INVOKE",
-                            target = "Lorg/apache/logging/log4j/Logger;warn(Ljava/lang/String;Ljava/lang/Throwable;)V",
-                            shift = At.Shift.AFTER,
-                            remap = false
-                    ),
-                    @At(
-                            value = "INVOKE",
-                            target = "Lnet/minecraft/client/MinecraftClient;method_29601(Lnet/minecraft/client/MinecraftClient$WorldLoadAction;Ljava/lang/String;ZLjava/lang/Runnable;)V"
-                    )
-            }
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/MinecraftClient;method_29601(Lnet/minecraft/client/MinecraftClient$WorldLoadAction;Ljava/lang/String;ZLjava/lang/Runnable;)V"
+            )
     )
-    private void throwSeedQueueException(CallbackInfo ci) throws SeedQueueException {
+    private void throwSeedQueueException_legacyWorldLoadFailure(CallbackInfo ci) {
         if (SeedQueue.inQueue()) {
-            throw new SeedQueueException();
+            throw new SeedQueueException("Failed to load legacy world!");
         }
     }
 
@@ -267,19 +282,21 @@ public abstract class MinecraftClientMixin {
             )
     )
     private void saveWorldGenerationProgressTracker(AtomicReference<?> instance, Object value, Operation<Void> original) {
-        SeedQueueEntry seedQueueEntry;
+        SeedQueueEntry entry;
         Thread currentThread = Thread.currentThread();
+        // in a loop to avoid the probably never happening race condition
+        // where this is called before MinecraftClient#server has been set
         do {
+            // if the server is set that means we are not in queue and should proceed as normal
             if (this.server != null && currentThread == this.server.getThread()) {
                 original.call(instance, value);
                 return;
             }
-            seedQueueEntry = SeedQueue.getEntry(currentThread);
-        } while (seedQueueEntry == null);
+            entry = SeedQueue.getEntry(currentThread);
+        } while (entry == null);
 
         WorldGenerationProgressTracker tracker = (WorldGenerationProgressTracker) value;
-        ((SQWorldGenerationProgressListener) tracker).seedQueue$mute();
-        seedQueueEntry.setWorldGenerationProgressTracker(tracker);
+        entry.setWorldGenerationProgressTracker(tracker);
     }
 
     @Inject(

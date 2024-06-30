@@ -7,7 +7,6 @@ import net.minecraft.client.gui.screen.Screen;
 import java.util.Optional;
 
 public class SeedQueueThread extends Thread {
-
     private final Object lock = new Object();
     private volatile boolean running = true;
 

@@ -2,7 +2,7 @@ package me.contaria.seedqueue.mixin.compat.worldpreview;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import me.contaria.seedqueue.SeedQueue;
-import me.contaria.seedqueue.compat.ModCompat;
+import me.voidxwalker.worldpreview.WorldPreview;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.Window;
 import org.spongepowered.asm.mixin.Mixin;
@@ -75,7 +75,7 @@ public abstract class WindowMixin {
 
     @Unique
     private boolean shouldModifyWindowSize() {
-        return MinecraftClient.getInstance().isOnThread() && SeedQueue.isOnWall() && ModCompat.worldpreview$isRenderingPreview();
+        return MinecraftClient.getInstance().isOnThread() && SeedQueue.isOnWall() && WorldPreview.renderingPreview;
     }
 
     @Unique

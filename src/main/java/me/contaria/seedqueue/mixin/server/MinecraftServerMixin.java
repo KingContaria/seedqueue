@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
-import me.contaria.seedqueue.SeedQueueException;
 import me.contaria.seedqueue.SeedQueueExecutorWrapper;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
@@ -128,27 +127,24 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     }
 
     @Unique
-    private SeedQueueEntry getEntry() {
+    protected SeedQueueEntry getEntry() {
         return SeedQueue.getEntry((MinecraftServer) (Object) this);
     }
 
     @Override
     public boolean seedQueue$shouldPause() {
-        SeedQueueEntry seedQueueEntry = this.getEntry();
-        if (seedQueueEntry == null || seedQueueEntry.isDiscarded()) {
+        SeedQueueEntry entry = this.getEntry();
+        if (entry == null || entry.isDiscarded()) {
             return false;
         }
-        if (this.pauseScheduled) {
+        if (this.pauseScheduled || entry.isReady()) {
             return true;
         }
-        if (seedQueueEntry.isReady()) {
-            return true;
-        }
-        if (seedQueueEntry.getWorldPreviewProperties() == null) {
+        if (entry.getWorldPreviewProperties() == null) {
             return false;
         }
-        if (!seedQueueEntry.isLocked() && SeedQueue.config.maxWorldGenerationPercentage < 100) {
-            WorldGenerationProgressTracker tracker = seedQueueEntry.getWorldGenerationProgressTracker();
+        if (!entry.isLocked() && SeedQueue.config.maxWorldGenerationPercentage < 100) {
+            WorldGenerationProgressTracker tracker = entry.getWorldGenerationProgressTracker();
             return tracker != null && tracker.getProgressPercentage() >= SeedQueue.config.maxWorldGenerationPercentage;
         }
         return false;
@@ -170,7 +166,7 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
             SeedQueue.ping();
             this.wait();
         } catch (InterruptedException e) {
-            throw new SeedQueueException();
+            throw new RuntimeException("Failed to pause server in SeedQueue!", e);
         } finally {
             this.paused = false;
         }

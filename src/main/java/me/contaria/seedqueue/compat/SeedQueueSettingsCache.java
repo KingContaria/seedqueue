@@ -14,9 +14,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class SeedQueueSettingsCache extends StandardSettingsCache {
-
-    // while language and forceUnicodeFont also affect previews,
-    // they require reloading of some resources which is not feasible
+    // a set of all setting id's that affect preview rendering on wall
+    // while language and forceUnicodeFont also affect previews, they require reloading of some resources which is not feasible
     private static final Set<String> PREVIEW_SETTINGS = new HashSet<>(Arrays.asList(
             "biomeBlendRadius",
             "graphicsMode",

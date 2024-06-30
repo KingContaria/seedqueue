@@ -86,6 +86,9 @@ public abstract class WorldPreviewMixin {
     )
     private static int doNotAllowUnlimitedPackets_onWall(int unlimitedPackets) {
         if (SeedQueue.isOnWall()) {
+            // ensures there is always a packet limit enforced when on the wall screen
+            // not having a limit causes freezes when opening the wall screen
+            // since new SeedQueueEntry's would load all their stored packets at once
             return Integer.MAX_VALUE;
         }
         return unlimitedPackets;

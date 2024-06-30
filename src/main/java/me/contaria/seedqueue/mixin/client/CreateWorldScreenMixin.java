@@ -51,7 +51,7 @@ public abstract class CreateWorldScreenMixin {
     )
     private void throwSeedQueueException(CallbackInfo ci) throws SeedQueueException {
         if (SeedQueue.inQueue()) {
-            throw new SeedQueueException();
+            throw new SeedQueueException("Failed to copy datapacks to world!");
         }
     }
 }

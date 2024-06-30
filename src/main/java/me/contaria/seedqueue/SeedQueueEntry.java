@@ -16,7 +16,6 @@ import net.minecraft.world.level.storage.LevelStorage;
 import org.jetbrains.annotations.Nullable;
 
 public class SeedQueueEntry {
-
     private final MinecraftServer server;
 
     private final LevelStorage.Session session;
@@ -24,7 +23,7 @@ public class SeedQueueEntry {
     private final YggdrasilAuthenticationService yggdrasilAuthenticationService;
     private final MinecraftSessionService minecraftSessionService;
     private final GameProfileRepository gameProfileRepository;
-    @Nullable
+    @Nullable // UserCache will be null when using wall, see also MinecraftClientMixin#loadUserCache
     private final UserCache userCache;
 
     @Nullable

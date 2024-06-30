@@ -8,14 +8,14 @@ import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormats;
 import org.jetbrains.annotations.Nullable;
 
-public class WorldPreviewFrame {
-
+public class WorldPreviewFrameBuffer {
     private final Framebuffer framebuffer;
 
+    // stores a string unique to the current state of world rendering when writing to the framebuffer
     @Nullable
     private String lastRenderData;
 
-    public WorldPreviewFrame(int width, int height) {
+    public WorldPreviewFrameBuffer(int width, int height) {
         this.framebuffer = new Framebuffer(width, height, true, MinecraftClient.IS_SYSTEM_MAC);
     }
 

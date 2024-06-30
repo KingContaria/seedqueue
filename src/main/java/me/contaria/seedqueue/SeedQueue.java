@@ -23,7 +23,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Predicate;
 
 public class SeedQueue implements ClientModInitializer {
-
     public static final Logger LOGGER = LogManager.getLogger();
     public static final Version VERSION = FabricLoader.getInstance().getModContainer("seedqueue").orElseThrow(IllegalStateException::new).getMetadata().getVersion();
     public static final Object LOCK = new Object();
@@ -174,7 +173,7 @@ public class SeedQueue implements ClientModInitializer {
         try {
             thread.join();
         } catch (InterruptedException e) {
-            throw new SeedQueueException();
+            throw new RuntimeException("Failed to stop SeedQueue Thread!", e);
         }
         thread = null;
 
@@ -254,14 +253,6 @@ public class SeedQueue implements ClientModInitializer {
     public static void ping() {
         if (isActive()) {
             thread.ping();
-        }
-    }
-
-    public static void runOnMainThread(Runnable runnable) {
-        if (MinecraftClient.getInstance().isOnThread()) {
-            runnable.run();
-        } else {
-            ((MinecraftClientAccessor) MinecraftClient.getInstance()).getRenderTaskQueue().add(runnable);
         }
     }
 

@@ -3,8 +3,11 @@ package me.contaria.seedqueue.compat;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 
+/**
+ * Intermediate class that allows safe access to other mods methods/fields from code paths that may be run without the mod present.
+ * This class provides wrapper methods for compat classes which should only be classloaded if the mod in question is loaded.
+ */
 public class ModCompat {
-
     public static final boolean HAS_FASTRESET = FabricLoader.getInstance().isModLoaded("fast_reset");
     public static final boolean HAS_SODIUM = FabricLoader.getInstance().isModLoaded("sodium");
     public static final boolean HAS_STANDARDSETTINGS = FabricLoader.getInstance().isModLoaded("standardsettings");
@@ -40,13 +43,6 @@ public class ModCompat {
         if (HAS_STANDARDSETTINGS) {
             StandardSettingsCompat.onWorldJoin();
         }
-    }
-
-    public static boolean worldpreview$isRenderingPreview() {
-        if (HAS_WORLDPREVIEW) {
-            return WorldPreviewCompat.isRenderingPreview();
-        }
-        return false;
     }
 
     public static boolean worldpreview$kill(MinecraftServer server) {

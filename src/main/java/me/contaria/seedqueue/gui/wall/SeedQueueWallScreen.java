@@ -288,29 +288,30 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void updateLockedPreviews() {
-        if (this.lockedPreviews != null) {
-            for (SeedQueueEntry entry : this.getAvailableSeedQueueEntries()) {
-                if (entry.isLocked()) {
-                    this.lockedPreviews.add(new SeedQueuePreview(this, entry));
-                }
-            }
-            for (int i = 0; i < this.mainPreviews.length; i++) {
-                SeedQueuePreview instance = this.mainPreviews[i];
-                if (instance != null && instance.getSeedQueueEntry().isLocked()) {
-                    this.lockedPreviews.add(instance);
-                    this.mainPreviews[i] = null;
-                    if (!this.layout.replaceLockedInstances) {
-                        this.blockedMainPositions.add(i);
-                    }
-                }
-            }
-            for (SeedQueuePreview instance : this.preparingPreviews) {
-                if (instance.getSeedQueueEntry().isLocked()) {
-                    this.lockedPreviews.add(instance);
-                }
-            }
-            this.preparingPreviews.removeAll(this.lockedPreviews);
+        if (this.lockedPreviews == null) {
+            return;
         }
+        for (SeedQueueEntry entry : this.getAvailableSeedQueueEntries()) {
+            if (entry.isLocked()) {
+                this.lockedPreviews.add(new SeedQueuePreview(this, entry));
+            }
+        }
+        for (int i = 0; i < this.mainPreviews.length; i++) {
+            SeedQueuePreview instance = this.mainPreviews[i];
+            if (instance != null && instance.getSeedQueueEntry().isLocked()) {
+                this.lockedPreviews.add(instance);
+                this.mainPreviews[i] = null;
+                if (!this.layout.replaceLockedInstances) {
+                    this.blockedMainPositions.add(i);
+                }
+            }
+        }
+        for (SeedQueuePreview instance : this.preparingPreviews) {
+            if (instance.getSeedQueueEntry().isLocked()) {
+                this.lockedPreviews.add(instance);
+            }
+        }
+        this.preparingPreviews.removeAll(this.lockedPreviews);
     }
 
     private void updateMainPreviews() {
@@ -925,7 +926,12 @@ public class SeedQueueWallScreen extends Screen {
                 int rowHeight = (height - padding * (rows - 1)) / rows;
                 for (int row = 0; row < rows; row++) {
                     for (int column = 0; column < columns; column++) {
-                        positions[row * columns + column] = new Pos(x + column * columnWidth + padding * column, y + row * rowHeight + padding * row, columnWidth, rowHeight);
+                        positions[row * columns + column] = new Pos(
+                                x + column * columnWidth + padding * column,
+                                y + row * rowHeight + padding * row,
+                                columnWidth,
+                                rowHeight
+                        );
                     }
                 }
                 return new Group(positions, cosmetic, instance_background);

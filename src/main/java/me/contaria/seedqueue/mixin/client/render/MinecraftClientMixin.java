@@ -55,8 +55,7 @@ public abstract class MinecraftClientMixin {
                     x = 3;
                     y += tracker.getSize() * scale + 3;
                 }
-                MatrixStack matrixStack = new MatrixStack();
-                LevelLoadingScreen.drawChunkMap(matrixStack, tracker, x + tracker.getSize() * scale / 2, y + tracker.getSize() * scale / 2, scale, 0);
+                LevelLoadingScreen.drawChunkMap(new MatrixStack(), tracker, x + tracker.getSize() * scale / 2, y + tracker.getSize() * scale / 2, scale, 0);
                 x += tracker.getSize() * scale + 3;
             }
         }

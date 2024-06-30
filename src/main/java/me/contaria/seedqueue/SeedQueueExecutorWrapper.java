@@ -7,7 +7,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
 public class SeedQueueExecutorWrapper implements Executor {
-
     public static final Executor SEEDQUEUE_EXECUTOR = command -> getSeedqueueExecutor().execute(command);
 
     private static ExecutorService SEEDQUEUE_BACKGROUND_EXECUTOR;

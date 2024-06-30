@@ -47,7 +47,7 @@ public abstract class WorldRendererMixin implements SQWorldRenderer {
 
     @Override
     public void seedQueue$buildChunks(MatrixStack matrices, Camera camera, Matrix4f projectionMatrix) {
-        Profiler profiler = this.world.getProfiler();
+        Profiler profiler = this.client.getProfiler();
 
         profiler.push("light_updates");
         this.world.getChunkManager().getLightingProvider().doLightUpdates(Integer.MAX_VALUE, true, true);

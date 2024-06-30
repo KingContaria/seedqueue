@@ -70,7 +70,8 @@ public abstract class ChunkBuilderMixin {
     }
 
     // because ChunkBuilderMixin#doNotWaitForWorkersToStopOnWall prevents waiting for old workers to shut down,
-    // it's necessary to replace the atomic boolean to prevent the worker threads staying alive when new workers are started
+    // it's necessary to replace the atomic boolean to prevent the worker threads staying alive
+    // when new workers are started before old ones have stopped
     @Inject(
             method = "stopWorkers",
             at = @At("TAIL")
@@ -81,6 +82,7 @@ public abstract class ChunkBuilderMixin {
         }
     }
 
+    // mac sodium compat is very silly
     @Group(name = "loadCachedBuildBuffersOnWall")
     @WrapOperation(
             method = "startWorkers",

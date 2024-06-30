@@ -1,7 +1,6 @@
 package me.contaria.seedqueue.compat;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.interfaces.worldpreview.SQWorldRenderer;
 import me.contaria.seedqueue.mixin.accessor.CameraAccessor;
 import me.voidxwalker.worldpreview.WorldPreview;
@@ -23,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Queue;
 
 public class WorldPreviewProperties {
-
     private final ClientWorld world;
     private final ClientPlayerEntity player;
     private final ClientPlayerInteractionManager interactionManager;
@@ -33,7 +31,7 @@ public class WorldPreviewProperties {
     private SeedQueueSettingsCache settingsCache;
 
     @Nullable
-    private WorldPreviewFrame frame;
+    private WorldPreviewFrameBuffer frameBuffer;
 
     public WorldPreviewProperties(ClientWorld world, ClientPlayerEntity player, ClientPlayerInteractionManager interactionManager, Camera camera, Queue<Packet<?>> packetQueue) {
         this.world = world;
@@ -68,6 +66,9 @@ public class WorldPreviewProperties {
         this.settingsCache.loadPlayerModelParts(this.player);
     }
 
+    // perspective is set earlier than the settingsCache because it is important for chunk data culling
+    // the same does not go for FOV because we simply use 110 (Quake Pro) for culling because most people will/should just use it on the wall screen anyway
+    // see also WorldPreviewMixin#modifyPerspective_inQueue, ServerChunkManagerMixin#modifyCullingFov_inQueue
     public int getPerspective() {
         return this.camera.isThirdPerson() ? ((CameraAccessor) this.camera).seedQueue$isInverseView() ? 2 : 1 : 0;
     }
@@ -121,14 +122,14 @@ public class WorldPreviewProperties {
         RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
     }
 
-    public WorldPreviewFrame getFrame() {
-        if (this.frame == null) {
+    public WorldPreviewFrameBuffer getOrCreateFrameBuffer() {
+        if (this.frameBuffer == null) {
             Profiler profiler = MinecraftClient.getInstance().getProfiler();
             profiler.push("create_framebuffer");
-            this.frame = new WorldPreviewFrame(MinecraftClient.getInstance().getWindow().getFramebufferWidth(), MinecraftClient.getInstance().getWindow().getFramebufferHeight());
+            this.frameBuffer = new WorldPreviewFrameBuffer(MinecraftClient.getInstance().getWindow().getFramebufferWidth(), MinecraftClient.getInstance().getWindow().getFramebufferHeight());
             profiler.pop();
         }
-        return this.frame;
+        return this.frameBuffer;
     }
 
     public synchronized void discard() {
@@ -137,10 +138,15 @@ public class WorldPreviewProperties {
         profiler.push("clear_packet_queue");
         this.packetQueue.clear();
         profiler.swap("delete_framebuffer");
-        if (this.frame != null) {
-            SeedQueue.runOnMainThread(this.frame::delete);
+        if (this.frameBuffer != null) {
+            if (!MinecraftClient.getInstance().isOnThread()) {
+                // WorldPreviewProperties#discard should only be called off-thread from MinecraftServerMixin#discardWorldPreviewPropertiesOnLoad
+                // which only triggers when not using wall, meaning no framebuffer will be created
+                throw new IllegalStateException("Tried to discard WorldPreviewProperties with a framebuffer off-thread!");
+            }
+            this.frameBuffer.delete();
+            this.frameBuffer = null;
         }
-        this.frame = null;
         profiler.pop();
     }
 }

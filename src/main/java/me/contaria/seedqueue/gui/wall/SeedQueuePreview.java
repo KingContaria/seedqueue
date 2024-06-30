@@ -56,35 +56,29 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     }
 
     private void initScreen() {
-        try {
-            WorldPreview.inPreview = true;
+        // forceUnicodeFont is not being loaded from the settings cache because it is not included in SeedQueueSettingsCache.PREVIEW_SETTINGS
+        int scale = SeedQueue.config.calculateSimulatedScaleFactor(
+                this.worldPreviewProperties != null ? (int) this.worldPreviewProperties.getSettingsCache().getValue("guiScale") : MinecraftClient.getInstance().options.guiScale,
+                MinecraftClient.getInstance().options.forceUnicodeFont
+        );
+        this.init(
+                MinecraftClient.getInstance(),
+                SeedQueue.config.simulatedWindowSize.width() / scale,
+                SeedQueue.config.simulatedWindowSize.height() / scale
+        );
 
-            // forceUnicodeFont is not being loaded from the settings cache because it is not included in SeedQueueSettingsCache.PREVIEW_SETTINGS
-            int scale = SeedQueue.config.calculateSimulatedScaleFactor(
-                    this.worldPreviewProperties != null ? (int) this.worldPreviewProperties.getSettingsCache().getValue("guiScale") : MinecraftClient.getInstance().options.guiScale,
-                    MinecraftClient.getInstance().options.forceUnicodeFont
-            );
-            this.init(
-                    MinecraftClient.getInstance(),
-                    SeedQueue.config.simulatedWindowSize.width() / scale,
-                    SeedQueue.config.simulatedWindowSize.height() / scale
-            );
-
-            if (Boolean.TRUE.equals(SpeedrunConfigAPI.getConfigValue("standardsettings", "autoF3Esc"))) {
-                Text backToGame = new TranslatableText("menu.returnToGame");
-                for (Element e : this.children()) {
-                    if (!(e instanceof ButtonWidget)) {
-                        continue;
-                    }
-                    ButtonWidget button = (ButtonWidget) e;
-                    if (backToGame.equals(button.getMessage())) {
-                        button.onPress();
-                        break;
-                    }
+        if (Boolean.TRUE.equals(SpeedrunConfigAPI.getConfigValue("standardsettings", "autoF3Esc"))) {
+            Text backToGame = new TranslatableText("menu.returnToGame");
+            for (Element e : this.children()) {
+                if (!(e instanceof ButtonWidget)) {
+                    continue;
+                }
+                ButtonWidget button = (ButtonWidget) e;
+                if (backToGame.equals(button.getMessage())) {
+                    button.onPress();
+                    break;
                 }
             }
-        } finally {
-            WorldPreview.inPreview = false;
         }
     }
 
