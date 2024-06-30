@@ -1,4 +1,8 @@
 {
+  "play_instance": {
+    "sounds": [
+    ]
+  },
   "lock_instance": {
     "sounds": [
       "seedqueue:lock_instance"

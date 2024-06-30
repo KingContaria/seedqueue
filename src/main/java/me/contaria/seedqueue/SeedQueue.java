@@ -32,6 +32,8 @@ public class SeedQueue implements ClientModInitializer {
     public static SeedQueueConfig config;
     public static SeedQueueThread thread;
 
+    public static boolean comingFromWall;
+
     @Override
     public void onInitializeClient() {
         SeedQueueSounds.init();

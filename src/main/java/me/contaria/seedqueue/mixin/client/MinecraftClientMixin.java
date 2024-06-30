@@ -24,6 +24,7 @@ import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.sound.SoundManager;
 import net.minecraft.resource.DataPackSettings;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ServerResourceManager;
@@ -549,6 +550,28 @@ public abstract class MinecraftClientMixin {
             ((SeedQueueWallScreen) this.currentScreen).populateResetCooldowns();
             ((SeedQueueWallScreen) this.currentScreen).tickBenchmark();
         }
+    }
+
+    // don't clear sounds when coming from the wall screen
+    // ingame sounds of previous worlds will still be reset before joining wall,
+    // this just allows wall sounds to keep playing
+    @WrapWithCondition(
+            method = "reset",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/sound/SoundManager;stopAll()V"
+            )
+    )
+    private boolean keepSoundsComingFromWall(SoundManager manager) {
+        return !SeedQueue.comingFromWall;
+    }
+
+    @Inject(
+            method = "joinWorld",
+            at = @At("RETURN")
+    )
+    private void resetComingFromWall(CallbackInfo ci) {
+        SeedQueue.comingFromWall = false;
     }
 
     @Inject(

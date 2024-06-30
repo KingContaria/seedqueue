@@ -5,6 +5,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 public class SeedQueueSounds {
+    public static final SoundEvent PLAY_INSTANCE = register("play_instance");
     public static final SoundEvent LOCK_INSTANCE = register("lock_instance");
     public static final SoundEvent RESET_INSTANCE = register("reset_instance");
     public static final SoundEvent RESET_ALL = register("reset_all");

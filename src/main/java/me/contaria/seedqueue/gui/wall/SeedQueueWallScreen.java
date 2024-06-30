@@ -552,6 +552,8 @@ public class SeedQueueWallScreen extends Screen {
         if (this.client.getServer() != null || SeedQueue.selectedEntry != null || !entry.isReady()) {
             return false;
         }
+        this.playSound(SeedQueueSounds.PLAY_INSTANCE);
+        SeedQueue.comingFromWall = true;
         SeedQueue.selectedEntry = entry;
         this.client.openScreen(this.createWorldScreen);
         return true;
