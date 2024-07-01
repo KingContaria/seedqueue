@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfileRepository;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import me.contaria.seedqueue.compat.ModCompat;
+import me.contaria.seedqueue.compat.WorldPreviewFrameBuffer;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
@@ -30,6 +31,8 @@ public class SeedQueueEntry {
     private WorldGenerationProgressTracker worldGenerationProgressTracker;
     @Nullable
     private WorldPreviewProperties worldPreviewProperties;
+    @Nullable
+    private WorldPreviewFrameBuffer frameBuffer;
 
     private boolean locked;
     private boolean discarded;
@@ -88,10 +91,30 @@ public class SeedQueueEntry {
         this.worldPreviewProperties = worldPreviewProperties;
     }
 
-    public synchronized void discardWorldPreviewProperties() {
-        if (this.worldPreviewProperties != null) {
-            this.worldPreviewProperties.discard();
-            this.worldPreviewProperties = null;
+    public WorldPreviewFrameBuffer getFrameBuffer() {
+        return this.getFrameBuffer(false);
+    }
+
+    public WorldPreviewFrameBuffer getFrameBuffer(boolean create) {
+        if (!MinecraftClient.getInstance().isOnThread()) {
+            throw new IllegalStateException("Tried to get WorldPreviewFrameBuffer off-thread!");
+        }
+        if (create && this.frameBuffer == null) {
+            Profiler profiler = MinecraftClient.getInstance().getProfiler();
+            profiler.push("create_framebuffer");
+            this.frameBuffer = new WorldPreviewFrameBuffer(MinecraftClient.getInstance().getWindow().getFramebufferWidth(), MinecraftClient.getInstance().getWindow().getFramebufferHeight());
+            profiler.pop();
+        }
+        return this.frameBuffer;
+    }
+
+    public void discardFrameBuffer() {
+        if (!MinecraftClient.getInstance().isOnThread()) {
+            throw new IllegalStateException("Tried to discard WorldPreviewFrameBuffer off-thread!");
+        }
+        if (this.frameBuffer != null) {
+            this.frameBuffer.delete();
+            this.frameBuffer = null;
         }
     }
 
@@ -164,8 +187,8 @@ public class SeedQueueEntry {
 
             this.discarded = true;
 
-            profiler.push("discard_worldpreview_properties");
-            this.discardWorldPreviewProperties();
+            profiler.push("discard_framebuffer");
+            this.discardFrameBuffer();
 
             profiler.swap("stop_server");
             if (!ModCompat.worldpreview$kill(this.server)) {

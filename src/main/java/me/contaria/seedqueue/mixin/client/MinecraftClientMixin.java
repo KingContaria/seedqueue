@@ -457,7 +457,7 @@ public abstract class MinecraftClientMixin {
     )
     private void discardCurrentSeedQueueEntry(CallbackInfo ci) {
         if (!SeedQueue.inQueue() && SeedQueue.currentEntry != null) {
-            SeedQueue.currentEntry.discardWorldPreviewProperties();
+            SeedQueue.currentEntry.discardFrameBuffer();
             SeedQueue.currentEntry = null;
         }
     }

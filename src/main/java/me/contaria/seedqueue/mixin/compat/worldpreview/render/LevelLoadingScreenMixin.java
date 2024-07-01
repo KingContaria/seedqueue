@@ -42,12 +42,17 @@ public abstract class LevelLoadingScreenMixin extends Screen {
             ),
             cancellable = true
     )
-    private void drawClearBackground(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ignored, CallbackInfo ci) {
+    private void beginFrame(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ignored, CallbackInfo ci) {
         this.getAsSeedQueuePreview().ifPresent(preview -> {
-            WorldPreviewFrameBuffer frameBuffer = Objects.requireNonNull(preview.getWorldPreviewProperties()).getOrCreateFrameBuffer();
+            boolean hasPreviewProperties = preview.getWorldPreviewProperties() != null;
+
+            WorldPreviewFrameBuffer frameBuffer = preview.getSeedQueueEntry().getFrameBuffer(hasPreviewProperties);
+            if (frameBuffer == null) {
+                return;
+            }
 
             String renderData = preview.getWorldRenderer().getChunksDebugString() + "\n" + preview.getWorldRenderer().getEntitiesDebugString();
-            if (frameBuffer.isEmpty() || (frameBuffer.isDirty(renderData) && preview.shouldRenderPreview())) {
+            if (hasPreviewProperties && (frameBuffer.isEmpty() || (frameBuffer.isDirty(renderData) && preview.shouldRenderPreview()))) {
                 frameBuffer.beginWrite(renderData);
 
                 // related to WorldRendererMixin#doNotClearOnWallScreen
@@ -61,7 +66,7 @@ public abstract class LevelLoadingScreenMixin extends Screen {
             WorldPreview.runAsPreview(() -> {
                 WorldPreview.tickPackets();
                 WorldPreview.tickEntities();
-                preview.getWorldPreviewProperties().buildChunks();
+                Objects.requireNonNull(preview.getWorldPreviewProperties()).buildChunks();
             });
             frameBuffer.draw(this.width, this.height);
             ci.cancel();
@@ -79,7 +84,7 @@ public abstract class LevelLoadingScreenMixin extends Screen {
     )
     private void endFrame(CallbackInfo ci) {
         this.getAsSeedQueuePreview().ifPresent(preview -> {
-            WorldPreviewFrameBuffer frameBuffer = Objects.requireNonNull(preview.getWorldPreviewProperties()).getOrCreateFrameBuffer();
+            WorldPreviewFrameBuffer frameBuffer = preview.getSeedQueueEntry().getFrameBuffer();
 
             frameBuffer.endWrite();
             preview.updateLastRenderFrame();

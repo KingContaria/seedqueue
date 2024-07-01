@@ -104,7 +104,7 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     private void discardWorldPreviewPropertiesOnLoad(CallbackInfo ci) {
         SeedQueueEntry entry = this.getEntry();
         if (entry != null && !SeedQueue.config.shouldUseWall()) {
-            entry.discardWorldPreviewProperties();
+            entry.setWorldPreviewProperties(null);
         }
     }
 

@@ -15,9 +15,7 @@ import net.minecraft.client.util.math.Vector3f;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.Packet;
 import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.profiler.DummyProfiler;
 import net.minecraft.util.profiler.Profiler;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Queue;
 
@@ -29,9 +27,6 @@ public class WorldPreviewProperties {
     private final Queue<Packet<?>> packetQueue;
 
     private SeedQueueSettingsCache settingsCache;
-
-    @Nullable
-    private WorldPreviewFrameBuffer frameBuffer;
 
     public WorldPreviewProperties(ClientWorld world, ClientPlayerEntity player, ClientPlayerInteractionManager interactionManager, Camera camera, Queue<Packet<?>> packetQueue) {
         this.world = world;
@@ -120,33 +115,5 @@ public class WorldPreviewProperties {
         DiffuseLighting.enableGuiDepthLighting();
         RenderSystem.defaultAlphaFunc();
         RenderSystem.clear(256, MinecraftClient.IS_SYSTEM_MAC);
-    }
-
-    public WorldPreviewFrameBuffer getOrCreateFrameBuffer() {
-        if (this.frameBuffer == null) {
-            Profiler profiler = MinecraftClient.getInstance().getProfiler();
-            profiler.push("create_framebuffer");
-            this.frameBuffer = new WorldPreviewFrameBuffer(MinecraftClient.getInstance().getWindow().getFramebufferWidth(), MinecraftClient.getInstance().getWindow().getFramebufferHeight());
-            profiler.pop();
-        }
-        return this.frameBuffer;
-    }
-
-    public synchronized void discard() {
-        Profiler profiler = MinecraftClient.getInstance().isOnThread() ? MinecraftClient.getInstance().getProfiler() : DummyProfiler.INSTANCE;
-
-        profiler.push("clear_packet_queue");
-        this.packetQueue.clear();
-        profiler.swap("delete_framebuffer");
-        if (this.frameBuffer != null) {
-            if (!MinecraftClient.getInstance().isOnThread()) {
-                // WorldPreviewProperties#discard should only be called off-thread from MinecraftServerMixin#discardWorldPreviewPropertiesOnLoad
-                // which only triggers when not using wall, meaning no framebuffer will be created
-                throw new IllegalStateException("Tried to discard WorldPreviewProperties with a framebuffer off-thread!");
-            }
-            this.frameBuffer.delete();
-            this.frameBuffer = null;
-        }
-        profiler.pop();
     }
 }
