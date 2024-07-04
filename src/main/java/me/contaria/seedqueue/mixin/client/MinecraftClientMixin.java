@@ -18,8 +18,9 @@ import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
-import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressTracker;
+import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressLogger;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
+import me.contaria.seedqueue.mixin.accessor.WorldGenerationProgressTrackerAccessor;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
@@ -234,7 +235,7 @@ public abstract class MinecraftClientMixin {
             entry = SeedQueue.getEntry(currentThread);
         } while (entry == null);
 
-        ((SQWorldGenerationProgressTracker) tracker).seedQueue$mute();
+        ((SQWorldGenerationProgressLogger) ((WorldGenerationProgressTrackerAccessor) tracker).getProgressLogger()).seedQueue$mute();
         entry.setWorldGenerationProgressTracker((WorldGenerationProgressTracker) tracker);
     }
 
@@ -253,7 +254,7 @@ public abstract class MinecraftClientMixin {
             // tracker could be null if the SeedQueueEntry is loaded before the server creates the tracker,
             // in that case the vanilla logic will loop and wait for the tracker to be created
             if (tracker != null) {
-                ((SQWorldGenerationProgressTracker) tracker).seedQueue$unmute();
+                ((SQWorldGenerationProgressLogger) ((WorldGenerationProgressTrackerAccessor) tracker).getProgressLogger()).seedQueue$unmute();
                 this.worldGenProgressTracker.set(tracker);
             }
         }
