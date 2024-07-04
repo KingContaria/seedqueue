@@ -1,6 +1,6 @@
 package me.contaria.seedqueue.interfaces;
 
-public interface SQWorldGenerationProgressTracker {
+public interface SQWorldGenerationProgressLogger {
 
     void seedQueue$mute();
 
