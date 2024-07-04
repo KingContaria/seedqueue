@@ -1,217 +1,306 @@
 package me.contaria.seedqueue.mixin.compat.sodium.profiling;
 
-import it.unimi.dsi.fastutil.longs.LongSet;
-import me.jellysquid.mods.sodium.client.SodiumClientMod;
-import me.jellysquid.mods.sodium.client.gl.device.RenderDevice;
-import me.jellysquid.mods.sodium.client.gui.SodiumGameOptions;
-import me.jellysquid.mods.sodium.client.model.vertex.type.ChunkVertexType;
+import me.contaria.seedqueue.SeedQueueProfiler;
 import me.jellysquid.mods.sodium.client.render.SodiumWorldRenderer;
-import me.jellysquid.mods.sodium.client.render.chunk.ChunkRenderBackend;
-import me.jellysquid.mods.sodium.client.render.chunk.ChunkRenderManager;
-import me.jellysquid.mods.sodium.client.render.chunk.format.DefaultModelVertexFormats;
-import me.jellysquid.mods.sodium.client.render.chunk.passes.BlockRenderPassManager;
-import me.jellysquid.mods.sodium.client.render.pipeline.context.ChunkRenderCacheShared;
 import me.jellysquid.mods.sodium.client.world.ChunkStatusListener;
-import me.jellysquid.mods.sodium.client.world.ChunkStatusListenerManager;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.profiler.Profiler;
-import org.spongepowered.asm.mixin.*;
-
-import java.util.Set;
+import org.spongepowered.asm.mixin.Debug;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * Profiling mixins add more usage of the profiler to hot paths during wall rendering.
- * Because of the amount of injections this would require, @Overwrites are used where possible instead.
- * These Mixins will be removed in later versions of SeedQueue anyway.
+ * These Mixins will be removed in later versions of SeedQueue.
  */
+@Debug(export = true)
 @Mixin(value = SodiumWorldRenderer.class, remap = false, priority = 500)
 public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
 
-    @Shadow(remap = true)
-    private ClientWorld world;
-
-    @Shadow
-    private ChunkRenderManager<?> chunkRenderManager;
-
-    @Shadow
-    private ChunkRenderBackend<?> chunkRenderBackend;
-
-    @Shadow
-    @Final
-    private LongSet loadedChunkPositions;
-
-    @Shadow
-    @Final
-    private Set<BlockEntity> globalBlockEntities;
-
-    @Shadow
-    private int renderDistance;
-
-    @Shadow(remap = true)
-    @Final
-    private MinecraftClient client;
-
-    @Shadow
-    private BlockRenderPassManager renderPassManager;
-
-    @Shadow
-    private static ChunkRenderBackend<?> createChunkRenderBackend(RenderDevice device, SodiumGameOptions options, ChunkVertexType vertexFormat) {
-        return null;
+    @Inject(
+            method = "setWorld",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;world:Lnet/minecraft/client/world/ClientWorld;",
+                    ordinal = 1
+            )
+    )
+    private void profileSodium_setWorld(CallbackInfo ci) {
+        SeedQueueProfiler.push("sodium");
     }
 
-    /**
-     * @author contaria
-     * @reason see JavaDocs on this mixin class
-     */
-    @Overwrite(remap = true)
-    public void setWorld(ClientWorld world) {
-        // Check that the world is actually changing
-        if (this.world == world) {
-            return;
-        }
-
-        Profiler profiler = MinecraftClient.getInstance().getProfiler();
-
-        profiler.push("sodium");
-        // If we have a world is already loaded, unload the renderer
-        if (this.world != null) {
-            profiler.push("unload_world");
-            this.unloadWorld();
-            profiler.pop();
-        }
-
-        // If we're loading a new world, load the renderer
-        if (world != null) {
-            profiler.push("load_world");
-            this.loadWorld(world);
-            profiler.pop();
-        }
-        profiler.pop();
+    @Inject(
+            method = "setWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;unloadWorld()V"
+            )
+    )
+    private void profileUnloadWorld(CallbackInfo ci) {
+        SeedQueueProfiler.push("unload_world");
     }
 
-    /**
-     * @author contaria
-     * @reason see JavaDocs on this mixin class
-     */
-    @Overwrite(remap = true)
-    private void loadWorld(ClientWorld world) {
-        Profiler profiler = MinecraftClient.getInstance().getProfiler();
-
-        this.world = world;
-
-        profiler.push("create_render_context");
-        ChunkRenderCacheShared.createRenderContext(this.world);
-
-        profiler.swap("init_renderer");
-        this.initRenderer();
-
-        profiler.swap("set_listener");
-        ((ChunkStatusListenerManager) world.getChunkManager()).setListener(this);
-        profiler.pop();
+    @Inject(
+            method = "setWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;unloadWorld()V",
+                    shift = At.Shift.AFTER
+            )
+    )
+    private void profilePopUnloadWorld(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
     }
 
-    /**
-     * @author contaria
-     * @reason see JavaDocs on this mixin class
-     */
-    @Overwrite
-    private void unloadWorld() {
-        Profiler profiler = MinecraftClient.getInstance().getProfiler();
-
-        profiler.push("destroy_render_context");
-        ChunkRenderCacheShared.destroyRenderContext(this.world);
-
-        profiler.swap("destroy_render_manager");
-        if (this.chunkRenderManager != null) {
-            this.chunkRenderManager.destroy();
-            this.chunkRenderManager = null;
-        }
-
-        profiler.swap("delete_render_backend");
-        if (this.chunkRenderBackend != null) {
-            this.chunkRenderBackend.delete();
-            this.chunkRenderBackend = null;
-        }
-
-        profiler.swap("clear_loaded_chunks");
-        this.loadedChunkPositions.clear();
-        profiler.swap("clear_block_entities");
-        this.globalBlockEntities.clear();
-
-        this.world = null;
-        profiler.pop();
+    @Inject(
+            method = "setWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;loadWorld(Lnet/minecraft/client/world/ClientWorld;)V"
+            )
+    )
+    private void profileLoadWorld(CallbackInfo ci) {
+        SeedQueueProfiler.push("load_world");
     }
 
-    /**
-     * @author contaria
-     * @reason see JavaDocs on this mixin class
-     */
-    @Overwrite
-    public void reload() {
-        if (this.world == null) {
-            return;
-        }
-        Profiler profiler = MinecraftClient.getInstance().getProfiler();
-
-        profiler.push("sodium");
-        this.initRenderer();
-        profiler.pop();
+    @Inject(
+            method = "setWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;loadWorld(Lnet/minecraft/client/world/ClientWorld;)V",
+                    shift = At.Shift.AFTER
+            )
+    )
+    private void profilePopLoadWorld(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
     }
 
-    /**
-     * @author contaria
-     * @reason see JavaDocs on this mixin class
-     */
-    @Overwrite
-    private void initRenderer() {
-        Profiler profiler = MinecraftClient.getInstance().getProfiler();
-
-        profiler.push("destroy_render_manager");
-        if (this.chunkRenderManager != null) {
-            this.chunkRenderManager.destroy();
-            this.chunkRenderManager = null;
-        }
-
-        profiler.swap("delete_render_backend");
-        if (this.chunkRenderBackend != null) {
-            this.chunkRenderBackend.delete();
-            this.chunkRenderBackend = null;
-        }
-
-        profiler.swap("set_values");
-        RenderDevice device = RenderDevice.INSTANCE;
-
-        this.renderDistance = this.client.options.viewDistance;
-
-        SodiumGameOptions opts = SodiumClientMod.options();
-
-        profiler.swap("create_default_mappings");
-        this.renderPassManager = BlockRenderPassManager.createDefaultMappings();
-
-        final ChunkVertexType vertexFormat;
-
-        if (opts.advanced.useCompactVertexFormat) {
-            vertexFormat = DefaultModelVertexFormats.MODEL_VERTEX_HFP;
-        } else {
-            vertexFormat = DefaultModelVertexFormats.MODEL_VERTEX_SFP;
-        }
-
-        profiler.swap("create_render_backend");
-        this.chunkRenderBackend = createChunkRenderBackend(device, opts, vertexFormat);
-        profiler.swap("create_shaders");
-        this.chunkRenderBackend.createShaders(device);
-
-        profiler.swap("create_render_manager");
-        this.chunkRenderManager = new ChunkRenderManager<>(this.getThis(), this.chunkRenderBackend, this.renderPassManager, this.world, this.renderDistance);
-        profiler.swap("restore_chunks");
-        this.chunkRenderManager.restoreChunks(this.loadedChunkPositions);
-        profiler.pop();
+    @Inject(
+            method = "setWorld",
+            at = @At("TAIL")
+    )
+    private void profilePop_setWorld(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
     }
 
-    @Unique
-    private SodiumWorldRenderer getThis() {
-        return (SodiumWorldRenderer) (Object) this;
+    @Inject(
+            method = "loadWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheShared;createRenderContext(Lnet/minecraft/world/BlockRenderView;)V"
+            )
+    )
+    private void profileCreateRenderContext(CallbackInfo ci) {
+        SeedQueueProfiler.push("create_render_context");
+    }
+
+    @Inject(
+            method = "loadWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;initRenderer()V"
+            )
+    )
+    private void profileInitRenderer(CallbackInfo ci) {
+        SeedQueueProfiler.swap("init_renderer");
+    }
+
+    @Inject(
+            method = "loadWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/world/ChunkStatusListenerManager;setListener(Lme/jellysquid/mods/sodium/client/world/ChunkStatusListener;)V"
+            )
+    )
+    private void profileSetListener(CallbackInfo ci) {
+        SeedQueueProfiler.swap("set_listener");
+    }
+
+    @Inject(
+            method = "loadWorld",
+            at = @At("TAIL")
+    )
+    private void profilePop_loadWorld(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
+    }
+
+    @Inject(
+            method = "unloadWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheShared;destroyRenderContext(Lnet/minecraft/world/BlockRenderView;)V"
+            )
+    )
+    private void profileDestroyRenderContext(CallbackInfo ci) {
+        SeedQueueProfiler.push("destroy_render_context");
+    }
+
+    @Inject(
+            method = "unloadWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;destroy()V"
+            )
+    )
+    private void profileDestroyRenderManager(CallbackInfo ci) {
+        SeedQueueProfiler.swap("destroy_render_manager");
+    }
+
+    @Inject(
+            method = "unloadWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderBackend;delete()V"
+            )
+    )
+    private void profileDeleteRenderBackend(CallbackInfo ci) {
+        SeedQueueProfiler.swap("delete_render_backend");
+    }
+
+    @Inject(
+            method = "unloadWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lit/unimi/dsi/fastutil/longs/LongSet;clear()V"
+            )
+    )
+    private void profileClear(CallbackInfo ci) {
+        SeedQueueProfiler.swap("clear");
+    }
+
+    @Inject(
+            method = "unloadWorld",
+            at = @At("TAIL")
+    )
+    private void profilePop_unloadWorld(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
+    }
+
+    @Inject(
+            method = "reload",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;initRenderer()V"
+            )
+    )
+    private void profileSodiumReload(CallbackInfo ci) {
+        SeedQueueProfiler.push("sodium");
+    }
+
+    @Inject(
+            method = "reload",
+            at = @At("TAIL")
+    )
+    private void profilePop_reload(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
+    }
+
+    @Inject(
+            method = "initRenderer",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;destroy()V"
+            )
+    )
+    private void profileDestroyRenderManager_initRenderer(CallbackInfo ci) {
+        SeedQueueProfiler.push("destroy_render_manager");
+    }
+
+    @Inject(
+            method = "initRenderer",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;destroy()V",
+                    shift = At.Shift.AFTER
+            )
+    )
+    private void profilePopDestroyRenderManager_initRenderer(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
+    }
+
+    @Inject(
+            method = "initRenderer",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderBackend;delete()V"
+            )
+    )
+    private void profileDeleteRenderBackend_initRenderer(CallbackInfo ci) {
+        SeedQueueProfiler.push("delete_render_backend");
+    }
+
+    @Inject(
+            method = "initRenderer",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderBackend;delete()V",
+                    shift = At.Shift.AFTER
+            )
+    )
+    private void profilePopDeleteRenderBackend_initRenderer(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
+    }
+
+    @Inject(
+            method = "initRenderer",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;createDefaultMappings()Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;"
+            )
+    )
+    private void profileCreateDefaultMappings(CallbackInfo ci) {
+        SeedQueueProfiler.push("create_default_mappings");
+    }
+
+    @Inject(
+            method = "initRenderer",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;createChunkRenderBackend(Lme/jellysquid/mods/sodium/client/gl/device/RenderDevice;Lme/jellysquid/mods/sodium/client/gui/SodiumGameOptions;Lme/jellysquid/mods/sodium/client/model/vertex/type/ChunkVertexType;)Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderBackend;"
+            )
+    )
+    private void profileCreateRenderBackend(CallbackInfo ci) {
+        SeedQueueProfiler.swap("create_render_backend");
+    }
+
+    @Inject(
+            method = "initRenderer",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderBackend;createShaders(Lme/jellysquid/mods/sodium/client/gl/device/RenderDevice;)V"
+            )
+    )
+    private void profileCreateShaders(CallbackInfo ci) {
+        SeedQueueProfiler.swap("create_shaders");
+    }
+
+    @Inject(
+            method = "initRenderer",
+            at = @At(
+                    value = "NEW",
+                    target = "(Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderBackend;Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;Lnet/minecraft/client/world/ClientWorld;I)Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;"
+            )
+    )
+    private void profileCreateRenderManager(CallbackInfo ci) {
+        SeedQueueProfiler.swap("create_render_manager");
+    }
+
+    @Inject(
+            method = "initRenderer",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;restoreChunks(Lit/unimi/dsi/fastutil/longs/LongCollection;)V"
+            )
+    )
+    private void profileRestoreChunks(CallbackInfo ci) {
+        SeedQueueProfiler.swap("restore_chunks");
+    }
+
+    @Inject(
+            method = "initRenderer",
+            at = @At("TAIL")
+    )
+    private void profilePop_initRenderer(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
     }
 }

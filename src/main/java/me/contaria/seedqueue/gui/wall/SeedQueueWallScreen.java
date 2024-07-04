@@ -4,6 +4,7 @@ import com.google.gson.*;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
+import me.contaria.seedqueue.SeedQueueProfiler;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
@@ -30,7 +31,6 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.profiler.Profiler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -128,29 +128,28 @@ public class SeedQueueWallScreen extends Screen {
         assert this.client != null;
         this.frame++;
 
-        Profiler profiler = this.client.getProfiler();
-        profiler.swap("wall");
+        SeedQueueProfiler.swap("wall");
 
-        profiler.push("update_previews");
+        SeedQueueProfiler.push("update_previews");
         this.updatePreviews();
 
-        profiler.swap("background");
+        SeedQueueProfiler.swap("background");
         if (!this.drawTexture(WALL_BACKGROUND, matrices, this.width, this.height)) {
             this.renderBackground(matrices);
         }
 
-        profiler.swap("render_main");
+        SeedQueueProfiler.swap("render_main");
         for (int i = 0; i < this.layout.main.size(); i++) {
             this.renderInstance(this.mainPreviews[i], this.layout.main, this.layout.main.getPos(i), matrices, delta);
         }
         if (this.layout.locked != null && this.lockedPreviews != null) {
-            profiler.swap("render_locked");
+            SeedQueueProfiler.swap("render_locked");
             for (int i = 0; i < this.layout.locked.size(); i++) {
                 this.renderInstance(i < this.lockedPreviews.size() ? this.lockedPreviews.get(i) : null, this.layout.locked, this.layout.locked.getPos(i), matrices, delta);
             }
         }
         int i = 0;
-        profiler.swap("render_preparing");
+        SeedQueueProfiler.swap("render_preparing");
         for (Layout.Group group : this.layout.preparing) {
             int offset = i;
             for (; i < group.size(); i++) {
@@ -158,28 +157,28 @@ public class SeedQueueWallScreen extends Screen {
             }
         }
 
-        profiler.swap("build_preparing");
+        SeedQueueProfiler.swap("build_preparing");
         for (; i < this.preparingPreviews.size(); i++) {
             SeedQueuePreview preparingInstance = this.preparingPreviews.get(i);
-            profiler.push("load_settings");
+            SeedQueueProfiler.push("load_settings");
             this.loadPreviewSettings(preparingInstance);
-            profiler.swap("build");
+            SeedQueueProfiler.swap("build");
             preparingInstance.build();
-            profiler.pop();
+            SeedQueueProfiler.pop();
         }
 
-        profiler.swap("overlay");
+        SeedQueueProfiler.swap("overlay");
         this.drawTexture(WALL_OVERLAY, matrices, this.width, this.height);
 
-        profiler.swap("reset");
+        SeedQueueProfiler.swap("reset");
         this.resetViewport();
         this.loadPreviewSettings(this.settingsCache, 0);
 
         if (this.debugHud != null) {
-            profiler.swap("fps_graph");
+            SeedQueueProfiler.swap("fps_graph");
             ((DebugHudAccessor) this.debugHud).seedQueue$drawMetricsData(matrices, this.client.getMetricsData(), 0, this.width / 2, true);
         }
-        profiler.pop();
+        SeedQueueProfiler.pop();
     }
 
     private void renderInstance(SeedQueuePreview instance, Layout.Group group, Layout.Pos pos, MatrixStack matrices, float delta) {
@@ -187,37 +186,36 @@ public class SeedQueueWallScreen extends Screen {
         if (pos == null) {
             return;
         }
-        Profiler profiler = this.client.getProfiler();
         try {
-            profiler.push("set_viewport");
+            SeedQueueProfiler.push("set_viewport");
             this.setViewport(pos);
             if (instance == null || (SeedQueue.config.waitForPreviewSetup && !instance.shouldRender())) {
+                SeedQueueProfiler.swap("instance_background");
                 if (!SeedQueue.config.waitForPreviewSetup && this.layout.main == group) {
                     this.renderBackground(matrices);
                 } else if (group.instance_background) {
-                    profiler.swap("instance_background");
                     this.drawTexture(INSTANCE_BACKGROUND, matrices, this.width, this.height);
                 }
                 if (instance != null) {
-                    profiler.swap("build_chunks");
+                    SeedQueueProfiler.swap("build_chunks");
                     instance.build();
                 }
-                profiler.pop();
+                SeedQueueProfiler.pop();
                 return;
             }
-            profiler.swap("load_settings");
+            SeedQueueProfiler.swap("load_settings");
             this.loadPreviewSettings(instance);
-            profiler.swap("render_preview");
+            SeedQueueProfiler.swap("render_preview");
             instance.render(matrices, 0, 0, delta);
         } finally {
-            profiler.swap("reset_viewport");
+            SeedQueueProfiler.swap("reset_viewport");
             this.resetViewport();
         }
         if (instance.getSeedQueueEntry().isLocked()) {
-            profiler.swap("lock");
+            SeedQueueProfiler.swap("lock");
             this.renderLock(instance, pos, matrices);
         }
-        profiler.pop();
+        SeedQueueProfiler.pop();
     }
 
     private void renderLock(SeedQueuePreview instance, Layout.Pos pos, MatrixStack matrices) {
@@ -572,30 +570,27 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private boolean resetInstance(SeedQueuePreview instance, boolean ignoreLock, boolean ignoreResetCooldown, boolean playSound) {
-        Profiler profiler = MinecraftClient.getInstance().getProfiler();
-
         if (instance == null) {
             return false;
         }
-        profiler.push("reset_instance");
         SeedQueueEntry seedQueueEntry = instance.getSeedQueueEntry();
         if (!instance.hasBeenRendered() || (seedQueueEntry.isLocked() && !ignoreLock) || (System.currentTimeMillis() - instance.firstRenderTime < SeedQueue.config.resetCooldown && !ignoreResetCooldown) || SeedQueue.selectedEntry == seedQueueEntry) {
-            profiler.pop();
             return false;
         }
 
-        profiler.push("discard_entry");
+        SeedQueueProfiler.push("reset_instance");
+        SeedQueueProfiler.push("discard_entry");
         SeedQueue.discard(seedQueueEntry);
 
-        profiler.swap("remove_preview");
+        SeedQueueProfiler.swap("remove_preview");
         this.removePreview(instance);
 
         if (playSound) {
-            profiler.swap("play_sound");
+            SeedQueueProfiler.swap("play_sound");
             this.playSound(SeedQueueSounds.RESET_INSTANCE);
         }
-        profiler.pop();
-        profiler.pop();
+        SeedQueueProfiler.pop();
+        SeedQueueProfiler.pop();
         return true;
     }
 
@@ -823,10 +818,9 @@ public class SeedQueueWallScreen extends Screen {
 
     private static void clearWorldRenderer(WorldRenderer worldRenderer) {
         if (worldRenderer != null) {
-            Profiler profiler = MinecraftClient.getInstance().getProfiler();
-            profiler.push("world_renderer_clear");
+            SeedQueueProfiler.push("world_renderer_clear");
             worldRenderer.setWorld(null);
-            profiler.pop();
+            SeedQueueProfiler.pop();
         }
     }
 

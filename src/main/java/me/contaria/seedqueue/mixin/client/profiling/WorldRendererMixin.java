@@ -1,172 +1,175 @@
 package me.contaria.seedqueue.mixin.client.profiling;
 
-import it.unimi.dsi.fastutil.objects.ObjectList;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.BufferBuilderStorage;
-import net.minecraft.client.render.BuiltChunkStorage;
-import net.minecraft.client.render.RenderLayers;
+import me.contaria.seedqueue.SeedQueueProfiler;
 import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.render.chunk.ChunkBuilder;
-import net.minecraft.client.render.entity.EntityRenderDispatcher;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.Util;
-import net.minecraft.util.profiler.Profiler;
-import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.*;
-
-import java.util.Set;
+import org.spongepowered.asm.mixin.Debug;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * Profiling mixins add more usage of the profiler to hot paths during wall rendering.
- * Because of the amount of injections this would require, @Overwrites are used where possible instead.
- * These Mixins will be removed in later versions of SeedQueue anyway.
+ * These Mixins will be removed in later versions of SeedQueue.
  */
+@Debug(export = true)
 @Mixin(value = WorldRenderer.class, priority = 500)
 public abstract class WorldRendererMixin {
 
-    @Shadow @Final private MinecraftClient client;
-
-    @Shadow private ClientWorld world;
-
-    @Shadow private double lastCameraChunkUpdateX;
-
-    @Shadow private double lastCameraChunkUpdateY;
-
-    @Shadow private double lastCameraChunkUpdateZ;
-
-    @Shadow private int cameraChunkX;
-
-    @Shadow private int cameraChunkY;
-
-    @Shadow private int cameraChunkZ;
-
-    @Shadow @Final private EntityRenderDispatcher entityRenderDispatcher;
-
-    @Shadow private Set<ChunkBuilder.BuiltChunk> chunksToRebuild;
-
-    @Shadow @Final private ObjectList<?> visibleChunks;
-
-    @Shadow private BuiltChunkStorage chunks;
-
-    @Shadow private ChunkBuilder chunkBuilder;
-
-    @Shadow @Final private Set<BlockEntity> noCullingBlockEntities;
-
-    @Shadow protected abstract void loadTransparencyShader();
-
-    @Shadow protected abstract void resetTransparencyShader();
-
-    @Shadow private boolean needsTerrainUpdate;
-
-    @Shadow private boolean cloudsDirty;
-
-    @Shadow private int renderDistance;
-
-    @Shadow protected abstract void clearChunkRenderers();
-
-    @Shadow @Final private BufferBuilderStorage bufferBuilders;
-
-    /**
-     * @author contaria
-     * @reason see JavaDocs on this mixin class
-     */
-    @Overwrite
-    public void setWorld(@Nullable ClientWorld clientWorld) {
-        Profiler profiler = MinecraftClient.getInstance().getProfiler();
-
-        profiler.push("vanilla");
-        profiler.push("reset_values");
-        this.lastCameraChunkUpdateX = Double.MIN_VALUE;
-        this.lastCameraChunkUpdateY = Double.MIN_VALUE;
-        this.lastCameraChunkUpdateZ = Double.MIN_VALUE;
-        this.cameraChunkX = Integer.MIN_VALUE;
-        this.cameraChunkY = Integer.MIN_VALUE;
-        this.cameraChunkZ = Integer.MIN_VALUE;
-        this.entityRenderDispatcher.setWorld(clientWorld);
-        this.world = clientWorld;
-        if (clientWorld != null) {
-            profiler.swap("reload");
-            this.reload();
-        } else {
-            profiler.swap("clear_chunks");
-            this.chunksToRebuild.clear();
-            this.visibleChunks.clear();
-            if (this.chunks != null) {
-                this.chunks.clear();
-                this.chunks = null;
-            }
-
-            profiler.swap("stop_builder");
-            if (this.chunkBuilder != null) {
-                this.chunkBuilder.stop();
-            }
-
-            this.chunkBuilder = null;
-            profiler.swap("clear_no_culling_block_entities");
-            this.noCullingBlockEntities.clear();
-        }
-        profiler.pop();
-        profiler.pop();
+    @Inject(
+            method = "setWorld",
+            at = @At("HEAD")
+    )
+    private void profileVanilla_setWorld(CallbackInfo ci) {
+        SeedQueueProfiler.push("vanilla");
     }
 
-    /**
-     * @author contaria
-     * @reason see JavaDocs on this mixin class
-     */
-    @Overwrite
-    public void reload() {
-        if (this.world != null) {
-            Profiler profiler = MinecraftClient.getInstance().getProfiler();
-            profiler.push("transparency_shader");
-            if (MinecraftClient.isFabulousGraphicsOrBetter()) {
-                this.loadTransparencyShader();
-            } else {
-                this.resetTransparencyShader();
-            }
-
-            profiler.swap("reload_color");
-            this.world.reloadColor();
-            profiler.swap("chunk_builder");
-            if (this.chunkBuilder == null) {
-                this.chunkBuilder = new ChunkBuilder(this.world, this.getThis(), Util.getServerWorkerExecutor(), this.client.is64Bit(), this.bufferBuilders.getBlockBufferBuilders());
-            } else {
-                this.chunkBuilder.setWorld(this.world);
-            }
-
-            profiler.swap("set_dirty");
-            this.needsTerrainUpdate = true;
-            this.cloudsDirty = true;
-            RenderLayers.setFancyGraphicsOrBetter(MinecraftClient.isFancyGraphicsOrBetter());
-            this.renderDistance = this.client.options.viewDistance;
-            profiler.swap("clear_chunks");
-            if (this.chunks != null) {
-                this.chunks.clear();
-            }
-
-            profiler.swap("clear_chunk_renderers");
-            this.clearChunkRenderers();
-            profiler.swap("clear_no_culling_block_entities");
-            synchronized(this.noCullingBlockEntities) {
-                this.noCullingBlockEntities.clear();
-            }
-
-            profiler.swap("built_chunk_storage");
-            this.chunks = new BuiltChunkStorage(this.chunkBuilder, this.world, this.client.options.viewDistance, this.getThis());
-            if (this.world != null) {
-                Entity entity = this.client.getCameraEntity();
-                if (entity != null) {
-                    profiler.swap("update_camera_pos");
-                    this.chunks.updateCameraPosition(entity.getX(), entity.getZ());
-                }
-            }
-            profiler.pop();
-        }
+    @Inject(
+            method = "setWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/render/WorldRenderer;reload()V"
+            )
+    )
+    private void profileReload(CallbackInfo ci) {
+        SeedQueueProfiler.push("reload");
     }
 
-    @Unique
-    private WorldRenderer getThis() {
-        return (WorldRenderer) (Object) this;
+    @Inject(
+            method = "setWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/util/Set;clear()V",
+                    ordinal = 0
+            )
+    )
+    private void profileClearChunks(CallbackInfo ci) {
+        SeedQueueProfiler.push("clear_chunks");
+    }
+
+    @Inject(
+            method = "setWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/render/chunk/ChunkBuilder;stop()V"
+            )
+    )
+    private void profileStopBuilder(CallbackInfo ci) {
+        SeedQueueProfiler.swap("stop_builder");
+    }
+
+    @Inject(
+            method = "setWorld",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/client/render/WorldRenderer;noCullingBlockEntities:Ljava/util/Set;"
+            )
+    )
+    private void profileClearBlockEntities(CallbackInfo ci) {
+        SeedQueueProfiler.swap("clear_block_entities");
+    }
+
+    @Inject(
+            method = "setWorld",
+            at = @At("TAIL")
+    )
+    private void profilePop_setWorld(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
+        SeedQueueProfiler.pop();
+    }
+
+    @Inject(
+            method = "reload",
+            at = @At("HEAD")
+    )
+    private void profileTransparencyShader(CallbackInfo ci) {
+        SeedQueueProfiler.push("transparency_shader");
+    }
+
+    @Inject(
+            method = "reload",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/world/ClientWorld;reloadColor()V"
+            )
+    )
+    private void profileReloadColor(CallbackInfo ci) {
+        SeedQueueProfiler.swap("reload_color");
+    }
+
+    @Inject(
+            method = "reload",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/client/render/WorldRenderer;chunkBuilder:Lnet/minecraft/client/render/chunk/ChunkBuilder;",
+                    ordinal = 0
+            )
+    )
+    private void profileChunkBuilder(CallbackInfo ci) {
+        SeedQueueProfiler.swap("chunk_builder");
+    }
+
+    @Inject(
+            method = "reload",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/render/BuiltChunkStorage;clear()V"
+            )
+    )
+    private void profileClearChunks_reload(CallbackInfo ci) {
+        SeedQueueProfiler.swap("clear_chunks");
+    }
+
+    @Inject(
+            method = "reload",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/render/WorldRenderer;clearChunkRenderers()V"
+            )
+    )
+    private void profileClearChunkRenderers_reload(CallbackInfo ci) {
+        SeedQueueProfiler.swap("clear_chunk_renderers");
+    }
+
+    @Inject(
+            method = "reload",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/client/render/WorldRenderer;noCullingBlockEntities:Ljava/util/Set;",
+                    ordinal = 0
+            )
+    )
+    private void profileClearBlockEntities_reload(CallbackInfo ci) {
+        SeedQueueProfiler.swap("clear_block_entities");
+    }
+
+    @Inject(
+            method = "reload",
+            at = @At(
+                    value = "NEW",
+                    target = "(Lnet/minecraft/client/render/chunk/ChunkBuilder;Lnet/minecraft/world/World;ILnet/minecraft/client/render/WorldRenderer;)Lnet/minecraft/client/render/BuiltChunkStorage;"
+            )
+    )
+    private void profileBuiltChunkStorage(CallbackInfo ci) {
+        SeedQueueProfiler.swap("built_chunk_storage");
+    }
+
+    @Inject(
+            method = "reload",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/render/BuiltChunkStorage;updateCameraPosition(DD)V"
+            )
+    )
+    private void profileUpdateCameraPos(CallbackInfo ci) {
+        SeedQueueProfiler.swap("update_camera_pos");
+    }
+
+    @Inject(
+            method = "reload",
+            at = @At("RETURN")
+    )
+    private void profilePop_reload(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
     }
 }

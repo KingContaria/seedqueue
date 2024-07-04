@@ -1,222 +1,284 @@
 package me.contaria.seedqueue.mixin.compat.sodium.profiling;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayFIFOQueue;
-import it.unimi.dsi.fastutil.objects.ObjectList;
-import me.jellysquid.mods.sodium.client.gl.device.RenderDevice;
-import me.jellysquid.mods.sodium.client.render.chunk.*;
-import me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuildResult;
-import me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuilder;
-import me.jellysquid.mods.sodium.client.render.chunk.lists.ChunkRenderList;
-import me.jellysquid.mods.sodium.client.util.math.FrustumExtended;
-import me.jellysquid.mods.sodium.common.util.collections.FutureDequeDrain;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.Camera;
-import net.minecraft.util.profiler.Profiler;
-import org.spongepowered.asm.mixin.Final;
+import me.contaria.seedqueue.SeedQueueProfiler;
+import me.jellysquid.mods.sodium.client.render.chunk.ChunkRenderManager;
+import org.objectweb.asm.Opcodes;
+import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.concurrent.CompletableFuture;
-
 /**
  * Profiling mixins add more usage of the profiler to hot paths during wall rendering.
- * Because of the amount of injections this would require, @Overwrites are used where possible instead.
- * These Mixins will be removed in later versions of SeedQueue anyway.
+ * These Mixins will be removed in later versions of SeedQueue.
  */
+@Debug(export = true)
 @Mixin(value = ChunkRenderManager.class, remap = false, priority = 500)
-public abstract class ChunkRenderManagerMixin<T extends ChunkGraphicsState> {
+public abstract class ChunkRenderManagerMixin {
 
-    @Shadow
-    @Final
-    private ChunkBuilder<T> builder;
-
-    @Shadow
-    @Final
-    private ObjectArrayFIFOQueue<ChunkRenderContainer<T>> importantRebuildQueue;
-
-    @Shadow
-    public abstract boolean isChunkPrioritized(ChunkRenderContainer<T> render);
-
-    @Shadow
-    private boolean dirty;
-
-    @Shadow
-    @Final
-    private ObjectArrayFIFOQueue<ChunkRenderContainer<T>> rebuildQueue;
-
-    @Shadow
-    @Final
-    private ChunkRenderBackend<T> backend;
-
-    @Shadow @Final private Long2ObjectOpenHashMap<ChunkRenderColumn<T>> columns;
-
-    @Shadow protected abstract void unloadSections(ChunkRenderColumn<T> column);
-
-    @Shadow @Final private ObjectList<BlockEntity> visibleBlockEntities;
-
-    @Shadow @Final private ChunkRenderList<T>[] chunkRenderLists;
-
-    @Shadow @Final private ObjectList<ChunkRenderContainer<T>> tickableChunks;
-
-    @Shadow private int visibleChunkCount;
-
-    @Shadow protected abstract void unloadPending();
-
-    @Shadow protected abstract void setup(Camera camera);
-
-    @Shadow protected abstract void iterateChunks(Camera camera, FrustumExtended frustum, int frame, boolean spectator);
-
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder;<init>(Lme/jellysquid/mods/sodium/client/model/vertex/type/ChunkVertexType;Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderBackend;)V"))
+    @Inject(
+            method = "<init>",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder;<init>(Lme/jellysquid/mods/sodium/client/model/vertex/type/ChunkVertexType;Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderBackend;)V"
+            )
+    )
     private void profileCreateChunkBuilder(CallbackInfo ci) {
-        MinecraftClient.getInstance().getProfiler().push("create_chunk_builder");
+        SeedQueueProfiler.push("create_chunk_builder");
     }
 
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder;init(Lnet/minecraft/client/world/ClientWorld;Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;)V", remap = true))
+    @Inject(
+            method = "<init>",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder;init(Lnet/minecraft/client/world/ClientWorld;Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;)V",
+                    remap = true
+            )
+    )
     private void profileInitChunkBuilder(CallbackInfo ci) {
-        MinecraftClient.getInstance().getProfiler().swap("init_chunk_builder");
+        SeedQueueProfiler.swap("init_chunk_builder");
     }
 
-    @Inject(method = "<init>", at = @At(value = "FIELD", target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;dirty:Z"))
+    @Inject(
+            method = "<init>",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;dirty:Z"
+            )
+    )
     private void profileCreateRenderLists(CallbackInfo ci) {
-        MinecraftClient.getInstance().getProfiler().swap("create_render_lists");
+        SeedQueueProfiler.swap("create_render_lists");
     }
 
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lme/jellysquid/mods/sodium/client/render/chunk/cull/graph/ChunkGraphCuller;<init>(Lnet/minecraft/world/World;I)V", remap = true))
+    @Inject(
+            method = "<init>",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/cull/graph/ChunkGraphCuller;<init>(Lnet/minecraft/world/World;I)V",
+                    remap = true
+            )
+    )
     private void profileCreateGraphCuller(CallbackInfo ci) {
-        MinecraftClient.getInstance().getProfiler().swap("create_graph_culler");
+        SeedQueueProfiler.swap("create_graph_culler");
     }
 
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void profileEnd(CallbackInfo ci) {
-        MinecraftClient.getInstance().getProfiler().pop();
+    @Inject(
+            method = "<init>",
+            at = @At("TAIL")
+    )
+    private void profilePop_init(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
     }
 
-    /**
-     * @author contaria
-     * @reason see JavaDocs on this mixin class
-     */
-    @Overwrite
-    public void updateChunks() {
-        Profiler profiler = MinecraftClient.getInstance().getProfiler();
-        Deque<CompletableFuture<ChunkBuildResult<T>>> futures = new ArrayDeque<>();
-
-        int budget = this.builder.getSchedulingBudget();
-        int submitted = 0;
-
-        profiler.push("important_rebuilds");
-        while (!this.importantRebuildQueue.isEmpty()) {
-            ChunkRenderContainer<T> render = this.importantRebuildQueue.dequeue();
-
-            // Do not allow distant chunks to block rendering
-            if (!this.isChunkPrioritized(render)) {
-                this.builder.deferRebuild(render);
-            } else {
-                futures.add(this.builder.scheduleRebuildTaskAsync(render));
-            }
-
-            this.dirty = true;
-            submitted++;
-        }
-
-        profiler.swap("rebuild");
-        while (submitted < budget && !this.rebuildQueue.isEmpty()) {
-            ChunkRenderContainer<T> render = this.rebuildQueue.dequeue();
-
-            this.builder.deferRebuild(render);
-            submitted++;
-        }
-
-        this.dirty |= submitted > 0;
-
-        profiler.swap("pending_uploads");
-        // Try to complete some other work on the main thread while we wait for rebuilds to complete
-        this.dirty |= this.builder.performPendingUploads();
-
-        if (!futures.isEmpty()) {
-            profiler.swap("backend_upload");
-            this.backend.upload(RenderDevice.INSTANCE.createCommandList(), new FutureDequeDrain<>(futures));
-        }
-        profiler.pop();
+    @Inject(
+            method = "updateChunks",
+            at = @At("HEAD")
+    )
+    private void profileImportantRebuilds(CallbackInfo ci) {
+        SeedQueueProfiler.push("important_rebuilds");
     }
 
-    /**
-     * @author contaria
-     * @reason see JavaDocs on this mixin class
-     */
-    @Overwrite
-    public void destroy() {
-        Profiler profiler = MinecraftClient.getInstance().getProfiler();
-
-        profiler.push("reset");
-        this.reset();
-
-        profiler.swap("unload_sections");
-        for (ChunkRenderColumn<T> column : this.columns.values()) {
-            this.unloadSections(column);
-        }
-
-        profiler.swap("clear_sections");
-        this.columns.clear();
-
-        // not pushing the profiler here because it's already done in ChunkBuilderMixin
-        this.builder.stopWorkers();
-        profiler.pop();
+    @Inject(
+            method = "updateChunks",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;rebuildQueue:Lit/unimi/dsi/fastutil/objects/ObjectArrayFIFOQueue;",
+                    opcode = Opcodes.GETFIELD,
+                    ordinal = 0
+            )
+    )
+    private void profileRebuilds(CallbackInfo ci) {
+        SeedQueueProfiler.swap("rebuilds");
     }
 
-    /**
-     * @author contaria
-     * @reason see JavaDocs on this mixin class
-     */
-    @Overwrite
-    private void reset() {
-        Profiler profiler = MinecraftClient.getInstance().getProfiler();
-
-        profiler.push("clear_rebuild_queue");
-        this.rebuildQueue.clear();
-        this.importantRebuildQueue.clear();
-
-        profiler.swap("clear_block_entities");
-        this.visibleBlockEntities.clear();
-
-        profiler.swap("reset_chunk_renders");
-        for (ChunkRenderList<T> list : this.chunkRenderLists) {
-            list.reset();
-        }
-
-        profiler.swap("clear_chunks");
-        this.tickableChunks.clear();
-
-        this.visibleChunkCount = 0;
-        profiler.pop();
+    @Inject(
+            method = "updateChunks",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder;performPendingUploads()Z"
+            )
+    )
+    private void profilePendingUploads(CallbackInfo ci) {
+        SeedQueueProfiler.swap("pending_uploads");
     }
 
-    /**
-     * @author contaria
-     * @reason see JavaDocs on this mixin class
-     */
-    @Overwrite
-    public void update(Camera camera, FrustumExtended frustum, int frame, boolean spectator) {
-        Profiler profiler = MinecraftClient.getInstance().getProfiler();
+    @Inject(
+            method = "updateChunks",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderBackend;upload(Lme/jellysquid/mods/sodium/client/gl/device/CommandList;Ljava/util/Iterator;)V"
+            )
+    )
+    private void profileBackendUpload(CallbackInfo ci) {
+        SeedQueueProfiler.swap("backend_upload");
+    }
 
-        profiler.push("reset");
-        this.reset();
-        profiler.swap("unload_pending");
-        this.unloadPending();
+    @Inject(
+            method = "updateChunks",
+            at = @At("RETURN")
+    )
+    private void profilePop_updateChunks(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
+    }
 
-        profiler.swap("setup");
-        this.setup(camera);
-        profiler.swap("iterate_chunks");
-        this.iterateChunks(camera, frustum, frame, spectator);
-        profiler.pop();
+    @Inject(
+            method = "destroy",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;reset()V"
+            )
+    )
+    private void profileReset(CallbackInfo ci) {
+        SeedQueueProfiler.push("reset");
+    }
 
-        this.dirty = false;
+    @Inject(
+            method = "destroy",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap;values()Lit/unimi/dsi/fastutil/objects/ObjectCollection;"
+            )
+    )
+    private void profileUnloadSections(CallbackInfo ci) {
+        SeedQueueProfiler.swap("unload_sections");
+    }
+
+    @Inject(
+            method = "destroy",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lit/unimi/dsi/fastutil/longs/Long2ObjectOpenHashMap;clear()V"
+            )
+    )
+    private void profileClearSections(CallbackInfo ci) {
+        SeedQueueProfiler.swap("clear_sections");
+    }
+
+    @Inject(
+            method = "destroy",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder;stopWorkers()V"
+            )
+    )
+    private void profileStopWorkers(CallbackInfo ci) {
+        SeedQueueProfiler.swap("stop_workers");
+    }
+
+    @Inject(
+            method = "destroy",
+            at = @At("RETURN")
+    )
+    private void profilePop_destroy(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
+    }
+
+    @Inject(
+            method = "reset",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;rebuildQueue:Lit/unimi/dsi/fastutil/objects/ObjectArrayFIFOQueue;",
+                    opcode = Opcodes.GETFIELD
+            )
+    )
+    private void profileClearRebuildQueue(CallbackInfo ci) {
+        SeedQueueProfiler.push("clear_rebuild_queue");
+    }
+
+    @Inject(
+            method = "reset",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;visibleBlockEntities:Lit/unimi/dsi/fastutil/objects/ObjectList;",
+                    opcode = Opcodes.GETFIELD
+            )
+    )
+    private void profileClearBlockEntities(CallbackInfo ci) {
+        SeedQueueProfiler.swap("clear_block_entities");
+    }
+
+    @Inject(
+            method = "reset",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;chunkRenderLists:[Lme/jellysquid/mods/sodium/client/render/chunk/lists/ChunkRenderList;",
+                    opcode = Opcodes.GETFIELD
+            )
+    )
+    private void profileResetChunkRenders(CallbackInfo ci) {
+        SeedQueueProfiler.swap("reset_chunk_renders");
+    }
+
+    @Inject(
+            method = "reset",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;tickableChunks:Lit/unimi/dsi/fastutil/objects/ObjectList;",
+                    opcode = Opcodes.GETFIELD
+            )
+    )
+    private void profileClearChunks(CallbackInfo ci) {
+        SeedQueueProfiler.swap("clear_chunks");
+    }
+
+    @Inject(
+            method = "reset",
+            at = @At("RETURN")
+    )
+    private void profilePop_reset(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
+    }
+
+    @Inject(
+            method = "update",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;reset()V"
+            )
+    )
+    private void profileReset2(CallbackInfo ci) {
+        SeedQueueProfiler.push("reset");
+    }
+
+    @Inject(
+            method = "update",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;unloadPending()V"
+            )
+    )
+    private void profileUnloadPending(CallbackInfo ci) {
+        SeedQueueProfiler.swap("unload_pending");
+    }
+
+    @Inject(
+            method = "update",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;setup(Lnet/minecraft/client/render/Camera;)V"
+            )
+    )
+    private void profileSetup(CallbackInfo ci) {
+        SeedQueueProfiler.swap("setup");
+    }
+
+    @Inject(
+            method = "update",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;iterateChunks(Lnet/minecraft/client/render/Camera;Lme/jellysquid/mods/sodium/client/util/math/FrustumExtended;IZ)V"
+            )
+    )
+    private void profileIterateChunks(CallbackInfo ci) {
+        SeedQueueProfiler.swap("iterate_chunks");
+    }
+
+    @Inject(
+            method = "update",
+            at = @At("RETURN")
+    )
+    private void profilePop_update(CallbackInfo ci) {
+        SeedQueueProfiler.pop();
     }
 }
