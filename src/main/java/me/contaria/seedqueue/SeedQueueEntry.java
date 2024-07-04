@@ -176,10 +176,11 @@ public class SeedQueueEntry {
     public synchronized void discard() {
         synchronized (this.server) {
             if (this.discarded) {
+                SeedQueue.LOGGER.warn("Tried to discard \"{}\" but it has already been discarded!", this.session.getDirectoryName());
                 return;
             }
 
-            SeedQueue.LOGGER.info("Discarding \"{}\"...", this.server.getSaveProperties().getLevelName());
+            SeedQueue.LOGGER.info("Discarding \"{}\"...", this.session.getDirectoryName());
 
             this.discarded = true;
 

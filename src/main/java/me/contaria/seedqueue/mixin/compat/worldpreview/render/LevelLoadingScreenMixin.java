@@ -52,7 +52,10 @@ public abstract class LevelLoadingScreenMixin extends Screen {
             }
 
             String renderData = preview.getWorldRenderer().getChunksDebugString() + "\n" + preview.getWorldRenderer().getEntitiesDebugString();
-            if (hasPreviewProperties && (frameBuffer.isEmpty() || (frameBuffer.isDirty(renderData) && preview.shouldRenderPreview()))) {
+            if (frameBuffer.isEmpty() || (frameBuffer.isDirty(renderData) && preview.shouldRedrawPreview())) {
+                if (!hasPreviewProperties) {
+                    throw new IllegalStateException("Tried to draw Preview but there is no Preview properties!");
+                }
                 frameBuffer.beginWrite(renderData);
 
                 // related to WorldRendererMixin#doNotClearOnWallScreen
@@ -63,12 +66,15 @@ public abstract class LevelLoadingScreenMixin extends Screen {
             }
 
             // this can not be SeedQueuePreview#build because that updates and resets WorldPreviewProperties
-            WorldPreview.runAsPreview(() -> {
-                WorldPreview.tickPackets();
-                WorldPreview.tickEntities();
-                Objects.requireNonNull(preview.getWorldPreviewProperties()).buildChunks();
-            });
+            if (hasPreviewProperties) {
+                WorldPreview.runAsPreview(() -> {
+                    WorldPreview.tickPackets();
+                    WorldPreview.tickEntities();
+                    Objects.requireNonNull(preview.getWorldPreviewProperties()).buildChunks();
+                });
+            }
             frameBuffer.draw(this.width, this.height);
+            preview.onPreviewRender(false);
             ci.cancel();
         });
     }
@@ -85,13 +91,11 @@ public abstract class LevelLoadingScreenMixin extends Screen {
     private void endFrame(CallbackInfo ci) {
         this.getAsSeedQueuePreview().ifPresent(preview -> {
             WorldPreviewFrameBuffer frameBuffer = preview.getSeedQueueEntry().getFrameBuffer();
-
             frameBuffer.endWrite();
-            preview.updateLastRenderFrame();
-
             MinecraftClient.getInstance().getFramebuffer().beginWrite(true);
             preview.wall.refreshViewport();
             frameBuffer.draw(this.width, this.height);
+            preview.onPreviewRender(true);
         });
     }
 

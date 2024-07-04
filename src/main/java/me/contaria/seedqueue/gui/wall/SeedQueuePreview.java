@@ -28,9 +28,9 @@ public class SeedQueuePreview extends LevelLoadingScreen {
 
     protected SeedQueueWallScreen.LockTexture lock;
 
-    protected int firstRenderFrame;
-    protected int lastRenderFrame = Integer.MIN_VALUE;
-    protected Long firstRenderTime;
+    private boolean previewRendered;
+    private int lastPreviewFrame = Integer.MIN_VALUE;
+    private long cooldownStart = Long.MAX_VALUE;
 
     public SeedQueuePreview(SeedQueueWallScreen wall, SeedQueueEntry seedQueueEntry) {
         super(seedQueueEntry.getWorldGenerationProgressTracker());
@@ -83,21 +83,13 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        return false;
-    }
-
-    @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         assert this.client != null;
 
         this.updateWorldPreviewProperties();
 
-        if (this.worldPreviewProperties != null && this.shouldRender()) {
+        if (this.worldPreviewProperties != null && this.isPreviewReady()) {
             this.runAsPreview(() -> super.render(matrices, mouseX, mouseY, delta));
-            if (!this.hasBeenRendered()) {
-                this.firstRenderFrame = this.wall.frame;
-            }
         } else {
             this.build();
             // run as preview to set WorldPreview#renderingPreview
@@ -151,33 +143,58 @@ public class SeedQueuePreview extends LevelLoadingScreen {
         SeedQueue.LOGGER.info("SeedQueue-DEBUG | Instance: {}, Stacktrace: {}", this.seedQueueEntry.getSession().getDirectoryName(), Arrays.toString(this.seedQueueEntry.getServer().getThread().getStackTrace()));
     }
 
-    public boolean shouldRender() {
-        if (this.worldPreviewProperties == null) {
-            return false;
-        }
-        if (this.hasBeenRendered()) {
+    public boolean isPreviewReady() {
+        if (this.previewRendered) {
             return true;
         }
-        if (((WorldRendererAccessor) this.worldRenderer).seedQueue$getCompletedChunkCount() == 0) {
-            // this checks for instances that are ready to be loaded but do not have any chunks built, to avoid keeping them invisible forever we have to flush them through the system
-            return this.seedQueueEntry.isPaused() && this.worldRenderer.isTerrainRenderComplete() && this.worldPreviewProperties.getPacketQueue().isEmpty();
+        if (this.seedQueueEntry.getFrameBuffer() != null) {
+            return true;
         }
-        return true;
-    }
-
-    public boolean hasBeenRendered() {
-        return this.firstRenderTime != null;
-    }
-
-    public void updateLastRenderFrame() {
-        this.lastRenderFrame = this.wall.frame;
-    }
-
-    public boolean shouldRenderPreview() {
-        if (this.seedQueueEntry.isLocked() && SeedQueue.config.freezeLockedPreviews) {
+        if (this.worldPreviewProperties == null || this.worldRenderer == null) {
             return false;
         }
-        return this.wall.frame - this.lastRenderFrame >= SeedQueue.config.wallFPS / SeedQueue.config.previewFPS;
+        if (((WorldRendererAccessor) this.worldRenderer).seedQueue$getCompletedChunkCount() > 0) {
+            return true;
+        }
+        // this checks for instances that are ready to be loaded but do not have any chunks built, to avoid keeping them invisible forever we have to flush them through the system
+        // this should not happen anymore but to avoid disaster I will leave it in with a log message
+        if (this.seedQueueEntry.isPaused() && this.worldRenderer.isTerrainRenderComplete() && this.worldPreviewProperties.getPacketQueue().isEmpty()) {
+            SeedQueue.LOGGER.warn("\"{}\" failed to build any chunks on the wall screen!", this.seedQueueEntry.getSession().getDirectoryName());
+            return true;
+        }
+        return false;
+    }
+
+    public boolean hasPreviewRendered() {
+        return this.previewRendered;
+    }
+
+    public void onPreviewRender(boolean redrawn) {
+        this.previewRendered = true;
+        if (redrawn) {
+            this.lastPreviewFrame = this.wall.frame;
+        }
+    }
+
+    public boolean shouldRedrawPreview() {
+        if (SeedQueue.config.freezeLockedPreviews && this.seedQueueEntry.isLocked()) {
+            return false;
+        }
+        return this.wall.frame - this.lastPreviewFrame >= SeedQueue.config.wallFPS / SeedQueue.config.previewFPS;
+    }
+
+    protected void populateCooldownStart(long cooldownStart) {
+        if (this.previewRendered && this.cooldownStart == Long.MAX_VALUE) {
+            this.cooldownStart = cooldownStart;
+        }
+    }
+
+    public boolean isCooldownReady() {
+        return System.currentTimeMillis() - this.cooldownStart >= SeedQueue.config.resetCooldown;
+    }
+
+    public boolean canReset(boolean ignoreLock, boolean ignoreResetCooldown) {
+        return this.hasPreviewRendered() && (!this.seedQueueEntry.isLocked() || ignoreLock) && (this.isCooldownReady() || ignoreResetCooldown) && SeedQueue.selectedEntry != this.seedQueueEntry;
     }
 
     public SeedQueueEntry getSeedQueueEntry() {
