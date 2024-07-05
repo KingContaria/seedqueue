@@ -342,10 +342,10 @@ public class SeedQueueWallScreen extends Screen {
 
     private List<SeedQueueEntry> getAvailableSeedQueueEntries() {
         List<SeedQueueEntry> entries = new ArrayList<>(SeedQueue.SEED_QUEUE);
-        entries.removeAll(this.getInstances().stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toList()));
-        entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldGenerationProgressTracker() == null);
+        entries.removeAll(this.getInstances().stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toSet()));
+        entries.removeIf(entry -> entry.getWorldGenerationProgressTracker() == null);
         if (SeedQueue.config.waitForPreviewSetup) {
-            entries.removeIf(seedQueueEntry -> seedQueueEntry.getWorldPreviewProperties() == null);
+            entries.removeIf(entry -> entry.getWorldPreviewProperties() == null && entry.getFrameBuffer() == null);
         }
         return entries;
     }
