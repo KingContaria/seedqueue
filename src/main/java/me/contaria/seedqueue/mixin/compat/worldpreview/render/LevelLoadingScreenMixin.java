@@ -7,9 +7,7 @@ import me.voidxwalker.worldpreview.WorldPreview;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.screen.LevelLoadingScreen;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -21,11 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Mixin(value = LevelLoadingScreen.class, priority = 1500)
-public abstract class LevelLoadingScreenMixin extends Screen {
-
-    protected LevelLoadingScreenMixin(Text title) {
-        super(title);
-    }
+public abstract class LevelLoadingScreenMixin {
 
     @SuppressWarnings("CancellableInjectionUsage") // it seems MCDev gets confused because there is two CallbackInfos
     @Dynamic
@@ -51,10 +45,10 @@ public abstract class LevelLoadingScreenMixin extends Screen {
                 return;
             }
 
-            String renderData = preview.getWorldRenderer().getChunksDebugString() + "\n" + preview.getWorldRenderer().getEntitiesDebugString();
-            if (frameBuffer.isEmpty() || (frameBuffer.isDirty(renderData) && preview.shouldRedrawPreview())) {
+            String renderData;
+            if (preview.shouldRedrawPreview() && frameBuffer.isDirty(renderData = preview.getWorldRenderer().getChunksDebugString() + "\n" + preview.getWorldRenderer().getEntitiesDebugString())) {
                 if (!hasPreviewProperties) {
-                    throw new IllegalStateException("Tried to draw Preview but there is no Preview properties!");
+                    throw new IllegalStateException("Tried to draw preview but there is no preview properties!");
                 }
                 frameBuffer.beginWrite(renderData);
 
@@ -65,6 +59,10 @@ public abstract class LevelLoadingScreenMixin extends Screen {
                 return;
             }
 
+            if (frameBuffer.isEmpty()) {
+                throw new IllegalStateException("Tried to draw preview framebuffer but framebuffer is empty!");
+            }
+
             // this can not be SeedQueuePreview#build because that updates and resets WorldPreviewProperties
             if (hasPreviewProperties) {
                 WorldPreview.runAsPreview(() -> {
@@ -73,7 +71,7 @@ public abstract class LevelLoadingScreenMixin extends Screen {
                     Objects.requireNonNull(preview.getWorldPreviewProperties()).buildChunks();
                 });
             }
-            frameBuffer.draw(this.width, this.height);
+            frameBuffer.draw(preview.width, preview.height);
             preview.onPreviewRender(false);
             ci.cancel();
         });
@@ -94,7 +92,7 @@ public abstract class LevelLoadingScreenMixin extends Screen {
             frameBuffer.endWrite();
             MinecraftClient.getInstance().getFramebuffer().beginWrite(true);
             preview.wall.refreshViewport();
-            frameBuffer.draw(this.width, this.height);
+            frameBuffer.draw(preview.width, preview.height);
             preview.onPreviewRender(true);
         });
     }

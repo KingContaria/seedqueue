@@ -100,10 +100,14 @@ public class SeedQueueEntry {
         }
         if (create && this.frameBuffer == null) {
             SeedQueueProfiler.push("create_framebuffer");
-            this.frameBuffer = new WorldPreviewFrameBuffer(MinecraftClient.getInstance().getWindow().getFramebufferWidth(), MinecraftClient.getInstance().getWindow().getFramebufferHeight());
+            this.frameBuffer = new WorldPreviewFrameBuffer(SeedQueue.config.simulatedWindowSize.width(), SeedQueue.config.simulatedWindowSize.height());
             SeedQueueProfiler.pop();
         }
         return this.frameBuffer;
+    }
+
+    public boolean hasFrameBuffer() {
+        return this.frameBuffer != null;
     }
 
     public void discardFrameBuffer() {

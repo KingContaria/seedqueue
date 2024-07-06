@@ -29,7 +29,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     protected SeedQueueWallScreen.LockTexture lock;
 
     private boolean previewRendered;
-    private int lastPreviewFrame = Integer.MIN_VALUE;
+    private int lastPreviewFrame;
     private long cooldownStart = Long.MAX_VALUE;
 
     public SeedQueuePreview(SeedQueueWallScreen wall, SeedQueueEntry seedQueueEntry) {
@@ -95,8 +95,13 @@ public class SeedQueuePreview extends LevelLoadingScreen {
             // run as preview to set WorldPreview#renderingPreview
             // this ensures simulated window size is used in WindowMixin
             WorldPreview.runAsPreview(() -> {
-                this.wall.setOrtho(this.width, this.height);
-                super.render(matrices, mouseX, mouseY, delta);
+                WorldPreview.inPreview = this.seedQueueEntry.hasFrameBuffer();
+                try {
+                    this.wall.setOrtho(this.width, this.height);
+                    super.render(matrices, mouseX, mouseY, delta);
+                } finally {
+                    WorldPreview.inPreview = false;
+                }
             });
         }
     }
@@ -144,10 +149,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     }
 
     public boolean isPreviewReady() {
-        if (this.previewRendered) {
-            return true;
-        }
-        if (this.seedQueueEntry.getFrameBuffer() != null) {
+        if (this.previewRendered || this.seedQueueEntry.hasFrameBuffer()) {
             return true;
         }
         if (this.worldPreviewProperties == null || this.worldRenderer == null) {
@@ -177,10 +179,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     }
 
     public boolean shouldRedrawPreview() {
-        if (SeedQueue.config.freezeLockedPreviews && this.seedQueueEntry.isLocked()) {
-            return false;
-        }
-        return this.wall.frame - this.lastPreviewFrame >= SeedQueue.config.wallFPS / SeedQueue.config.previewFPS;
+        return this.worldPreviewProperties != null && (this.lastPreviewFrame == 0 || this.wall.frame - this.lastPreviewFrame >= SeedQueue.config.wallFPS / SeedQueue.config.previewFPS);
     }
 
     protected void populateCooldownStart(long cooldownStart) {

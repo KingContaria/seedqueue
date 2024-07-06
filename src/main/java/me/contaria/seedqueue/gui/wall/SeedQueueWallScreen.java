@@ -345,7 +345,7 @@ public class SeedQueueWallScreen extends Screen {
         entries.removeAll(this.getInstances().stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toSet()));
         entries.removeIf(entry -> entry.getWorldGenerationProgressTracker() == null);
         if (SeedQueue.config.waitForPreviewSetup) {
-            entries.removeIf(entry -> entry.getWorldPreviewProperties() == null && entry.getFrameBuffer() == null);
+            entries.removeIf(entry -> entry.getWorldPreviewProperties() == null && !entry.hasFrameBuffer());
         }
         return entries;
     }
@@ -853,7 +853,7 @@ public class SeedQueueWallScreen extends Screen {
             this.replaceLockedInstances = replaceLockedInstances;
 
             if (this.main.cosmetic) {
-                throw new IllegalStateException("Main Group may not be cosmetic!");
+                throw new IllegalArgumentException("Main Group may not be cosmetic!");
             }
         }
 
