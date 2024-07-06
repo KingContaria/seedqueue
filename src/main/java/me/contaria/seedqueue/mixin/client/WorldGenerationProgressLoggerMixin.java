@@ -18,7 +18,8 @@ public abstract class WorldGenerationProgressLoggerMixin implements SQWorldGener
             method = "setChunkStatus",
             at = @At(
                     value = "INVOKE",
-                    target = "Lorg/apache/logging/log4j/Logger;info(Ljava/lang/String;)V"
+                    target = "Lorg/apache/logging/log4j/Logger;info(Ljava/lang/String;)V",
+                    remap = false
             )
     )
     private boolean muteWorldGenProgress_inQueue(Logger logger, String s) {
@@ -29,7 +30,8 @@ public abstract class WorldGenerationProgressLoggerMixin implements SQWorldGener
             method = "stop",
             at = @At(
                     value = "INVOKE",
-                    target = "Lorg/apache/logging/log4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;)V"
+                    target = "Lorg/apache/logging/log4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;)V",
+                    remap = false
             )
     )
     private boolean muteWorldGenProgress_inQueue(Logger logger, String s, Object o) {
