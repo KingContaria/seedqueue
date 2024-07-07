@@ -9,7 +9,23 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Wraps the server executor to allow for using seperate executors while a server is generating in queue.
+ * This allows for modifying thread priorities and parallelism of executors used while in queue to help manage performance.
+ * <p>
+ * The backing {@link ExecutorService}'s are created lazily and should be shut down after a SeedQueue session.
+ * This should happen AFTER all servers have been shut down!
+ *
+ * @see SeedQueueConfig#backgroundExecutorThreadPriority
+ * @see SeedQueueConfig#backgroundExecutorThreads
+ * @see SeedQueueConfig#wallExecutorThreadPriority
+ * @see SeedQueueConfig#wallExecutorThreads
+ */
 public class SeedQueueExecutorWrapper implements Executor {
+    /**
+     * Executor used by servers while they are in queue.
+     * Redirects to the backing executors depending on the current state.
+     */
     public static final Executor SEEDQUEUE_EXECUTOR = command -> getSeedqueueExecutor().execute(command);
 
     private static ExecutorService SEEDQUEUE_BACKGROUND_EXECUTOR;
@@ -69,7 +85,10 @@ public class SeedQueueExecutorWrapper implements Executor {
         }, UtilAccessor::seedQueue$uncaughtExceptionHandler, true);
     }
 
-    public static void shutdownExecutors() {
+    /**
+     * Shuts down and removes the SeedQueue specific {@link ExecutorService}s.
+     */
+    public synchronized static void shutdownExecutors() {
         if (SEEDQUEUE_BACKGROUND_EXECUTOR != null) {
             UtilAccessor.seedQueue$attemptShutdown(SEEDQUEUE_BACKGROUND_EXECUTOR);
             SEEDQUEUE_BACKGROUND_EXECUTOR = null;

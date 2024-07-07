@@ -24,13 +24,16 @@ import java.util.function.Predicate;
 
 public class SeedQueue implements ClientModInitializer {
     public static final Logger LOGGER = LogManager.getLogger();
-    public static final Version VERSION = FabricLoader.getInstance().getModContainer("seedqueue").orElseThrow(IllegalStateException::new).getMetadata().getVersion();
-    public static final Object LOCK = new Object();
-    public static final Queue<SeedQueueEntry> SEED_QUEUE = new LinkedBlockingQueue<>();
+    private static final Version VERSION = FabricLoader.getInstance().getModContainer("seedqueue").orElseThrow(IllegalStateException::new).getMetadata().getVersion();
+    private static final Object LOCK = new Object();
+
+    public static SeedQueueConfig config;
+
+    private static final Queue<SeedQueueEntry> SEED_QUEUE = new LinkedBlockingQueue<>();
+    private static SeedQueueThread thread;
+
     public static SeedQueueEntry currentEntry;
     public static SeedQueueEntry selectedEntry;
-    public static SeedQueueConfig config;
-    public static SeedQueueThread thread;
 
     public static boolean comingFromWall;
 
@@ -60,7 +63,16 @@ public class SeedQueue implements ClientModInitializer {
         }
     }
 
+    /**
+     * Polls a new {@link SeedQueueEntry} from the queue.
+     * If {@link SeedQueue#selectedEntry} is not null, it
+     *
+     * @return True if a new {@link SeedQueueEntry} was successfully loaded.
+     */
     public static boolean loadEntry() {
+        if (!MinecraftClient.getInstance().isOnThread()) {
+            throw new RuntimeException("Tried to load a SeedQueueEntry off-thread!");
+        }
         synchronized (LOCK) {
             if (selectedEntry != null) {
                 currentEntry = selectedEntry;
@@ -76,52 +88,92 @@ public class SeedQueue implements ClientModInitializer {
         return currentEntry != null;
     }
 
+    /**
+     * Traverses the queue in order and returns the first {@link SeedQueueEntry} matching the {@link Predicate}.
+     * This method will return the first match and will not test any further entries.
+     *
+     * @return A {@link SeedQueueEntry} from the queue matching the given predicate.
+     */
     public static Optional<SeedQueueEntry> getEntryMatching(Predicate<SeedQueueEntry> predicate) {
         synchronized (LOCK) {
-            return SEED_QUEUE.stream().filter(predicate).findFirst();
+            for (SeedQueueEntry entry : SEED_QUEUE) {
+                if (predicate.test(entry)) {
+                    return Optional.of(entry);
+                }
+            }
+            return Optional.empty();
         }
     }
 
-    public static void add(SeedQueueEntry seedQueueEntry) {
+    /**
+     * Adds the given {@link SeedQueueEntry} to the queue.
+     */
+    public static void add(SeedQueueEntry entry) {
         synchronized (LOCK) {
-            SEED_QUEUE.add(seedQueueEntry);
+            if (SEED_QUEUE.contains(entry)) {
+                throw new IllegalArgumentException("Tried to add a SeedQueueEntry that is already in queue!");
+            }
+            SEED_QUEUE.add(Objects.requireNonNull(entry));
         }
         ping();
     }
 
-    public static void discard(SeedQueueEntry seedQueueEntry) {
-        boolean shouldDiscard;
+    /**
+     * Discards the given {@link SeedQueueEntry} and removes it from the queue.
+     */
+    public static void discard(SeedQueueEntry entry) {
         synchronized (LOCK) {
-            shouldDiscard = SEED_QUEUE.remove(seedQueueEntry);
+            if (!SEED_QUEUE.remove(entry)) {
+                throw new IllegalArgumentException("Tried to discard a SeedQueueEntry that is not currently in queue!");
+            }
         }
-        if (shouldDiscard) {
-            seedQueueEntry.discard();
-        }
+        entry.discard();
         ping();
     }
 
+    /**
+     * @return If the {@link SeedQueueThread} should launch another {@link SeedQueueEntry}.
+     */
     public static boolean shouldGenerate() {
         synchronized (LOCK) {
             return getGeneratingCount() < getMaxGeneratingCount() && SEED_QUEUE.size() < config.maxCapacity;
         }
     }
 
+    /**
+     * @return If the {@link SeedQueueThread} should unpause a {@link SeedQueueEntry} that was previously scheduled to pause.
+     */
     public static boolean shouldResumeGenerating() {
         synchronized (LOCK) {
             return getGeneratingCount() < getMaxGeneratingCount();
         }
     }
 
-    public static boolean shouldStopGenerating() {
+    /**
+     * @return If the {@link SeedQueueThread} should actively schedule a {@link SeedQueueEntry} to be paused.
+     */
+    public static boolean shouldPauseGenerating() {
         synchronized (LOCK) {
             return getGeneratingCount(true) > getMaxGeneratingCount();
         }
     }
 
+    /**
+     * @return The amount of currently generating seeds in the queue.
+     */
     private static long getGeneratingCount() {
         return getGeneratingCount(false);
     }
 
+    /**
+     * Counts the amount of {@link SeedQueueEntry}'s in the queue that are currently unpaused.
+     * If the Wall Screen is disabled it will also count the main server if it is still generating.
+     *
+     * @param treatScheduledAsPaused If {@link SeedQueueEntry}'s that are scheduled to pause but haven't been paused yet should be added to the count.
+     * @return The amount of currently generating / unpaused {@link SeedQueueEntry}'s in queue.
+     *
+     * @see SeedQueueConfig#shouldUseWall
+     */
     private static long getGeneratingCount(boolean treatScheduledAsPaused) {
         long count = SEED_QUEUE.stream().filter(entry -> !((treatScheduledAsPaused && entry.isScheduledToPause()) || entry.isPaused())).count();
 
@@ -134,11 +186,26 @@ public class SeedQueue implements ClientModInitializer {
         return count;
     }
 
+    /**
+     * @return The maximum number of {@link SeedQueueEntry}'s that should be generating concurrently.
+     *
+     * @see SeedQueueConfig#maxConcurrently
+     * @see SeedQueueConfig#maxConcurrently_onWall
+     */
     private static int getMaxGeneratingCount() {
         return isOnWall() ? config.maxConcurrently_onWall : config.maxConcurrently;
     }
 
+    /**
+     * Starts a new SeedQueue session, launching a new {@link SeedQueueThread}.
+     * <p>
+     * This method may only be called from the Render Thread and when SeedQueue is not currently active!
+     */
     public static void start() {
+        if (!MinecraftClient.getInstance().isOnThread()) {
+            throw new RuntimeException("Tried to start SeedQueue off-thread!");
+        }
+
         synchronized (LOCK) {
             if (thread != null) {
                 throw new IllegalStateException("Tried to start SeedQueue but a queue is already active!");
@@ -157,13 +224,22 @@ public class SeedQueue implements ClientModInitializer {
             SeedQueue.config.simulatedWindowSize.init();
 
             LOGGER.info("Starting SeedQueue...");
-
             thread = new SeedQueueThread();
             thread.start();
         }
     }
 
+    /**
+     * If SeedQueue is active, stops the current SeedQueue session.
+     * This stops the active {@link SeedQueueThread} and clears the queue and any caches.
+     * <p>
+     * This method may only be called from the Render Thread!
+     */
     public static void stop() {
+        if (!MinecraftClient.getInstance().isOnThread()) {
+            throw new RuntimeException("Tried to stop SeedQueue off-thread!");
+        }
+
         if (thread == null) {
             return;
         }
@@ -182,12 +258,15 @@ public class SeedQueue implements ClientModInitializer {
         clear();
     }
 
+    /**
+     * Clears the queue and discards all the active {@link SeedQueueEntry}'s.
+     * Also clears any other resources like caches and the Wall Screen WorldRenderers.
+     */
     private static void clear() {
         LOGGER.info("Clearing SeedQueue...");
 
-        MinecraftClient client = MinecraftClient.getInstance();
-        Screen screen = client.currentScreen;
-        client.setScreenAndRender(new SaveLevelScreen(new TranslatableText("seedqueue.menu.clearing")));
+        Screen screen = MinecraftClient.getInstance().currentScreen;
+        MinecraftClient.getInstance().setScreenAndRender(new SaveLevelScreen(new TranslatableText("seedqueue.menu.clearing")));
 
         if (currentEntry != null) {
             currentEntry.discardFrameBuffer();
@@ -198,7 +277,7 @@ public class SeedQueue implements ClientModInitializer {
         SEED_QUEUE.forEach(SeedQueueEntry::discard);
 
         while (!SEED_QUEUE.isEmpty()) {
-            ((MinecraftClientAccessor) client).seedQueue$render(false);
+            ((MinecraftClientAccessor) MinecraftClient.getInstance()).seedQueue$render(false);
             SEED_QUEUE.removeIf(entry -> entry.getServer().isStopping());
         }
 
@@ -208,21 +287,33 @@ public class SeedQueue implements ClientModInitializer {
         ModCompat.sodium$clearBuildBufferPool();
         System.gc();
 
-        client.openScreen(screen);
+        MinecraftClient.getInstance().openScreen(screen);
     }
 
+    /**
+     * @return True if there is a running {@link SeedQueueThread}.
+     */
     public static boolean isActive() {
         return thread != null;
     }
 
+    /**
+     * @return True if currently on the {@link SeedQueueThread}.
+     */
     public static boolean inQueue() {
         return Thread.currentThread() instanceof SeedQueueThread;
     }
 
+    /**
+     * @return True if currently on the Wall Screen.
+     */
     public static boolean isOnWall() {
         return MinecraftClient.getInstance().currentScreen instanceof SeedQueueWallScreen;
     }
 
+    /**
+     * @return The {@link SeedQueueEntry} corresponding to the given server.
+     */
     public static @Nullable SeedQueueEntry getEntry(MinecraftServer server) {
         if (MinecraftClient.getInstance().getServer() == server) {
             return null;
@@ -237,6 +328,9 @@ public class SeedQueue implements ClientModInitializer {
         }
     }
 
+    /**
+     * @return The {@link SeedQueueEntry} corresponding to the given server thread.
+     */
     public static @Nullable SeedQueueEntry getEntry(Thread serverThread) {
         MinecraftServer server = MinecraftClient.getInstance().getServer();
         if (server != null && server.getThread() == serverThread) {
@@ -252,12 +346,25 @@ public class SeedQueue implements ClientModInitializer {
         }
     }
 
+    /**
+     * Pings the currently active {@link SeedQueueThread}.
+     */
     public static void ping() {
         if (isActive()) {
             thread.ping();
         }
     }
 
+    /**
+     * @return A mutable copy of the queue.
+     */
+    public static List<SeedQueueEntry> getEntries() {
+        return new ArrayList<>(SEED_QUEUE);
+    }
+
+    /**
+     * @return A {@link List} of debug information to add to the F3 screen when SeedQueue is active.
+     */
     public static List<String> getDebugText() {
         List<String> debugText = new ArrayList<>();
         debugText.add("");

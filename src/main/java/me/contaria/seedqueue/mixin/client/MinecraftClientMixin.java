@@ -73,6 +73,8 @@ public abstract class MinecraftClientMixin {
             at = @At("TAIL")
     )
     private void startSeedQueue(CallbackInfo ci) {
+        // SeedQueue is started after one world has been created so AntiResourceReload is guaranteed to have populated its cache
+        // this means we don't have to worry about synchronizing in that area
         if (Atum.isRunning() && !SeedQueue.isActive()) {
             SeedQueue.start();
         }

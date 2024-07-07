@@ -29,6 +29,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Config class based on SpeedrunAPI, initialized on prelaunch.
+ * <p>
+ * When implementing new options, make sure no Minecraft classes are loaded during initialization!
+ */
 @SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
 @InitializeOn(InitializeOn.InitPoint.PRELAUNCH)
 public class SeedQueueConfig implements SpeedrunConfig {
@@ -180,13 +185,25 @@ public class SeedQueueConfig implements SpeedrunConfig {
         SeedQueue.config = this;
     }
 
+    /**
+     * Returns the amount of threads the Background Executor should use according to {@link SeedQueueConfig#backgroundExecutorThreads}.
+     * Calculates a good default based on {@link SeedQueueConfig#maxConcurrently} if set to {@link SeedQueueConfig#AUTO}.
+     *
+     * @return The parallelism to be used for the Background Executor Service.
+     */
     public int getBackgroundExecutorThreads() {
         if (this.backgroundExecutorThreads == AUTO) {
-            return Math.max(1, Math.min(this.maxConcurrently, PROCESSORS));
+            return Math.max(1, Math.min(this.maxConcurrently + 1, PROCESSORS));
         }
         return this.backgroundExecutorThreads;
     }
 
+    /**
+     * Returns the amount of threads the Wall Executor should use according to {@link SeedQueueConfig#wallExecutorThreads}.
+     * The amount of available processors is used if set to {@link SeedQueueConfig#AUTO}.
+     *
+     * @return The parallelism to be used for the Background Executor Service.
+     */
     public int getWallExecutorThreads() {
         if (this.wallExecutorThreads == AUTO) {
             return Math.max(1, PROCESSORS);
@@ -194,6 +211,12 @@ public class SeedQueueConfig implements SpeedrunConfig {
         return this.wallExecutorThreads;
     }
 
+    /**
+     * Returns the amount of worker threads created PER WorldRenderer on the Wall Screen according to {@link SeedQueueConfig#chunkUpdateThreads}.
+     * Calculates a sane default if set to {@link SeedQueueConfig#AUTO}.
+     *
+     * @return The amount of Sodium worker threads to launch on the Wall Screen.
+     */
     public int getChunkUpdateThreads() {
         if (this.chunkUpdateThreads == AUTO) {
             return Math.min(Math.max(2, (int) Math.ceil((double) PROCESSORS / this.maxConcurrently_onWall)), PROCESSORS);
@@ -289,6 +312,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
         return SpeedrunConfig.super.parseField(field, config, idPrefix);
     }
 
+    /**
+     * Reloads the config from disk.
+     */
     public void reload() throws IOException, JsonParseException {
         if (this.container != null) {
             this.container.load();

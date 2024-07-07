@@ -40,7 +40,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class SeedQueueWallScreen extends Screen {
     private static final Set<WorldRenderer> WORLD_RENDERERS = new HashSet<>();
@@ -341,11 +340,13 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private List<SeedQueueEntry> getAvailableSeedQueueEntries() {
-        List<SeedQueueEntry> entries = new ArrayList<>(SeedQueue.SEED_QUEUE);
-        entries.removeAll(this.getInstances().stream().map(SeedQueuePreview::getSeedQueueEntry).collect(Collectors.toSet()));
+        List<SeedQueueEntry> entries = SeedQueue.getEntries();
+        for (SeedQueuePreview instance: this.getInstances()) {
+            entries.remove(instance.getSeedQueueEntry());
+        }
         entries.removeIf(entry -> entry.getWorldGenerationProgressTracker() == null);
         if (SeedQueue.config.waitForPreviewSetup) {
-            entries.removeIf(entry -> entry.getWorldPreviewProperties() == null && !entry.hasFrameBuffer());
+            entries.removeIf(entry -> !entry.hasWorldPreview());
         }
         return entries;
     }
@@ -709,7 +710,7 @@ public class SeedQueueWallScreen extends Screen {
             SeedQueue.LOGGER.warn("BENCHMARK | Could not start benchmark because Benchmark Resets is set to 0.");
             return;
         }
-        for (SeedQueueEntry entry : new HashSet<>(SeedQueue.SEED_QUEUE)) {
+        for (SeedQueueEntry entry : SeedQueue.getEntries()) {
             SeedQueue.discard(entry);
         }
         for (SeedQueuePreview instance : this.getInstances()) {

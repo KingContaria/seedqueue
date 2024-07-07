@@ -2,15 +2,19 @@ package me.contaria.seedqueue;
 
 import me.voidxwalker.autoreset.AtumCreateWorldScreen;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
 
 import java.util.Optional;
 
+/**
+ * The thread responsible for launching new server threads and creating and queueing the corresponding {@link SeedQueueEntry}'s.
+ * <p>
+ * This thread is to be launched at the start of a SeedQueue session and to be closed by calling {@link SeedQueueThread#stopQueue}.
+ */
 public class SeedQueueThread extends Thread {
     private final Object lock = new Object();
     private volatile boolean running = true;
 
-    public SeedQueueThread() {
+    SeedQueueThread() {
         super("SeedQueue Thread");
         this.setPriority(SeedQueue.config.seedQueueThreadPriority);
     }
@@ -19,7 +23,7 @@ public class SeedQueueThread extends Thread {
     public void run() {
         while (this.running) {
             try {
-                if (SeedQueue.shouldStopGenerating()) {
+                if (SeedQueue.shouldPauseGenerating()) {
                     this.pauseSeedQueueEntry();
                     continue;
                 }
@@ -45,6 +49,9 @@ public class SeedQueueThread extends Thread {
         }
     }
 
+    /**
+     * Tries to find a currently unpaused {@link SeedQueueEntry} and schedules it to be paused.
+     */
     private void pauseSeedQueueEntry() {
         // try to pause not locked entries first
         Optional<SeedQueueEntry> entry = SeedQueue.getEntryMatching(e -> !e.isLocked() && e.canUnpause());
@@ -54,16 +61,21 @@ public class SeedQueueThread extends Thread {
         entry.ifPresent(SeedQueueEntry::schedulePause);
     }
 
+    /**
+     * Tries to find a currently paused {@link SeedQueueEntry} and schedules it to be unpaused.
+     *
+     * @return False if there is no entries to unpause.
+     */
     private boolean unpauseSeedQueueEntry() {
-        return SeedQueue.getEntryMatching(entry -> entry.isScheduledToPause() || (entry.isPaused() && !entry.shouldPause())).map(entry -> {
-            entry.tryToUnpause();
-            return true;
-        }).orElse(false);
+        // try to unpause locked entries first
+        return SeedQueue.getEntryMatching(entry -> entry.isLocked() && entry.tryToUnpause()).isPresent() || SeedQueue.getEntryMatching(SeedQueueEntry::tryToUnpause).isPresent();
     }
 
+    /**
+     * Creates a new {@link SeedQueueEntry} and adds it to the queue.
+     */
     private void createSeedQueueEntry() {
-        Screen atumCreateWorldScreen = new AtumCreateWorldScreen(null);
-        atumCreateWorldScreen.init(MinecraftClient.getInstance(), 0, 0);
+        new AtumCreateWorldScreen(null).init(MinecraftClient.getInstance(), 0, 0);
     }
 
     public void ping() {
@@ -72,6 +84,11 @@ public class SeedQueueThread extends Thread {
         }
     }
 
+    /**
+     * Stops this thread.
+     * <p>
+     * If this method is called from another thread, {@link SeedQueueThread#ping} has to be called AFTER.
+     */
     public void stopQueue() {
         this.running = false;
     }

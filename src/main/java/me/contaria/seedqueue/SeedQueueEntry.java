@@ -15,6 +15,9 @@ import net.minecraft.util.UserCache;
 import net.minecraft.world.level.storage.LevelStorage;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Stores the {@link MinecraftServer} and any other resources related to a seed in the queue.
+ */
 public class SeedQueueEntry {
     private final MinecraftServer server;
 
@@ -33,8 +36,8 @@ public class SeedQueueEntry {
     @Nullable
     private WorldPreviewFrameBuffer frameBuffer;
 
-    private boolean locked;
-    private boolean discarded;
+    private volatile boolean locked;
+    private volatile boolean discarded;
 
     public SeedQueueEntry(MinecraftServer server, LevelStorage.Session session, MinecraftClient.IntegratedResourceManager resourceManager, YggdrasilAuthenticationService yggdrasilAuthenticationService, MinecraftSessionService minecraftSessionService, GameProfileRepository gameProfileRepository, @Nullable UserCache userCache) {
         this.server = server;
@@ -94,6 +97,9 @@ public class SeedQueueEntry {
         return this.getFrameBuffer(false);
     }
 
+    /**
+     * @param create Whether the {@link WorldPreviewFrameBuffer} should be created if it's null.
+     */
     public WorldPreviewFrameBuffer getFrameBuffer(boolean create) {
         if (!MinecraftClient.getInstance().isOnThread()) {
             throw new IllegalStateException("Tried to get WorldPreviewFrameBuffer off-thread!");
@@ -110,9 +116,14 @@ public class SeedQueueEntry {
         return this.frameBuffer != null;
     }
 
+    /**
+     * Deletes and removes this entry's framebuffer.
+     *
+     * @see WorldPreviewFrameBuffer#delete
+     */
     public void discardFrameBuffer() {
         if (!MinecraftClient.getInstance().isOnThread()) {
-            throw new IllegalStateException("Tried to discard WorldPreviewFrameBuffer off-thread!");
+            throw new RuntimeException("Tried to discard WorldPreviewFrameBuffer off-thread!");
         }
         if (this.frameBuffer != null) {
             this.frameBuffer.delete();
@@ -120,50 +131,119 @@ public class SeedQueueEntry {
         }
     }
 
+    /**
+     * @return True if this entry has either {@link WorldPreviewProperties} or a {@link WorldPreviewFrameBuffer}.
+     */
+    public boolean hasWorldPreview() {
+        return this.worldPreviewProperties != null || this.frameBuffer != null;
+    }
+
+    /**
+     * Checks if this entry should pause.
+     * <p>
+     * Returns true if:
+     * <p>
+     *  - the entry has finished world generation
+     * <p>
+     *  - the entry has reached the {@link SeedQueueConfig#maxWorldGenerationPercentage} and is not locked
+     * <p>
+     *  - the entry has been scheduled to pause by the {@link SeedQueueThread}
+     *
+     * @return If this entry's {@link MinecraftServer} should pause in its current state.
+     *
+     * @see SQMinecraftServer#seedQueue$shouldPause
+     */
     public boolean shouldPause() {
         return ((SQMinecraftServer) this.server).seedQueue$shouldPause();
     }
 
+    /**
+     * @return If the entry is currently paused.
+     *
+     * @see SQMinecraftServer#seedQueue$isPaused
+     * @see SeedQueueEntry#shouldPause
+     */
     public boolean isPaused() {
         return ((SQMinecraftServer) this.server).seedQueue$isPaused();
     }
 
+    /**
+     * @return If the entry has been scheduled to pause by the {@link SeedQueueThread} but hasn't been paused yet.
+     *
+     * @see SQMinecraftServer#seedQueue$isScheduledToPause
+     * @see SeedQueueEntry#shouldPause
+     */
     public boolean isScheduledToPause() {
         return ((SQMinecraftServer) this.server).seedQueue$isScheduledToPause();
     }
 
+    /**
+     * Schedules this entry to be paused.
+     *
+     * @see SQMinecraftServer#seedQueue$schedulePause
+     */
     public void schedulePause() {
         ((SQMinecraftServer) this.server).seedQueue$schedulePause();
     }
 
-    public boolean canUnpause() {
-        return this.isScheduledToPause() || (this.isPaused() && !this.shouldPause());
-    }
-
+    /**
+     * Unpauses this entry.
+     *
+     * @see SQMinecraftServer#seedQueue$unpause
+     */
     public void unpause() {
         ((SQMinecraftServer) this.server).seedQueue$unpause();
     }
 
-    public void tryToUnpause() {
-        // to avoid a race condition within SeedQueueThread#pauseSeedQueueEntry
-        // where the server would be scheduled to pause but then pause because it finishes loading,
-        // we synchronize on the server object and recheck pause state before trying to unpause
+    /**
+     * An entry can be unpaused if:
+     * <p>
+     * - it was paused by reaching the {@link SeedQueueConfig#maxWorldGenerationPercentage} but has been locked since
+     * <p>
+     * - it was scheduled to be paused by the {@link SeedQueueThread}
+     *
+     * @return True if this entry is currently paused or scheduled to be paused and is allowed to be unpaused.
+     */
+    public boolean canUnpause() {
+        return this.isScheduledToPause() || (this.isPaused() && !this.shouldPause());
+    }
+
+    /**
+     * @return True if the entry was paused and has now been successfully unpaused.
+     *
+     * @see SeedQueueEntry#unpause
+     * @see SeedQueueEntry#canUnpause
+     */
+    public boolean tryToUnpause() {
         synchronized (this.server) {
-            if (this.isPaused() && this.shouldPause()) {
-                return;
+            if (this.canUnpause()) {
+                this.unpause();
+                return true;
             }
-            ((SQMinecraftServer) this.server).seedQueue$unpause();
+            return false;
         }
     }
 
+    /**
+     * @return True if the {@link MinecraftServer} has fully finished generation and is ready to be joined by the player.
+     */
     public boolean isReady() {
         return this.server.isLoading();
     }
 
+    /**
+     * @see SeedQueueEntry#lock
+     */
     public boolean isLocked() {
         return this.locked;
     }
 
+    /**
+     * Locks this entry from being mass-reset on the Wall Screen.
+     * Mass Resets include Reset All, Focus Reset, Reset Row, Reset Column.
+     *
+     * @return True if the entry was not locked before.
+     */
     public boolean lock() {
         if (!this.locked) {
             this.locked = true;
@@ -177,6 +257,9 @@ public class SeedQueueEntry {
         return this.discarded;
     }
 
+    /**
+     * Discards this entry and all the resources attached to it, including shutting down the {@link MinecraftServer}.
+     */
     public synchronized void discard() {
         synchronized (this.server) {
             if (this.discarded) {

@@ -3,6 +3,10 @@ package me.contaria.seedqueue;
 import net.fabricmc.loader.api.FabricLoader;
 import org.mcsr.speedrunapi.mixin_plugin.SpeedrunMixinConfigPlugin;
 
+/**
+ * SeedQueues Mixin Config Plugin, extends SpeedrunAPI's plugin to inherit its functionality.
+ * Only used for compatibility with Sodium Mac, will be redundant once Sodium is updated to not need the seperate mac version anymore.
+ */
 public class SeedQueueMixinConfigPlugin extends SpeedrunMixinConfigPlugin {
     private static final boolean MAC_SODIUM = FabricLoader.getInstance().isModLoaded("sodiummac");
 

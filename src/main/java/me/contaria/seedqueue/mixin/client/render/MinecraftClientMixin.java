@@ -45,7 +45,7 @@ public abstract class MinecraftClientMixin {
         int x = 3;
         int y = 3;
         int scale = SeedQueue.config.chunkMapScale;
-        for (SeedQueueEntry seedQueueEntry : SeedQueue.SEED_QUEUE) {
+        for (SeedQueueEntry seedQueueEntry : SeedQueue.getEntries()) {
             if (seedQueueEntry.isPaused()) {
                 continue;
             }

@@ -8,7 +8,7 @@ import net.minecraft.client.gui.widget.AbstractButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
+import net.minecraft.text.StringRenderable;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class SeedQueueWindowSizeWidget extends AbstractButtonWidget implements ParentElement {
-    private static final Text X = new LiteralText("x");
+    private static final StringRenderable X = StringRenderable.plain("X");
 
     private final SeedQueueConfig.WindowSize windowSize;
     private final TextFieldWidget widthWidget;

@@ -143,7 +143,7 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
         if (this.pauseScheduled || entry.isReady()) {
             return true;
         }
-        if (entry.getWorldPreviewProperties() == null) {
+        if (!entry.hasWorldPreview()) {
             return false;
         }
         if (!entry.isLocked() && SeedQueue.config.maxWorldGenerationPercentage < 100) {
@@ -186,7 +186,7 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     }
 
     @Override
-    public void seedQueue$schedulePause() {
+    public synchronized void seedQueue$schedulePause() {
         if (!this.paused) {
             this.pauseScheduled = true;
         }

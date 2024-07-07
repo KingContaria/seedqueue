@@ -2,6 +2,10 @@ package me.contaria.seedqueue;
 
 import net.minecraft.client.MinecraftClient;
 
+/**
+ * Provides methods to profile rendering on the Wall Screen without affecting the profiler during vanilla gameplay.
+ * It will only profile when called from the Render Thread while being on the Wall Screen with {@link SeedQueueConfig#showDebugMenu} enabled.
+ */
 public class SeedQueueProfiler {
     public static void push(String location) {
         if (shouldProfile()) {
