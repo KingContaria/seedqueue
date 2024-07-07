@@ -58,7 +58,10 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
             )
     )
     private Executor wrapExecutor(Executor executor) {
-        return new SeedQueueExecutorWrapper(executor);
+        if (SeedQueue.inQueue()) {
+            return new SeedQueueExecutorWrapper(executor);
+        }
+        return executor;
     }
 
     @ModifyVariable(
