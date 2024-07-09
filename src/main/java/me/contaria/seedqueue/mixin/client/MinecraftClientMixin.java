@@ -537,7 +537,9 @@ public abstract class MinecraftClientMixin {
             )
     )
     private boolean doNotYieldRenderThreadOnWall() {
-        return !(SeedQueue.isOnWall() && SeedQueue.config.doNotYieldRenderThread);
+        // because of the increased amount of threads when using SeedQueue,
+        // not yielding the render thread results in a much smoother experience on the Wall Screen
+        return !SeedQueue.isOnWall();
     }
 
     @Inject(

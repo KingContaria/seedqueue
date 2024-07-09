@@ -111,6 +111,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Category("performance")
     public boolean freezeLockedPreviews = false;
 
+    @Config.Category("performance")
+    public boolean reduceSchedulingBudget = false;
+
     @Config.Category("advanced")
     public boolean showAdvancedSettings = false;
 
@@ -146,18 +149,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
     public int chunkUpdateThreadPriority = 3;
 
-    @Config.Category("experimental")
-    public boolean alwaysDeferChunkUpdates = false;
-
-    @Config.Category("experimental")
-    public boolean doNotYieldRenderThread = false;
-
-    @Config.Category("experimental")
-    public boolean reduceSchedulingBudget = false;
-
-    @Config.Category("debug")
-    public boolean useWatchdog = false;
-
     @Config.Category("debug")
     public boolean showDebugMenu = false;
 
@@ -166,8 +157,10 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Numbers.TextField
     public int benchmarkResets = 0;
 
-    @Config.Category("misc")
-    @Config.Name("seedqueue.menu.keys")
+    @Config.Category("debug")
+    public boolean useWatchdog = false;
+
+    @Config.Category("wall")
     public final SeedQueueMultiKeyBinding[] keyBindings = new SeedQueueMultiKeyBinding[]{
             SeedQueueKeyBindings.play,
             SeedQueueKeyBindings.focusReset,

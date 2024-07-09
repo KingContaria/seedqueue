@@ -22,15 +22,4 @@ public abstract class ChunkRenderManagerMixin {
         }
         return nearbyChunkDistance;
     }
-
-    @ModifyExpressionValue(
-            method = "updateChunks",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;isChunkPrioritized(Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderContainer;)Z"
-            )
-    )
-    private boolean alwaysDeferChunkUpdatesOnWall(boolean isChunkPrioritized) {
-        return isChunkPrioritized && !(SeedQueue.isOnWall() && SeedQueue.config.alwaysDeferChunkUpdates);
-    }
 }
