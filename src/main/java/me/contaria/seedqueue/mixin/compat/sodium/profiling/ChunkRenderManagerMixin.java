@@ -234,8 +234,10 @@ public abstract class ChunkRenderManagerMixin {
             method = "update",
             at = @At(
                     value = "INVOKE",
-                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;reset()V"
-            )
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;reset()V",
+                    remap = false
+            ),
+            remap = true
     )
     private void profileReset2(CallbackInfo ci) {
         SeedQueueProfiler.push("reset");
@@ -245,8 +247,10 @@ public abstract class ChunkRenderManagerMixin {
             method = "update",
             at = @At(
                     value = "INVOKE",
-                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;unloadPending()V"
-            )
+                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;unloadPending()V",
+                    remap = false
+            ),
+            remap = true
     )
     private void profileUnloadPending(CallbackInfo ci) {
         SeedQueueProfiler.swap("unload_pending");
@@ -257,7 +261,8 @@ public abstract class ChunkRenderManagerMixin {
             at = @At(
                     value = "INVOKE",
                     target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;setup(Lnet/minecraft/client/render/Camera;)V"
-            )
+            ),
+            remap = true
     )
     private void profileSetup(CallbackInfo ci) {
         SeedQueueProfiler.swap("setup");
@@ -268,7 +273,8 @@ public abstract class ChunkRenderManagerMixin {
             at = @At(
                     value = "INVOKE",
                     target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;iterateChunks(Lnet/minecraft/client/render/Camera;Lme/jellysquid/mods/sodium/client/util/math/FrustumExtended;IZ)V"
-            )
+            ),
+            remap = true
     )
     private void profileIterateChunks(CallbackInfo ci) {
         SeedQueueProfiler.swap("iterate_chunks");
@@ -276,7 +282,8 @@ public abstract class ChunkRenderManagerMixin {
 
     @Inject(
             method = "update",
-            at = @At("RETURN")
+            at = @At("RETURN"),
+            remap = true
     )
     private void profilePop_update(CallbackInfo ci) {
         SeedQueueProfiler.pop();

@@ -20,7 +20,8 @@ public abstract class ChunkBuilderMixin {
             method = "startWorkers",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/MinecraftClient;getInstance()Lnet/minecraft/client/MinecraftClient;"
+                    target = "Lnet/minecraft/client/MinecraftClient;getInstance()Lnet/minecraft/client/MinecraftClient;",
+                    remap = true
             )
     )
     private void profileStartWorkers(CallbackInfo ci) {

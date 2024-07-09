@@ -45,8 +45,10 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
             at = @At(
                     value = "INVOKE",
                     target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;unloadWorld()V",
-                    shift = At.Shift.AFTER
-            )
+                    shift = At.Shift.AFTER,
+                    remap = false
+            ),
+            remap = true
     )
     private void profilePopUnloadWorld(CallbackInfo ci) {
         SeedQueueProfiler.pop();
@@ -57,7 +59,8 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
             at = @At(
                     value = "INVOKE",
                     target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;loadWorld(Lnet/minecraft/client/world/ClientWorld;)V"
-            )
+            ),
+            remap = true
     )
     private void profileLoadWorld(CallbackInfo ci) {
         SeedQueueProfiler.push("load_world");
@@ -69,7 +72,8 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
                     value = "INVOKE",
                     target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;loadWorld(Lnet/minecraft/client/world/ClientWorld;)V",
                     shift = At.Shift.AFTER
-            )
+            ),
+            remap = true
     )
     private void profilePopLoadWorld(CallbackInfo ci) {
         SeedQueueProfiler.pop();
@@ -77,7 +81,8 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
 
     @Inject(
             method = "setWorld",
-            at = @At("TAIL")
+            at = @At("TAIL"),
+            remap = true
     )
     private void profilePop_setWorld(CallbackInfo ci) {
         SeedQueueProfiler.pop();
@@ -88,7 +93,8 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
             at = @At(
                     value = "INVOKE",
                     target = "Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheShared;createRenderContext(Lnet/minecraft/world/BlockRenderView;)V"
-            )
+            ),
+            remap = true
     )
     private void profileCreateRenderContext(CallbackInfo ci) {
         SeedQueueProfiler.push("create_render_context");
@@ -98,8 +104,10 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
             method = "loadWorld",
             at = @At(
                     value = "INVOKE",
-                    target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;initRenderer()V"
-            )
+                    target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;initRenderer()V",
+                    remap = false
+            ),
+            remap = true
     )
     private void profileInitRenderer(CallbackInfo ci) {
         SeedQueueProfiler.swap("init_renderer");
@@ -109,8 +117,10 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
             method = "loadWorld",
             at = @At(
                     value = "INVOKE",
-                    target = "Lme/jellysquid/mods/sodium/client/world/ChunkStatusListenerManager;setListener(Lme/jellysquid/mods/sodium/client/world/ChunkStatusListener;)V"
-            )
+                    target = "Lme/jellysquid/mods/sodium/client/world/ChunkStatusListenerManager;setListener(Lme/jellysquid/mods/sodium/client/world/ChunkStatusListener;)V",
+                    remap = false
+            ),
+            remap = true
     )
     private void profileSetListener(CallbackInfo ci) {
         SeedQueueProfiler.swap("set_listener");
@@ -118,7 +128,8 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
 
     @Inject(
             method = "loadWorld",
-            at = @At("TAIL")
+            at = @At("TAIL"),
+            remap = true
     )
     private void profilePop_loadWorld(CallbackInfo ci) {
         SeedQueueProfiler.pop();
@@ -128,7 +139,8 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
             method = "unloadWorld",
             at = @At(
                     value = "INVOKE",
-                    target = "Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheShared;destroyRenderContext(Lnet/minecraft/world/BlockRenderView;)V"
+                    target = "Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheShared;destroyRenderContext(Lnet/minecraft/world/BlockRenderView;)V",
+                    remap = true
             )
     )
     private void profileDestroyRenderContext(CallbackInfo ci) {
@@ -278,7 +290,8 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
             method = "initRenderer",
             at = @At(
                     value = "NEW",
-                    target = "(Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderBackend;Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;Lnet/minecraft/client/world/ClientWorld;I)Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;"
+                    target = "(Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderBackend;Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;Lnet/minecraft/client/world/ClientWorld;I)Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;",
+                    remap = true
             )
     )
     private void profileCreateRenderManager(CallbackInfo ci) {
