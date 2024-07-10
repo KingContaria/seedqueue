@@ -52,7 +52,7 @@ public class WorldPreviewFrameBuffer {
     }
 
     /**
-     * Draws the internal {@link Framebuffer} without setting {@link RenderSystem#ortho}.
+     * Draws the internal {@link Framebuffer} without setting {@link RenderSystem#ortho} and {@link RenderSystem#viewport}.
      */
     @SuppressWarnings("deprecation")
     public void draw(int width, int height) {

@@ -36,7 +36,7 @@
 		"fabricloader": ">=0.15.7",
 		"minecraft": "1.16.1",
 		"speedrunapi": ">=1.0.0-beta.3",
-		"atum": ">=2.0.0"
+		"atum": ">=2.0.0-beta.1"
 	},
 	"breaks": {
 		"worldpreview": "<6.0.0-beta.10",
