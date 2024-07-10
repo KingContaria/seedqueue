@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfileRepository;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import me.contaria.seedqueue.compat.ModCompat;
+import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
 import me.contaria.seedqueue.compat.WorldPreviewFrameBuffer;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
@@ -35,6 +36,10 @@ public class SeedQueueEntry {
     private WorldPreviewProperties worldPreviewProperties;
     @Nullable
     private WorldPreviewFrameBuffer frameBuffer;
+
+    @Nullable
+    private SeedQueueSettingsCache settingsCache;
+    private int perspective;
 
     private volatile boolean locked;
     private volatile boolean discarded;
@@ -136,6 +141,45 @@ public class SeedQueueEntry {
      */
     public boolean hasWorldPreview() {
         return this.worldPreviewProperties != null || this.frameBuffer != null;
+    }
+
+    public @Nullable SeedQueueSettingsCache getSettingsCache() {
+        return this.settingsCache;
+    }
+
+    /**
+     * Sets the settings cache to be loaded when loading this entry.
+     *
+     * @throws IllegalStateException If this method is called but {@link SeedQueueEntry#worldPreviewProperties} is null.
+     */
+    public void setSettingsCache(SeedQueueSettingsCache settingsCache) {
+        if (this.worldPreviewProperties == null) {
+            throw new IllegalStateException("Tried to set SettingsCache but WorldPreviewProperties is null!");
+        }
+        this.settingsCache = settingsCache;
+        this.settingsCache.loadPlayerModelParts(this.worldPreviewProperties.getPlayer());
+        this.perspective = this.worldPreviewProperties.getPerspective();
+    }
+
+    /**
+     * Loads this entry's {@link SeedQueueEntry#settingsCache} and {@link SeedQueueEntry#perspective}.
+     *
+     * @return True if this entry has a settings cache which was loaded.
+     */
+    public boolean loadSettingsCache() {
+        if (this.settingsCache != null) {
+            this.settingsCache.load();
+            MinecraftClient.getInstance().options.perspective = perspective;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @return The perspective used in the preview of this entry.
+     */
+    public int getPerspective() {
+        return this.perspective;
     }
 
     /**

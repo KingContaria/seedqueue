@@ -19,7 +19,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class SeedQueueKeybindingsListWidget extends ElementListWidget<SeedQueueKeybindingsListWidget.Entry> {
-
     private final SeedQueueKeybindingsScreen parent;
 
     public SeedQueueKeybindingsListWidget(SeedQueueKeybindingsScreen parent, MinecraftClient client) {

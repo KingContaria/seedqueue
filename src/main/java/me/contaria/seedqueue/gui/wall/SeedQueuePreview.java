@@ -2,6 +2,7 @@ package me.contaria.seedqueue.gui.wall;
 
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
+import me.contaria.seedqueue.compat.WorldPreviewCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.voidxwalker.worldpreview.WorldPreview;
@@ -47,8 +48,8 @@ public class SeedQueuePreview extends LevelLoadingScreen {
         }
         if (this.worldPreviewProperties != null) {
             this.worldRenderer = SeedQueueWallScreen.getOrCreateWorldRenderer(this.worldPreviewProperties.getWorld());
-            if (this.worldPreviewProperties.getSettingsCache() == null) {
-                this.worldPreviewProperties.setSettingsCache(this.wall.settingsCache);
+            if (this.seedQueueEntry.getSettingsCache() == null) {
+                this.seedQueueEntry.setSettingsCache(this.wall.settingsCache);
             }
         } else {
             this.worldRenderer = null;
@@ -58,7 +59,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     private void initScreen() {
         // forceUnicodeFont is not being loaded from the settings cache because it is not included in SeedQueueSettingsCache.PREVIEW_SETTINGS
         int scale = SeedQueue.config.calculateSimulatedScaleFactor(
-                this.worldPreviewProperties != null ? (int) this.worldPreviewProperties.getSettingsCache().getValue("guiScale") : MinecraftClient.getInstance().options.guiScale,
+                this.seedQueueEntry.getSettingsCache() != null ? (int) this.seedQueueEntry.getSettingsCache().getValue("guiScale") : MinecraftClient.getInstance().options.guiScale,
                 MinecraftClient.getInstance().options.forceUnicodeFont
         );
         this.init(
@@ -112,7 +113,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
             this.runAsPreview(() -> WorldPreview.runAsPreview(() -> {
                 WorldPreview.tickPackets();
                 WorldPreview.tickEntities();
-                this.worldPreviewProperties.buildChunks();
+                WorldPreviewCompat.buildChunks();
             }));
         }
     }

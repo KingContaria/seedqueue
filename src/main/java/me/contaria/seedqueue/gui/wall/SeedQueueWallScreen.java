@@ -352,9 +352,9 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void loadPreviewSettings(SeedQueuePreview instance) {
-        WorldPreviewProperties wpProperties = instance.getWorldPreviewProperties();
-        if (wpProperties != null) {
-            this.loadPreviewSettings(wpProperties.getSettingsCache(), wpProperties.getPerspective());
+        SeedQueueEntry entry = instance.getSeedQueueEntry();
+        if (entry.getSettingsCache() != null) {
+            this.loadPreviewSettings(entry.getSettingsCache(), entry.getPerspective());
         } else {
             this.loadPreviewSettings(this.settingsCache, 0);
         }

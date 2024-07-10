@@ -10,7 +10,6 @@ import net.minecraft.text.TranslatableText;
 import org.lwjgl.glfw.GLFW;
 
 public class SeedQueueKeybindingsScreen extends Screen {
-
     private final Screen parent;
     protected final SeedQueueMultiKeyBinding[] keyBindings;
     protected SeedQueueKeybindingsListWidget.KeyEntry focusedBinding;

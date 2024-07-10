@@ -2,23 +2,15 @@ package me.contaria.seedqueue.mixin.compat.standardsettings;
 
 import com.bawnorton.mixinsquared.TargetHandler;
 import me.contaria.seedqueue.SeedQueue;
-import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.options.GameOptions;
 import org.spongepowered.asm.mixin.Dynamic;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(MinecraftClient.class)
 public abstract class MinecraftClientMixin {
-
-    @Shadow
-    @Final
-    public GameOptions options;
 
     @Dynamic
     @TargetHandler(
@@ -35,13 +27,8 @@ public abstract class MinecraftClientMixin {
             ci.cancel();
             return;
         }
-        if (SeedQueue.currentEntry != null) {
-            WorldPreviewProperties wpProperties = SeedQueue.currentEntry.getWorldPreviewProperties();
-            if (wpProperties != null && wpProperties.getSettingsCache() != null) {
-                wpProperties.getSettingsCache().load();
-                this.options.perspective = wpProperties.getPerspective();
-                ci.cancel();
-            }
+        if (SeedQueue.currentEntry != null && SeedQueue.currentEntry.loadSettingsCache()) {
+            ci.cancel();
         }
     }
 

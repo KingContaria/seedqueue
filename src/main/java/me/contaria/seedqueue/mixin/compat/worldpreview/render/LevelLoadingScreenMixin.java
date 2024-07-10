@@ -1,6 +1,7 @@
 package me.contaria.seedqueue.mixin.compat.worldpreview.render;
 
 import com.bawnorton.mixinsquared.TargetHandler;
+import me.contaria.seedqueue.compat.WorldPreviewCompat;
 import me.contaria.seedqueue.compat.WorldPreviewFrameBuffer;
 import me.contaria.seedqueue.gui.wall.SeedQueuePreview;
 import me.voidxwalker.worldpreview.WorldPreview;
@@ -15,7 +16,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.Objects;
 import java.util.Optional;
 
 @Mixin(value = LevelLoadingScreen.class, priority = 1500)
@@ -68,7 +68,7 @@ public abstract class LevelLoadingScreenMixin {
                 WorldPreview.runAsPreview(() -> {
                     WorldPreview.tickPackets();
                     WorldPreview.tickEntities();
-                    Objects.requireNonNull(preview.getWorldPreviewProperties()).buildChunks();
+                    WorldPreviewCompat.buildChunks();
                 });
             }
             frameBuffer.draw(preview.width, preview.height);
