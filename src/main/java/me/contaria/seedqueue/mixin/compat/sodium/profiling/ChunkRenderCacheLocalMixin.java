@@ -2,7 +2,6 @@ package me.contaria.seedqueue.mixin.compat.sodium.profiling;
 
 import me.contaria.seedqueue.SeedQueueProfiler;
 import me.jellysquid.mods.sodium.client.render.pipeline.context.ChunkRenderCacheLocal;
-import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -12,7 +11,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Profiling mixins add more usage of the profiler to hot paths during wall rendering.
  * These Mixins will be removed in later versions of SeedQueue.
  */
-@Debug(export = true)
 @Mixin(value = ChunkRenderCacheLocal.class, remap = false)
 public abstract class ChunkRenderCacheLocalMixin {
 

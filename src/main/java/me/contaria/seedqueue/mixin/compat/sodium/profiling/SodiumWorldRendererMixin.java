@@ -3,7 +3,6 @@ package me.contaria.seedqueue.mixin.compat.sodium.profiling;
 import me.contaria.seedqueue.SeedQueueProfiler;
 import me.jellysquid.mods.sodium.client.render.SodiumWorldRenderer;
 import me.jellysquid.mods.sodium.client.world.ChunkStatusListener;
-import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -13,7 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Profiling mixins add more usage of the profiler to hot paths during wall rendering.
  * These Mixins will be removed in later versions of SeedQueue.
  */
-@Debug(export = true)
 @Mixin(value = SodiumWorldRenderer.class, remap = false, priority = 500)
 public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
 
@@ -23,7 +21,8 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
                     value = "FIELD",
                     target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;world:Lnet/minecraft/client/world/ClientWorld;",
                     ordinal = 1
-            )
+            ),
+            remap = true
     )
     private void profileSodium_setWorld(CallbackInfo ci) {
         SeedQueueProfiler.push("sodium");
@@ -33,8 +32,10 @@ public abstract class SodiumWorldRendererMixin implements ChunkStatusListener {
             method = "setWorld",
             at = @At(
                     value = "INVOKE",
-                    target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;unloadWorld()V"
-            )
+                    target = "Lme/jellysquid/mods/sodium/client/render/SodiumWorldRenderer;unloadWorld()V",
+                    remap = false
+            ),
+            remap = true
     )
     private void profileUnloadWorld(CallbackInfo ci) {
         SeedQueueProfiler.push("unload_world");
