@@ -8,6 +8,10 @@ import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormats;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Wrapper for Minecrafts {@link Framebuffer} storing a previews last drawn image.
+ * Additionally stores {@link WorldPreviewFrameBuffer#lastRenderData} as to only re
+ */
 public class WorldPreviewFrameBuffer {
     private final Framebuffer framebuffer;
 
@@ -19,6 +23,9 @@ public class WorldPreviewFrameBuffer {
         this.framebuffer = new Framebuffer(width, height, true, MinecraftClient.IS_SYSTEM_MAC);
     }
 
+    /**
+     * @param renderData A string unique to the previews current state, sensitive to changes in entities and chunks. See LevelLoadingScreenMixin#beginFrame.
+     */
     public void beginWrite(String renderData) {
         this.lastRenderData = renderData;
         this.framebuffer.beginWrite(true);
@@ -28,14 +35,24 @@ public class WorldPreviewFrameBuffer {
         this.framebuffer.endWrite();
     }
 
+    /**
+     * @return True if this buffer hasn't been drawn to before.
+     */
     public boolean isEmpty() {
         return this.lastRenderData == null;
     }
 
+    /**
+     * @param newRenderData A string unique to the previews current state, sensitive to changes in entities and chunks. See LevelLoadingScreenMixin#beginFrame.
+     * @return True if the given newRenderData is different from the stored {@link WorldPreviewFrameBuffer#lastRenderData}.
+     */
     public boolean isDirty(String newRenderData) {
         return !newRenderData.equals(this.lastRenderData);
     }
 
+    /**
+     * Draws the internal {@link Framebuffer} without setting {@link RenderSystem#ortho}.
+     */
     @SuppressWarnings("deprecation")
     public void draw(int width, int height) {
         RenderSystem.assertThread(RenderSystem::isOnRenderThread);

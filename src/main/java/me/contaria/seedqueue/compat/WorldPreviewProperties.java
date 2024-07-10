@@ -10,6 +10,9 @@ import net.minecraft.network.Packet;
 
 import java.util.Queue;
 
+/**
+ * Stores all objects defining a world preview to be loaded when needed using {@link WorldPreviewProperties#apply}.
+ */
 public class WorldPreviewProperties {
     private final ClientWorld world;
     private final ClientPlayerEntity player;
@@ -41,6 +44,9 @@ public class WorldPreviewProperties {
         return this.packetQueue;
     }
 
+    /**
+     * @return The perspective of this previews {@link WorldPreviewProperties#camera}.
+     */
     // perspective is set earlier than the settingsCache because it is important for chunk data culling
     // the same does not go for FOV because we simply use 110 (Quake Pro) for culling because most people will/should just use it on the wall screen anyway
     // see also WorldPreviewMixin#modifyPerspective_inQueue, ServerChunkManagerMixin#modifyCullingFov_inQueue
@@ -48,6 +54,11 @@ public class WorldPreviewProperties {
         return this.camera.isThirdPerson() ? ((CameraAccessor) this.camera).seedQueue$isInverseView() ? 2 : 1 : 0;
     }
 
+    /**
+     * Sets {@link WorldPreview} properties to the values stored in this {@link WorldPreviewProperties}.
+     * 
+     * @see WorldPreview#set 
+     */
     public void apply() {
         WorldPreview.set(this.world, this.player, this.interactionManager, this.camera, this.packetQueue);
     }
