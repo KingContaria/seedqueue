@@ -10,7 +10,8 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Wrapper for Minecrafts {@link Framebuffer} storing a previews last drawn image.
- * Additionally stores {@link WorldPreviewFrameBuffer#lastRenderData} as to only re
+ * <p>
+ * Stores {@link WorldPreviewFrameBuffer#lastRenderData} as to only redraw the preview if it has changed.
  */
 public class WorldPreviewFrameBuffer {
     private final Framebuffer framebuffer;
