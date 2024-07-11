@@ -3,6 +3,7 @@ package me.contaria.seedqueue;
 import me.voidxwalker.autoreset.AtumCreateWorldScreen;
 import net.minecraft.client.MinecraftClient;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -54,9 +55,9 @@ public class SeedQueueThread extends Thread {
      */
     private void pauseSeedQueueEntry() {
         // try to pause not locked entries first
-        Optional<SeedQueueEntry> entry = SeedQueue.getEntryMatching(e -> !e.isLocked() && e.canUnpause());
+        Optional<SeedQueueEntry> entry = SeedQueue.getEntryMatching(e -> !e.isLocked() && e.canPause());
         if (!entry.isPresent()) {
-            entry = SeedQueue.getEntryMatching(SeedQueueEntry::canUnpause);
+            entry = SeedQueue.getEntryMatching(SeedQueueEntry::canPause);
         }
         entry.ifPresent(SeedQueueEntry::schedulePause);
     }
@@ -67,8 +68,19 @@ public class SeedQueueThread extends Thread {
      * @return False if there is no entries to unpause.
      */
     private boolean unpauseSeedQueueEntry() {
+        List<SeedQueueEntry> entries = SeedQueue.getEntries();
         // try to unpause locked entries first
-        return SeedQueue.getEntryMatching(entry -> entry.isLocked() && entry.tryToUnpause()).isPresent() || SeedQueue.getEntryMatching(SeedQueueEntry::tryToUnpause).isPresent();
+        for (SeedQueueEntry entry : entries) {
+            if (entry.isLocked() && entry.tryToUnpause()) {
+                return true;
+            }
+        }
+        for (SeedQueueEntry entry : entries) {
+            if (entry.tryToUnpause()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

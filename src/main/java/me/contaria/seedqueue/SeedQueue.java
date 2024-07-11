@@ -47,7 +47,11 @@ public class SeedQueue implements ClientModInitializer {
                     while (true) {
                         Thread mainThread = MinecraftClient.getInstance() != null ? ((MinecraftClientAccessor) MinecraftClient.getInstance()).seedQueue$getThread() : null;
                         if (mainThread != null) {
-                            LOGGER.info("WATCHDOG | {}", Arrays.toString(mainThread.getStackTrace()));
+                            LOGGER.info("WATCHDOG | Main: {}", Arrays.toString(mainThread.getStackTrace()));
+                        }
+                        Thread sqThread = thread;
+                        if (sqThread != null) {
+                            LOGGER.info("WATCHDOG | SeedQueue: {}", Arrays.toString(sqThread.getStackTrace()));
                         }
                         //noinspection BusyWait
                         Thread.sleep(10000);
@@ -65,7 +69,7 @@ public class SeedQueue implements ClientModInitializer {
 
     /**
      * Polls a new {@link SeedQueueEntry} from the queue.
-     * If {@link SeedQueue#selectedEntry} is not null, it
+     * If {@link SeedQueue#selectedEntry} is not null, it will pull that entry from the queue.
      *
      * @return True if a new {@link SeedQueueEntry} was successfully loaded.
      */

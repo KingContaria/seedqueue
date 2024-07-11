@@ -231,6 +231,13 @@ public class SeedQueueEntry {
     }
 
     /**
+     * @return True if the entry is not currently paused or scheduled to pause.
+     */
+    public boolean canPause() {
+        return !this.isScheduledToPause() && !this.isPaused();
+    }
+
+    /**
      * Unpauses this entry.
      *
      * @see SQMinecraftServer#seedQueue$unpause
