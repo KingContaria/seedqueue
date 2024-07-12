@@ -4,6 +4,7 @@ import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.compat.WorldPreviewCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
+import me.contaria.seedqueue.customization.LockTexture;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.voidxwalker.worldpreview.WorldPreview;
 import net.minecraft.client.MinecraftClient;
@@ -27,7 +28,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     private WorldPreviewProperties worldPreviewProperties;
     private WorldRenderer worldRenderer;
 
-    private SeedQueueWallScreen.LockTexture lockTexture;
+    private LockTexture lockTexture;
 
     private boolean previewRendered;
     private int lastPreviewFrame;
@@ -209,7 +210,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
         return this.worldRenderer;
     }
 
-    public SeedQueueWallScreen.LockTexture getLockTexture() {
+    public LockTexture getLockTexture() {
         if (this.lockTexture == null) {
             this.lockTexture = this.wall.getLockTexture();
         }

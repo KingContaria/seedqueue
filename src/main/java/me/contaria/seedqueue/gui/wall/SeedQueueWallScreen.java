@@ -1,6 +1,5 @@
 package me.contaria.seedqueue.gui.wall;
 
-import com.google.gson.*;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
@@ -8,6 +7,8 @@ import me.contaria.seedqueue.SeedQueueProfiler;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
+import me.contaria.seedqueue.customization.Layout;
+import me.contaria.seedqueue.customization.LockTexture;
 import me.contaria.seedqueue.keybindings.SeedQueueKeyBindings;
 import me.contaria.seedqueue.mixin.accessor.DebugHudAccessor;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
@@ -21,35 +22,27 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.resource.metadata.AnimationResourceMetadata;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.sound.SoundInstance;
 import net.minecraft.client.sound.SoundManager;
-import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
-import net.minecraft.resource.Resource;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class SeedQueueWallScreen extends Screen {
     private static final Set<WorldRenderer> WORLD_RENDERERS = new HashSet<>();
 
+    public static final Identifier CUSTOM_LAYOUT = new Identifier("seedqueue", "wall/custom_layout.json");
     private static final Identifier WALL_BACKGROUND = new Identifier("seedqueue", "textures/gui/wall/background.png");
     private static final Identifier WALL_OVERLAY = new Identifier("seedqueue", "textures/gui/wall/overlay.png");
     private static final Identifier INSTANCE_BACKGROUND = new Identifier("seedqueue", "textures/gui/wall/instance_background.png");
-    private static final Identifier CUSTOM_LAYOUT = new Identifier("seedqueue", "wall/custom_layout.json");
 
     private final Screen createWorldScreen;
 
@@ -93,37 +86,11 @@ public class SeedQueueWallScreen extends Screen {
     @Override
     protected void init() {
         assert this.client != null;
-        this.layout = this.createLayout();
+        this.layout = Layout.createLayout();
         this.mainPreviews = new SeedQueuePreview[this.layout.main.size()];
         this.lockedPreviews = this.layout.locked != null ? new ArrayList<>() : null;
         this.preparingPreviews = new ArrayList<>();
-        this.lockTextures = this.createLockTextures();
-    }
-
-    private Layout createLayout() {
-        assert this.client != null;
-        if (this.client.getResourceManager().containsResource(CUSTOM_LAYOUT)) {
-            try (Reader reader = new InputStreamReader(this.client.getResourceManager().getResource(CUSTOM_LAYOUT).getInputStream(), StandardCharsets.UTF_8)) {
-                return Layout.fromJson(new JsonParser().parse(reader).getAsJsonObject());
-            } catch (Exception e) {
-                SeedQueue.LOGGER.warn("Failed to parse custom wall layout!", e);
-            }
-        }
-        return Layout.grid(SeedQueue.config.rows, SeedQueue.config.columns, this.client.getWindow().getFramebufferWidth(), this.client.getWindow().getFramebufferHeight());
-    }
-
-    private List<LockTexture> createLockTextures() {
-        assert this.client != null;
-        List<LockTexture> lockTextures = new ArrayList<>();
-        Identifier lock;
-        while (this.client.getResourceManager().containsResource(lock = new Identifier("seedqueue", "textures/gui/wall/lock-" + lockTextures.size() + ".png"))) {
-            try {
-                lockTextures.add(new LockTexture(lock));
-            } catch (IOException e) {
-                SeedQueue.LOGGER.warn("Failed to read lock image texture: {}", lock, e);
-            }
-        }
-        return lockTextures;
+        this.lockTextures = LockTexture.createLockTextures();
     }
 
     protected LockTexture getLockTexture() {
@@ -832,206 +799,4 @@ public class SeedQueueWallScreen extends Screen {
         return ((WorldRendererAccessor) worldRenderer).seedQueue$getWorld();
     }
 
-    public static class LockTexture {
-        private final Identifier id;
-        private final int width;
-        private final int height;
-
-        @Nullable
-        private final AnimationResourceMetadata animation;
-
-        public LockTexture(Identifier id) throws IOException {
-            this.id = id;
-            Resource resource = MinecraftClient.getInstance().getResourceManager().getResource(id);
-            this.animation = resource.getMetadata(AnimationResourceMetadata.READER);
-            try (NativeImage image = NativeImage.read(resource.getInputStream())) {
-                this.width = image.getWidth();
-                this.height = image.getHeight() / (this.animation != null ? this.animation.getFrameIndexSet().size() : 1);
-            }
-        }
-
-        public Identifier getId() {
-            return this.id;
-        }
-
-        public int getWidth() {
-            return this.width;
-        }
-
-        public int getHeight() {
-            return this.height;
-        }
-
-        public double getAspectRatio() {
-            return (double) this.width / this.height;
-        }
-
-        public int getFrameIndex(int tick) {
-            // does not currently support setting frametime for individual frames
-            // see AnimationFrameResourceMetadata#usesDefaultFrameTime
-            return this.animation != null ? this.animation.getFrameIndex((tick / this.animation.getDefaultFrameTime()) % this.animation.getFrameCount()) : 0;
-        }
-
-        public int getIndividualFrameCount() {
-            return this.animation != null ? this.animation.getFrameIndexSet().size() : 1;
-        }
-    }
-
-    public static class Layout {
-        @NotNull
-        private final Group main;
-        @Nullable
-        private final Group locked;
-        private final Group[] preparing;
-        private final boolean replaceLockedInstances;
-
-        public Layout(@NotNull Group main) {
-            this(main, null, new Group[0], true);
-        }
-
-        public Layout(@NotNull Group main, @Nullable Group locked, Group[] preparing, boolean replaceLockedInstances) {
-            this.main = main;
-            this.locked = locked;
-            this.preparing = preparing;
-            this.replaceLockedInstances = replaceLockedInstances;
-
-            if (this.main.cosmetic) {
-                throw new IllegalArgumentException("Main Group may not be cosmetic!");
-            }
-        }
-
-        public static int getX(JsonObject jsonObject) {
-            return getAsInt(jsonObject, "x", MinecraftClient.getInstance().getWindow().getWidth());
-        }
-
-        public static int getY(JsonObject jsonObject) {
-            return getAsInt(jsonObject, "y", MinecraftClient.getInstance().getWindow().getHeight());
-        }
-
-        public static int getWidth(JsonObject jsonObject) {
-            return getAsInt(jsonObject, "width", MinecraftClient.getInstance().getWindow().getWidth());
-        }
-
-        public static int getHeight(JsonObject jsonObject) {
-            return getAsInt(jsonObject, "height", MinecraftClient.getInstance().getWindow().getHeight());
-        }
-
-        private static int getAsInt(JsonObject jsonObject, String name, int windowSize) {
-            JsonPrimitive jsonPrimitive = jsonObject.getAsJsonPrimitive(name);
-            if (jsonPrimitive.isNumber() && jsonPrimitive.toString().contains(".")) {
-                return (int) (windowSize * jsonPrimitive.getAsDouble());
-            }
-            return jsonPrimitive.getAsInt();
-        }
-
-        public static Layout grid(int rows, int columns, int width, int height) {
-            return new Layout(Group.grid(rows, columns, 0, 0, width, height, 0, false, true));
-        }
-
-        public static Layout fromJson(JsonObject jsonObject) throws JsonParseException {
-            return new Layout(
-                    Group.fromJson(jsonObject.getAsJsonObject("main"), SeedQueue.config.rows, SeedQueue.config.columns),
-                    jsonObject.has("locked") ? Group.fromJson(jsonObject.getAsJsonObject("locked")) : null,
-                    jsonObject.has("preparing") ? Group.fromJson(jsonObject.getAsJsonArray("preparing")) : new Group[0],
-                    jsonObject.has("replaceLockedInstances") && jsonObject.get("replaceLockedInstances").getAsBoolean()
-            );
-        }
-
-        public static class Group {
-            private final Pos[] positions;
-            private final boolean cosmetic;
-            private final boolean instance_background;
-
-            public Group(Pos[] positions, boolean cosmetic, boolean instance_background) {
-                this.positions = positions;
-                this.cosmetic = cosmetic;
-                this.instance_background = instance_background;
-            }
-
-            public Pos getPos(int index) {
-                if (index < 0 || index >= this.positions.length) {
-                    return null;
-                }
-                return this.positions[index];
-            }
-
-            public int size() {
-                return this.positions.length;
-            }
-
-            public static Group grid(int rows, int columns, int x, int y, int width, int height, int padding, boolean cosmetic, boolean instance_background) {
-                Pos[] positions = new Pos[rows * columns];
-                int columnWidth = (width - padding * (columns - 1)) / columns;
-                int rowHeight = (height - padding * (rows - 1)) / rows;
-                for (int row = 0; row < rows; row++) {
-                    for (int column = 0; column < columns; column++) {
-                        positions[row * columns + column] = new Pos(
-                                x + column * columnWidth + padding * column,
-                                y + row * rowHeight + padding * row,
-                                columnWidth,
-                                rowHeight
-                        );
-                    }
-                }
-                return new Group(positions, cosmetic, instance_background);
-            }
-
-            public static Group[] fromJson(JsonArray jsonArray) throws JsonParseException {
-                Group[] groups = new Group[jsonArray.size()];
-                for (int i = 0; i < jsonArray.size(); i++) {
-                    groups[i] = Group.fromJson(jsonArray.get(i).getAsJsonObject());
-                }
-                return groups;
-            }
-
-            public static Group fromJson(JsonObject jsonObject) throws JsonParseException {
-                return fromJson(jsonObject, null, null);
-            }
-
-            public static Group fromJson(JsonObject jsonObject, Integer defaultRows, Integer defaultColumns) throws JsonParseException {
-                boolean cosmetic = jsonObject.has("cosmetic") && jsonObject.get("cosmetic").getAsBoolean();
-                boolean instance_background = !jsonObject.has("instance_background") || jsonObject.get("instance_background").getAsBoolean();
-                if (jsonObject.has("positions")) {
-                    JsonArray positionsArray = jsonObject.get("positions").getAsJsonArray();
-                    Pos[] positions = new Pos[positionsArray.size()];
-                    for (int i = 0; i < positionsArray.size(); i++) {
-                        positions[i] = Pos.fromJson(positionsArray.get(i).getAsJsonObject());
-                    }
-                    return new Group(positions, cosmetic, instance_background);
-                }
-                return Group.grid(
-                        jsonObject.has("rows") || defaultRows == null ? jsonObject.get("rows").getAsInt() : defaultRows,
-                        jsonObject.has("columns") || defaultColumns == null ? jsonObject.get("columns").getAsInt() : defaultColumns,
-                        Layout.getX(jsonObject),
-                        Layout.getY(jsonObject),
-                        Layout.getWidth(jsonObject),
-                        Layout.getHeight(jsonObject),
-                        jsonObject.has("padding") ? jsonObject.get("padding").getAsInt() : 0, cosmetic, instance_background
-                );
-            }
-        }
-
-        public static class Pos {
-            public final int x;
-            public final int y;
-            public final int width;
-            public final int height;
-
-            public Pos(int x, int y, int width, int height) {
-                this.x = x;
-                this.y = y;
-                this.width = width;
-                this.height = height;
-            }
-
-            private static Pos fromJson(JsonObject jsonObject) throws JsonParseException {
-                return new Pos(
-                        Layout.getX(jsonObject),
-                        Layout.getY(jsonObject),
-                        Layout.getWidth(jsonObject),
-                        Layout.getHeight(jsonObject)
-                );
-            }
-        }
-    }
 }
