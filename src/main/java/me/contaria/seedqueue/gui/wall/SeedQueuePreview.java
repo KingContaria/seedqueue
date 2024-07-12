@@ -27,7 +27,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     private WorldPreviewProperties worldPreviewProperties;
     private WorldRenderer worldRenderer;
 
-    protected SeedQueueWallScreen.LockTexture lock;
+    private SeedQueueWallScreen.LockTexture lockTexture;
 
     private boolean previewRendered;
     private int lastPreviewFrame;
@@ -207,5 +207,12 @@ public class SeedQueuePreview extends LevelLoadingScreen {
 
     public WorldRenderer getWorldRenderer() {
         return this.worldRenderer;
+    }
+
+    public SeedQueueWallScreen.LockTexture getLockTexture() {
+        if (this.lockTexture == null) {
+            this.lockTexture = this.wall.getLockTexture();
+        }
+        return this.lockTexture;
     }
 }

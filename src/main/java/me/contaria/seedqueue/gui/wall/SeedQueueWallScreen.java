@@ -21,6 +21,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.resource.metadata.AnimationResourceMetadata;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.sound.SoundInstance;
 import net.minecraft.client.sound.SoundManager;
@@ -28,6 +29,7 @@ import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.resource.Resource;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
@@ -67,8 +69,10 @@ public class SeedQueueWallScreen extends Screen {
 
     private List<LockTexture> lockTextures;
 
+    private int ticks;
+
     protected int frame;
-    private int nextSoundFrame;
+    private int nextSoundTick;
 
     @Nullable
     private Layout.Pos currentPos;
@@ -122,6 +126,10 @@ public class SeedQueueWallScreen extends Screen {
         return lockTextures;
     }
 
+    protected LockTexture getLockTexture() {
+        return this.lockTextures.get(new Random().nextInt(this.lockTextures.size()));
+    }
+
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         assert this.client != null;
@@ -133,7 +141,7 @@ public class SeedQueueWallScreen extends Screen {
         this.updatePreviews();
 
         SeedQueueProfiler.swap("background");
-        if (!this.drawTexture(WALL_BACKGROUND, matrices, this.width, this.height)) {
+        if (!this.drawTextureIfPresent(WALL_BACKGROUND, matrices, this.width, this.height)) {
             this.renderBackground(matrices);
         }
 
@@ -167,7 +175,7 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         SeedQueueProfiler.swap("overlay");
-        this.drawTexture(WALL_OVERLAY, matrices, this.width, this.height);
+        this.drawTextureIfPresent(WALL_OVERLAY, matrices, this.width, this.height);
 
         SeedQueueProfiler.swap("reset");
         this.resetViewport();
@@ -193,7 +201,7 @@ public class SeedQueueWallScreen extends Screen {
                 if (!SeedQueue.config.waitForPreviewSetup && this.layout.main == group) {
                     this.renderBackground(matrices);
                 } else if (group.instance_background) {
-                    this.drawTexture(INSTANCE_BACKGROUND, matrices, this.width, this.height);
+                    this.drawTextureIfPresent(INSTANCE_BACKGROUND, matrices, this.width, this.height);
                 }
                 if (instance != null) {
                     SeedQueueProfiler.swap("build_chunks");
@@ -212,32 +220,27 @@ public class SeedQueueWallScreen extends Screen {
         }
         if (instance.getSeedQueueEntry().isLocked()) {
             SeedQueueProfiler.swap("lock");
-            this.renderLock(instance, pos, matrices);
+            this.drawLock(matrices, pos, instance.getLockTexture());
         }
         SeedQueueProfiler.pop();
     }
 
-    private void renderLock(SeedQueuePreview instance, Layout.Pos pos, MatrixStack matrices) {
+    private void drawLock(MatrixStack matrices, Layout.Pos pos, LockTexture lock) {
         assert this.client != null;
-        if (!this.lockTextures.isEmpty()) {
-            if (instance.lock == null) {
-                instance.lock = this.lockTextures.get(new Random().nextInt(this.lockTextures.size()));
-            }
-            this.setOrtho(this.client.getWindow().getWidth(), this.client.getWindow().getHeight());
-            this.drawTexture(
-                    instance.lock.id,
-                    matrices,
-                    pos.x,
-                    pos.y,
-                    0.0f,
-                    0.0f,
-                    (int) Math.min(pos.width, pos.height * instance.lock.aspectRatio),
-                    pos.height,
-                    (int) (pos.height * instance.lock.aspectRatio),
-                    pos.height
-            );
-            this.resetOrtho();
-        }
+        this.setOrtho(this.client.getWindow().getWidth(), this.client.getWindow().getHeight());
+        this.client.getTextureManager().bindTexture(lock.getId());
+        DrawableHelper.drawTexture(
+                matrices,
+                pos.x,
+                pos.y,
+                0.0f,
+                lock.getFrameIndex(this.ticks) * pos.height,
+                (int) Math.min(pos.width, pos.height * lock.getAspectRatio()),
+                pos.height,
+                (int) (pos.height * lock.getAspectRatio()),
+                pos.height * lock.getIndividualFrameCount()
+        );
+        this.resetOrtho();
     }
 
     private void setViewport(Layout.Pos pos) {
@@ -663,15 +666,16 @@ public class SeedQueueWallScreen extends Screen {
         });
     }
 
-    private boolean drawTexture(Identifier texture, MatrixStack matrices, int width, int height) {
-        return this.drawTexture(texture, matrices, 0, 0, 0.0f, 0.0f, width, height, width, height);
+    private boolean drawTextureIfPresent(Identifier texture, MatrixStack matrices, int width, int height) {
+        return this.drawTextureIfPresent(texture, matrices, 0, 0, 0.0f, 0.0f, width, height, width, height);
     }
 
-    private boolean drawTexture(Identifier texture, MatrixStack matrices, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight) {
+    @SuppressWarnings("SameParameterValue")
+    private boolean drawTextureIfPresent(Identifier texture, MatrixStack matrices, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight) {
         assert this.client != null;
         if (this.client.getResourceManager().containsResource(texture)) {
-            RenderSystem.enableBlend();
             this.client.getTextureManager().bindTexture(texture);
+            RenderSystem.enableBlend();
             DrawableHelper.drawTexture(matrices, x, y, u, v, width, height, textureWidth, textureHeight);
             RenderSystem.disableBlend();
             return true;
@@ -686,13 +690,18 @@ public class SeedQueueWallScreen extends Screen {
         if (soundInstance.getSound().equals(SoundManager.MISSING_SOUND)) {
             return false;
         }
-        if (this.nextSoundFrame < this.frame) {
+        if (this.nextSoundTick < this.ticks) {
             this.client.getSoundManager().play(soundInstance);
-            this.nextSoundFrame = this.frame;
+            this.nextSoundTick = this.ticks;
         } else {
-            this.client.getSoundManager().play(soundInstance, ++this.nextSoundFrame - this.frame);
+            this.client.getSoundManager().play(soundInstance, ++this.nextSoundTick - this.ticks);
         }
         return true;
+    }
+
+    @Override
+    public void tick() {
+        this.ticks++;
     }
 
     public void populateResetCooldowns() {
@@ -825,13 +834,46 @@ public class SeedQueueWallScreen extends Screen {
 
     public static class LockTexture {
         private final Identifier id;
-        private final double aspectRatio;
+        private final int width;
+        private final int height;
+
+        @Nullable
+        private final AnimationResourceMetadata animation;
 
         public LockTexture(Identifier id) throws IOException {
             this.id = id;
-            try (NativeImage image = NativeImage.read(MinecraftClient.getInstance().getResourceManager().getResource(id).getInputStream())) {
-                this.aspectRatio = (double) image.getWidth() / image.getHeight();
+            Resource resource = MinecraftClient.getInstance().getResourceManager().getResource(id);
+            this.animation = resource.getMetadata(AnimationResourceMetadata.READER);
+            try (NativeImage image = NativeImage.read(resource.getInputStream())) {
+                this.width = image.getWidth();
+                this.height = image.getHeight() / (this.animation != null ? this.animation.getFrameIndexSet().size() : 1);
             }
+        }
+
+        public Identifier getId() {
+            return this.id;
+        }
+
+        public int getWidth() {
+            return this.width;
+        }
+
+        public int getHeight() {
+            return this.height;
+        }
+
+        public double getAspectRatio() {
+            return (double) this.width / this.height;
+        }
+
+        public int getFrameIndex(int tick) {
+            // does not currently support setting frametime for individual frames
+            // see AnimationFrameResourceMetadata#usesDefaultFrameTime
+            return this.animation != null ? this.animation.getFrameIndex((tick / this.animation.getDefaultFrameTime()) % this.animation.getFrameCount()) : 0;
+        }
+
+        public int getIndividualFrameCount() {
+            return this.animation != null ? this.animation.getFrameIndexSet().size() : 1;
         }
     }
 
