@@ -58,14 +58,14 @@ public class LockTexture {
 
     public static List<LockTexture> createLockTextures() {
         List<LockTexture> lockTextures = new ArrayList<>();
-        Identifier lock;
-        while (MinecraftClient.getInstance().getResourceManager().containsResource(lock = new Identifier("seedqueue", "textures/gui/wall/lock-" + lockTextures.size() + ".png"))) {
+        Identifier lock = new Identifier("seedqueue", "textures/gui/wall/lock.png");
+        do {
             try {
                 lockTextures.add(new LockTexture(lock));
             } catch (IOException e) {
                 SeedQueue.LOGGER.warn("Failed to read lock image texture: {}", lock, e);
             }
-        }
+        } while (MinecraftClient.getInstance().getResourceManager().containsResource(lock = new Identifier("seedqueue", "textures/gui/wall/lock-" + lockTextures.size() + ".png")));
         return lockTextures;
     }
 }
