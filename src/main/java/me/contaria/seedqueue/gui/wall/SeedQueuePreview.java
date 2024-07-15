@@ -39,8 +39,8 @@ public class SeedQueuePreview extends LevelLoadingScreen {
         this.wall = wall;
         this.seedQueueEntry = seedQueueEntry;
 
-        this.updateWorldPreviewProperties();
         this.initScreen();
+        this.updateWorldPreviewProperties();
     }
 
     private void updateWorldPreviewProperties() {
@@ -54,6 +54,14 @@ public class SeedQueuePreview extends LevelLoadingScreen {
             }
         } else {
             this.worldRenderer = null;
+        }
+
+        // update button state
+        WorldPreview.inPreview = true;
+        try {
+            this.init(this.client, this.width, this.height);
+        } finally {
+            WorldPreview.inPreview = false;
         }
     }
 
