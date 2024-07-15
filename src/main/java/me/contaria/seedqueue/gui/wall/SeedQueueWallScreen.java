@@ -680,18 +680,13 @@ public class SeedQueueWallScreen extends Screen {
 
     private void startBenchmark() {
         assert this.client != null;
-        this.benchmarkGoal = SeedQueue.config.benchmarkResets;
-        if (this.benchmarkGoal == 0) {
-            // show a failure toast here
-            SeedQueue.LOGGER.warn("BENCHMARK | Could not start benchmark because Benchmark Resets is set to 0.");
-            return;
-        }
         for (SeedQueueEntry entry : SeedQueue.getEntries()) {
             SeedQueue.discard(entry);
         }
         for (SeedQueuePreview instance : this.getInstances()) {
             this.removePreview(instance);
         }
+        this.benchmarkGoal = SeedQueue.config.benchmarkResets;
         this.benchmarkStart = System.currentTimeMillis();
         this.benchmarkedSeeds = 0;
         this.client.getToastManager().clear();

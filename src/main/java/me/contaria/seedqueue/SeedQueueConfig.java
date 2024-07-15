@@ -153,9 +153,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean showDebugMenu = false;
 
     @Config.Category("debug")
-    @Config.Numbers.Whole.Bounds(max = Integer.MAX_VALUE)
+    @Config.Numbers.Whole.Bounds(min = 1, max = Integer.MAX_VALUE)
     @Config.Numbers.TextField
-    public int benchmarkResets = 0;
+    public int benchmarkResets = 1000;
 
     @Config.Category("debug")
     public boolean useWatchdog = false;
