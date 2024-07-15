@@ -7,6 +7,7 @@ import me.contaria.seedqueue.SeedQueueProfiler;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
+import me.contaria.seedqueue.customization.AnimatedTexture;
 import me.contaria.seedqueue.customization.Layout;
 import me.contaria.seedqueue.customization.LockTexture;
 import me.contaria.seedqueue.keybindings.SeedQueueKeyBindings;
@@ -61,6 +62,12 @@ public class SeedQueueWallScreen extends Screen {
     private final Set<Integer> blockedMainPositions = new HashSet<>();
 
     private List<LockTexture> lockTextures;
+    @Nullable
+    private AnimatedTexture background;
+    @Nullable
+    private AnimatedTexture overlay;
+    @Nullable
+    private AnimatedTexture instanceBackground;
 
     private int ticks;
 
@@ -91,6 +98,9 @@ public class SeedQueueWallScreen extends Screen {
         this.lockedPreviews = this.layout.locked != null ? new ArrayList<>() : null;
         this.preparingPreviews = new ArrayList<>();
         this.lockTextures = LockTexture.createLockTextures();
+        this.background = AnimatedTexture.of(WALL_BACKGROUND);
+        this.overlay = AnimatedTexture.of(WALL_OVERLAY);
+        this.instanceBackground = AnimatedTexture.of(INSTANCE_BACKGROUND);
     }
 
     protected LockTexture getLockTexture() {
@@ -108,7 +118,9 @@ public class SeedQueueWallScreen extends Screen {
         this.updatePreviews();
 
         SeedQueueProfiler.swap("background");
-        if (!this.drawTextureIfPresent(WALL_BACKGROUND, matrices, this.width, this.height)) {
+        if (this.background != null) {
+            this.drawAnimatedTexture(this.background, matrices, 0, 0, this.width, this.height);
+        } else {
             this.renderBackground(matrices);
         }
 
@@ -141,8 +153,10 @@ public class SeedQueueWallScreen extends Screen {
             SeedQueueProfiler.pop();
         }
 
-        SeedQueueProfiler.swap("overlay");
-        this.drawTextureIfPresent(WALL_OVERLAY, matrices, this.width, this.height);
+        if (this.overlay != null) {
+            SeedQueueProfiler.swap("overlay");
+            this.drawAnimatedTexture(this.overlay, matrices, 0, 0, this.width, this.height);
+        }
 
         SeedQueueProfiler.swap("reset");
         this.resetViewport();
@@ -167,8 +181,8 @@ public class SeedQueueWallScreen extends Screen {
                 SeedQueueProfiler.swap("instance_background");
                 if (!SeedQueue.config.waitForPreviewSetup && this.layout.main == group) {
                     this.renderBackground(matrices);
-                } else if (group.instance_background) {
-                    this.drawTextureIfPresent(INSTANCE_BACKGROUND, matrices, this.width, this.height);
+                } else if (group.instance_background && this.instanceBackground != null) {
+                    this.drawAnimatedTexture(this.instanceBackground, matrices, 0, 0, this.width, this.height);
                 }
                 if (instance != null) {
                     SeedQueueProfiler.swap("build_chunks");
@@ -208,6 +222,41 @@ public class SeedQueueWallScreen extends Screen {
                 pos.height * lock.getIndividualFrameCount()
         );
         this.resetOrtho();
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void drawAnimatedTexture(AnimatedTexture texture, MatrixStack matrices, int x, int y, int width, int height) {
+        assert this.client != null;
+        this.client.getTextureManager().bindTexture(texture.getId());
+        RenderSystem.enableBlend();
+        DrawableHelper.drawTexture(
+                matrices,
+                x,
+                y,
+                0.0f,
+                texture.getFrameIndex(this.ticks) * height,
+                width,
+                height,
+                width,
+                height * texture.getIndividualFrameCount()
+        );
+        RenderSystem.disableBlend();
+    }
+
+    private boolean playSound(SoundEvent sound) {
+        assert this.client != null;
+        SoundInstance soundInstance = PositionedSoundInstance.master(sound, 1.0f);
+        soundInstance.getSoundSet(this.client.getSoundManager());
+        if (soundInstance.getSound().equals(SoundManager.MISSING_SOUND)) {
+            return false;
+        }
+        if (this.nextSoundTick < this.ticks) {
+            this.client.getSoundManager().play(soundInstance);
+            this.nextSoundTick = this.ticks;
+        } else {
+            this.client.getSoundManager().play(soundInstance, ++this.nextSoundTick - this.ticks);
+        }
+        return true;
     }
 
     private void setViewport(Layout.Pos pos) {
@@ -631,39 +680,6 @@ public class SeedQueueWallScreen extends Screen {
             this.playInstance(entry);
             this.removePreview(this.getPreview(entry));
         });
-    }
-
-    private boolean drawTextureIfPresent(Identifier texture, MatrixStack matrices, int width, int height) {
-        return this.drawTextureIfPresent(texture, matrices, 0, 0, 0.0f, 0.0f, width, height, width, height);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private boolean drawTextureIfPresent(Identifier texture, MatrixStack matrices, int x, int y, float u, float v, int width, int height, int textureWidth, int textureHeight) {
-        assert this.client != null;
-        if (this.client.getResourceManager().containsResource(texture)) {
-            this.client.getTextureManager().bindTexture(texture);
-            RenderSystem.enableBlend();
-            DrawableHelper.drawTexture(matrices, x, y, u, v, width, height, textureWidth, textureHeight);
-            RenderSystem.disableBlend();
-            return true;
-        }
-        return false;
-    }
-
-    private boolean playSound(SoundEvent sound) {
-        assert this.client != null;
-        SoundInstance soundInstance = PositionedSoundInstance.master(sound, 1.0f);
-        soundInstance.getSoundSet(this.client.getSoundManager());
-        if (soundInstance.getSound().equals(SoundManager.MISSING_SOUND)) {
-            return false;
-        }
-        if (this.nextSoundTick < this.ticks) {
-            this.client.getSoundManager().play(soundInstance);
-            this.nextSoundTick = this.ticks;
-        } else {
-            this.client.getSoundManager().play(soundInstance, ++this.nextSoundTick - this.ticks);
-        }
-        return true;
     }
 
     @Override
