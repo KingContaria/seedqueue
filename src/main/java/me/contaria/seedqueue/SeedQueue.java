@@ -354,7 +354,8 @@ public class SeedQueue implements ClientModInitializer {
      * Pings the currently active {@link SeedQueueThread}.
      */
     public static void ping() {
-        if (isActive()) {
+        SeedQueueThread thread = SeedQueue.thread;
+        if (thread != null) {
             thread.ping();
         }
     }

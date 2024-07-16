@@ -5,6 +5,7 @@ import net.minecraft.client.MinecraftClient;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The thread responsible for launching new server threads and creating and queueing the corresponding {@link SeedQueueEntry}'s.
@@ -13,6 +14,7 @@ import java.util.Optional;
  */
 public class SeedQueueThread extends Thread {
     private final Object lock = new Object();
+    private final AtomicBoolean pinged = new AtomicBoolean();
     private volatile boolean running = true;
 
     SeedQueueThread() {
@@ -24,18 +26,25 @@ public class SeedQueueThread extends Thread {
     public void run() {
         while (this.running) {
             try {
+                // clear pinged state when starting a new check
+                this.pinged.set(false);
+
                 if (SeedQueue.shouldPauseGenerating()) {
                     this.pauseSeedQueueEntry();
                     continue;
                 }
-                synchronized (this.lock) {
-                    if (!SeedQueue.shouldGenerate()) {
-                        if (SeedQueue.shouldResumeGenerating() && this.unpauseSeedQueueEntry()) {
+                if (!SeedQueue.shouldGenerate()) {
+                    if (SeedQueue.shouldResumeGenerating() && this.unpauseSeedQueueEntry()) {
+                        continue;
+                    }
+                    synchronized (this.lock) {
+                        // don't freeze thread if it's been pinged at any point during the check
+                        if (this.pinged.get()) {
                             continue;
                         }
                         this.lock.wait();
-                        continue;
                     }
+                    continue;
                 }
 
                 if (this.unpauseSeedQueueEntry()) {
@@ -92,6 +101,7 @@ public class SeedQueueThread extends Thread {
 
     public void ping() {
         synchronized (this.lock) {
+            this.pinged.set(true);
             this.lock.notify();
         }
     }
