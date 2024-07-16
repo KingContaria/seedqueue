@@ -19,4 +19,6 @@ public interface SQMinecraftServer {
     void seedQueue$setExecutor(Executor executor);
 
     void seedQueue$resetExecutor();
+
+    int seedQueue$incrementAndGetEntityID(int currentMaxID);
 }

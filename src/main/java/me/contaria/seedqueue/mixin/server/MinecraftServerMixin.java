@@ -25,6 +25,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Mixin(MinecraftServer.class)
 public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<ServerTask> implements SQMinecraftServer {
@@ -45,6 +46,9 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
 
     @Unique
     private volatile boolean paused;
+
+    @Unique
+    private AtomicInteger maxEntityId;
 
     public MinecraftServerMixin(String string) {
         super(string);
@@ -209,5 +213,16 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     @Override
     public void seedQueue$resetExecutor() {
         ((SeedQueueExecutorWrapper) this.workerExecutor).resetExecutor();
+    }
+
+    @Override
+    public synchronized int seedQueue$incrementAndGetEntityID(int currentMaxID) {
+        if (this.maxEntityId == null) {
+            this.maxEntityId = new AtomicInteger(currentMaxID);
+            // currentMaxID is the ID after the initial incrementAndGet
+            // to retain full vanilla parity we return it instead of incrementing again and skipping one id
+            return currentMaxID;
+        }
+        return this.maxEntityId.incrementAndGet();
     }
 }
