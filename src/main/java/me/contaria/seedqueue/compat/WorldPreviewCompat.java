@@ -25,7 +25,7 @@ public class WorldPreviewCompat {
      *
      * @see WorldPreview#render
      */
-    @SuppressWarnings({"deprecation", "SynchronizeOnNonFinalField"})
+    @SuppressWarnings("deprecation")
     public static void buildChunks() {
         MinecraftClient client = MinecraftClient.getInstance();
         Window window = client.getWindow();
@@ -49,9 +49,7 @@ public class WorldPreviewCompat {
         client.gameRenderer.loadProjectionMatrix(projectionMatrix);
 
         SeedQueueProfiler.swap("camera_update");
-        synchronized (WorldPreview.camera) {
-            WorldPreview.camera.update(WorldPreview.world, WorldPreview.player, WorldPreview.camera.isThirdPerson(), ((CameraAccessor) WorldPreview.camera).seedQueue$isInverseView(), 0);
-        }
+        WorldPreview.camera.update(WorldPreview.world, WorldPreview.player, WorldPreview.camera.isThirdPerson(), ((CameraAccessor) WorldPreview.camera).seedQueue$isInverseView(), 0);
         SeedQueueProfiler.swap("build_chunks");
         ((SQWorldRenderer) WorldPreview.worldRenderer).seedQueue$buildChunks(rotationMatrix, WorldPreview.camera, projectionMatrix);
         SeedQueueProfiler.pop();

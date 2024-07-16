@@ -35,11 +35,11 @@
 	"depends": {
 		"fabricloader": ">=0.16.0",
 		"minecraft": "1.16.1",
-		"speedrunapi": ">=1.0.0-beta.3",
-		"atum": ">=2.0.0-beta.1"
+		"speedrunapi": "*",
+		"atum": ">=2.0"
 	},
 	"breaks": {
-		"worldpreview": "<6.0.0-beta.10",
+		"worldpreview": "<6.0.0",
 		"antiresourcereload": "<5.0.0",
 		"chunkcacher": "<1.4.0",
 		"standardsettings": "<2.0-beta.1"
