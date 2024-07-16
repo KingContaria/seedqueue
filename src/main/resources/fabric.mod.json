@@ -33,7 +33,7 @@
 		"seedqueue.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.15.7",
+		"fabricloader": ">=0.16.0",
 		"minecraft": "1.16.1",
 		"speedrunapi": ">=1.0.0-beta.3",
 		"atum": ">=2.0.0-beta.1"
