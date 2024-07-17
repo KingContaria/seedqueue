@@ -34,7 +34,7 @@ import java.util.Objects;
  * <p>
  * When implementing new options, make sure no Minecraft classes are loaded during initialization!
  */
-@SuppressWarnings({"FieldMayBeFinal", "FieldCanBeLocal"})
+@SuppressWarnings({"FieldMayBeFinal"})
 @InitializeOn(InitializeOn.InitPoint.PRELAUNCH)
 public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Ignored
@@ -113,6 +113,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("performance")
     public boolean reduceSchedulingBudget = false;
+
+    @Config.Category("performance")
+    public boolean reduceLevelList = true;
 
     @Config.Category("advanced")
     public boolean showAdvancedSettings = false;

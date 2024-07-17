@@ -109,6 +109,8 @@
   "speedrunapi.config.seedqueue.option.chunkUpdateThreadPriority.description": "Sets the thread priority for Sodium Chunk Update Threads on the Wall Screen.",
   "speedrunapi.config.seedqueue.option.reduceSchedulingBudget": "Smooth Chunk Building",
   "speedrunapi.config.seedqueue.option.reduceSchedulingBudget.description": "Reduces the amount of Sodium chunk rebuilds scheduled per frame. This improves framerate stability at the cost of slower chunk loads.",
+  "speedrunapi.config.seedqueue.option.reduceLevelList": "Reduce World List",
+  "speedrunapi.config.seedqueue.option.reduceLevelList.description": "Hides worlds that have been reset on the Wall Screen or during preview from the world list to avoid lag.",
   "speedrunapi.config.seedqueue.option.useWatchdog": "Watchdog",
   "speedrunapi.config.seedqueue.option.useWatchdog.description": "Launches an extra thread that prints out the main threads stacktrace every 10 seconds to diagnose freezing issues.\n§cTo update this option restart the game.",
   "speedrunapi.config.seedqueue.option.showDebugMenu": "Show Debug Menu",
