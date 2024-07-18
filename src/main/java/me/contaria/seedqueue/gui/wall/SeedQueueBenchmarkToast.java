@@ -22,7 +22,7 @@ public class SeedQueueBenchmarkToast implements Toast {
     @Override
     public Visibility draw(MatrixStack matrices, ToastManager manager, long startTime) {
         manager.getGame().getTextureManager().bindTexture(TOASTS_TEX);
-        manager.drawTexture(matrices, 0, 0, 0, 0, this.method_29049(), this.method_29050());
+        manager.drawTexture(matrices, 0, 0, 0, 0, this.getWidth(), this.getHeight());
         manager.getGame().textRenderer.draw(matrices, this.title, 7.0f, 7.0f, 0xFFFF00 | 0xFF000000);
 
         this.finished |= !this.wall.isBenchmarking();
