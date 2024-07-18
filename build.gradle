@@ -52,7 +52,7 @@ dependencies {
 	}
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/standardsettings
-	modCompileOnly ("com.github.KingContaria:standardsettings:1bba0b0013") {
+	modCompileOnly ("com.github.KingContaria:standardsettings:ebd61b0163") {
 		transitive = false
 	}
 }

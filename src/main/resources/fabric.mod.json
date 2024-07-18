@@ -42,6 +42,8 @@
 		"worldpreview": "<6.0.0",
 		"antiresourcereload": "<5.0.0",
 		"chunkcacher": "<1.4.0",
-		"standardsettings": "<2.0-beta.1"
+		"standardsettings": "<2.0",
+		"set-spawn": "<2.0",
+		"setspawnmod": "<2.0"
 	}
 }

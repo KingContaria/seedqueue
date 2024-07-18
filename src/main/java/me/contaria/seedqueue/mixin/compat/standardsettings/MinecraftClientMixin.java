@@ -23,59 +23,7 @@ public abstract class MinecraftClientMixin {
             cancellable = true
     )
     private void doNotTriggerStandardSettings_reset_inQueue(CallbackInfo ci) {
-        if (SeedQueue.inQueue()) {
-            ci.cancel();
-            return;
-        }
         if (SeedQueue.currentEntry != null && SeedQueue.currentEntry.loadSettingsCache()) {
-            ci.cancel();
-        }
-    }
-
-    @Dynamic
-    @TargetHandler(
-            mixin = "me.contaria.standardsettings.mixin.MinecraftClientMixin",
-            name = "onWorldJoin"
-    )
-    @Inject(
-            method = "@MixinSquared:Handler",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void doNotTriggerStandardSettings_onWorldJoin_inQueue(CallbackInfo ci) {
-        if (SeedQueue.inQueue()) {
-            ci.cancel();
-        }
-    }
-
-    @Dynamic
-    @TargetHandler(
-            mixin = "me.contaria.standardsettings.mixin.MinecraftClientMixin",
-            name = "resetPendingActions"
-    )
-    @Inject(
-            method = "@MixinSquared:Handler",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void doNotTriggerStandardSettings_resetPendingActions_inQueue(CallbackInfo ci) {
-        if (SeedQueue.inQueue()) {
-            ci.cancel();
-        }
-    }
-
-    @Dynamic
-    @TargetHandler(
-            mixin = "me.contaria.standardsettings.mixin.MinecraftClientMixin",
-            name = "setLastWorld"
-    )
-    @Inject(
-            method = "@MixinSquared:Handler",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void doNotTriggerStandardSettings_setLastWorld_inQueue(CallbackInfo ci) {
-        if (SeedQueue.inQueue()) {
             ci.cancel();
         }
     }
