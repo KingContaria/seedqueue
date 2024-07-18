@@ -1,6 +1,8 @@
 package me.contaria.seedqueue.mixin.compat.worldpreview.render;
 
 import com.bawnorton.mixinsquared.TargetHandler;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.contaria.seedqueue.compat.WorldPreviewCompat;
 import me.contaria.seedqueue.compat.WorldPreviewFrameBuffer;
 import me.contaria.seedqueue.gui.wall.SeedQueuePreview;
@@ -75,6 +77,27 @@ public abstract class LevelLoadingScreenMixin {
             preview.onPreviewRender(false);
             ci.cancel();
         });
+    }
+
+    @Dynamic
+    @TargetHandler(
+            mixin = "me.voidxwalker.worldpreview.mixin.client.render.LevelLoadingScreenMixin",
+            name = "renderWorldPreview"
+    )
+    @WrapOperation(
+            method = "@MixinSquared:Handler",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/voidxwalker/worldpreview/WorldPreview;updateState()Z",
+                    remap = false
+            )
+    )
+    private boolean doNotUpdateWorldPreviewStateOnWall(Operation<Boolean> original) {
+        //noinspection ConstantValue
+        if ((Object) this instanceof SeedQueuePreview) {
+            return false;
+        }
+        return original.call();
     }
 
     @Dynamic
