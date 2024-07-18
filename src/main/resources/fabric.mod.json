@@ -43,6 +43,7 @@
 		"antiresourcereload": "<5.0.0",
 		"chunkcacher": "<1.4.0",
 		"standardsettings": "<2.0",
-		"setspawnmod": "<2.0"
+		"setspawnmod": "<2.0",
+		"fast_reset": "<2.0"
 	}
 }
