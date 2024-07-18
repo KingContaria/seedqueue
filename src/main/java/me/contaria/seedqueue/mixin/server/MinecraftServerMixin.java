@@ -96,7 +96,7 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
             method = "prepareStartRegion",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/server/MinecraftServer;method_16208()V",
+                    target = "Lnet/minecraft/server/MinecraftServer;runTasksTillTickEnd()V",
                     shift = At.Shift.AFTER
             )
     )
