@@ -41,11 +41,6 @@ dependencies {
 	// check for the latest versions at https://jitpack.io/#Minecraft-Java-Edition-Speedrunning/sodium
 	modCompileOnly "com.github.Minecraft-Java-Edition-Speedrunning:sodium:7e4905f134"
 
-	// check for the latest versions at https://jitpack.io/#kingcontaria/mcsr-antiresourcereload-1.16.1
-	modCompileOnly ("com.github.KingContaria:mcsr-antiresourcereload-1.16.1:7e0b0405d9") {
-		transitive = false
-	}
-
 	// check for the latest versions at https://jitpack.io/#kingcontaria/fastreset
 	modCompileOnly ("com.github.KingContaria:fastreset:2a3d90950f") {
 		transitive = false
