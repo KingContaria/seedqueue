@@ -215,7 +215,7 @@ public class SeedQueue implements ClientModInitializer {
                 throw new IllegalStateException("Tried to start SeedQueue but a queue is already active!");
             }
 
-            if (config.maxCapacity == 0) {
+            if (!shouldStart()) {
                 return;
             }
 
@@ -231,6 +231,10 @@ public class SeedQueue implements ClientModInitializer {
             thread = new SeedQueueThread();
             thread.start();
         }
+    }
+
+    private static boolean shouldStart() {
+        return config.maxCapacity > 0 && (config.maxConcurrently > 0 || config.shouldUseWall());
     }
 
     /**

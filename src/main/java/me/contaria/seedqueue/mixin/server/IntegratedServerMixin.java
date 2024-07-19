@@ -5,6 +5,7 @@ import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.server.integrated.IntegratedServer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 @Mixin(IntegratedServer.class)
 public abstract class IntegratedServerMixin extends MinecraftServerMixin {
@@ -21,9 +22,20 @@ public abstract class IntegratedServerMixin extends MinecraftServerMixin {
             )
     )
     private ClientPlayNetworkHandler doNotPauseBackgroundWorlds(ClientPlayNetworkHandler networkHandler) {
-        if (this.getEntry() != null) {
+        if (this.inQueue()) {
             return null;
         }
         return networkHandler;
+    }
+
+    @ModifyVariable(
+            method = "tick",
+            at = @At("STORE")
+    )
+    private int doNotChangeViewDistanceInQueue(int viewDistance) {
+        if (this.inQueue()) {
+            return this.getPlayerManager().getViewDistance();
+        }
+        return viewDistance;
     }
 }

@@ -9,11 +9,12 @@ import me.contaria.seedqueue.SeedQueueExecutorWrapper;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.server.ServerTask;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.thread.ReentrantThreadExecutor;
-import net.minecraft.world.SaveProperties;
 import net.minecraft.world.level.ServerWorldProperties;
+import net.minecraft.world.level.storage.LevelStorage;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -35,12 +36,13 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
 
     @Shadow
     @Final
-    protected SaveProperties saveProperties;
+    protected LevelStorage.Session session;
 
     @Shadow
     @Final
     private Executor workerExecutor;
 
+    @Shadow public abstract PlayerManager getPlayerManager();
     @Unique
     private volatile boolean pauseScheduled;
 
@@ -77,7 +79,7 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
         if (SeedQueue.inQueue()) {
             thread.setPriority(SeedQueue.config.serverThreadPriority);
         }
-        thread.setName(thread.getName() + " - " + this.saveProperties.getLevelName());
+        thread.setName(thread.getName() + " - " + this.session.getDirectoryName());
         return thread;
     }
 
@@ -124,18 +126,26 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
             )
     )
     private void pauseServer(MinecraftServer server, boolean value, Operation<Void> original) {
-        boolean firstTick = !this.loading;
+        // "loading" is a bad mapping and actually means something more like "finishedLoading"
+        if (this.loading || !this.inQueue()) {
+            original.call(server, value);
+            return;
+        }
 
         original.call(server, value);
 
-        if (firstTick) {
-            this.seedQueue$tryPausingServer();
-        }
+        SeedQueue.LOGGER.info("Finished loading \"{}\".", this.session.getDirectoryName());
+        this.seedQueue$tryPausingServer();
     }
 
     @Unique
     protected SeedQueueEntry getEntry() {
         return SeedQueue.getEntry((MinecraftServer) (Object) this);
+    }
+
+    @Unique
+    protected boolean inQueue() {
+        return this.getEntry() != null;
     }
 
     @Override
@@ -171,6 +181,7 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
             this.paused = true;
             this.pauseScheduled = false;
             SeedQueue.ping();
+            SeedQueue.LOGGER.info("Pausing \"{}\"...", this.session.getDirectoryName());
             this.wait();
         } catch (InterruptedException e) {
             throw new RuntimeException("Failed to pause server in SeedQueue!", e);
