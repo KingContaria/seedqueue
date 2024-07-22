@@ -35,6 +35,7 @@ public abstract class AtumMixin {
                 }
             }
             ModCompat.standardsettings$cacheAndReset();
+            ModCompat.stateoutput$setWallState();
             return new SeedQueueWallScreen(screen);
         }
         return screen;
