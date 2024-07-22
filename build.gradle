@@ -1,10 +1,7 @@
 plugins {
-	id 'fabric-loom' version '1.6-SNAPSHOT'
+	id 'fabric-loom' version '1.7-SNAPSHOT'
 	id 'maven-publish'
 }
-
-sourceCompatibility = JavaVersion.VERSION_1_8
-targetCompatibility = JavaVersion.VERSION_1_8
 
 version = project.mod_version
 group = project.maven_group
@@ -50,6 +47,9 @@ dependencies {
 	modCompileOnly ("com.github.KingContaria:standardsettings:ebd61b0163") {
 		transitive = false
 	}
+
+	// check for latest versions at https://jitpack.io/#dev.tildejustin/state-output
+	modCompileOnly "dev.tildejustin.state-output:state-output-common:89c99480fe"
 }
 
 loom {
@@ -74,6 +74,8 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 java {
+	sourceCompatibility = JavaVersion.VERSION_1_8
+	targetCompatibility = JavaVersion.VERSION_1_8
 	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
 	// if it is present.
 	// If you remove this line, sources will not be generated.
