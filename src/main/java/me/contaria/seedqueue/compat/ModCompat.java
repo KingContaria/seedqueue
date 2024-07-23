@@ -12,10 +12,17 @@ public class ModCompat {
     public static final boolean HAS_SODIUM = FabricLoader.getInstance().isModLoaded("sodium");
     public static final boolean HAS_STANDARDSETTINGS = FabricLoader.getInstance().isModLoaded("standardsettings");
     public static final boolean HAS_WORLDPREVIEW = FabricLoader.getInstance().isModLoaded("worldpreview");
+    public static final boolean HAS_STATEOUTPUT = FabricLoader.getInstance().isModLoaded("state-output");
 
     public static void fastReset$fastReset(MinecraftServer server) {
         if (HAS_FASTRESET) {
             FastResetCompat.fastReset(server);
+        }
+    }
+
+    public static void stateoutput$setWallState() {
+        if (HAS_STATEOUTPUT) {
+            StateOutputCompat.setWallState();
         }
     }
 
