@@ -181,7 +181,6 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
             this.paused = true;
             this.pauseScheduled = false;
             SeedQueue.ping();
-            SeedQueue.LOGGER.info("Pausing \"{}\"...", this.session.getDirectoryName());
             this.wait();
         } catch (InterruptedException e) {
             throw new RuntimeException("Failed to pause server in SeedQueue!", e);
