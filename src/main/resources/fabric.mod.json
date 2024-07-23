@@ -17,6 +17,7 @@
 		"issues": "https://github.com/KingContaria/seedqueue/issues"
 	},
 	"license": "MIT",
+	"icon": "assets/seedqueue/icon.png",
 	"environment": "client",
 	"entrypoints": {
 		"client": [
