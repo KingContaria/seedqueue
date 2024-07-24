@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueException;
+import net.minecraft.client.Keyboard;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.world.CreateWorldScreen;
@@ -53,5 +54,16 @@ public abstract class CreateWorldScreenMixin {
         if (SeedQueue.inQueue()) {
             throw new SeedQueueException("Failed to copy datapacks to world!");
         }
+    }
+
+    @WrapWithCondition(
+            method = "init",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/Keyboard;enableRepeatEvents(Z)V"
+            )
+    )
+    private boolean doNotEnableRepeatEventsInQueue(Keyboard keyboard, boolean repeatEvents) {
+        return !SeedQueue.inQueue();
     }
 }
