@@ -45,6 +45,7 @@
 		"standardsettings": "<2.0",
 		"setspawnmod": "<4.0.0",
 		"fast_reset": "<2.0",
-		"state-output": "<1.1.8"
+		"state-output": "<1.2",
+		"speedrunigt": "<15.0"
 	}
 }
