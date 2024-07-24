@@ -29,7 +29,6 @@
 			"config": "me.contaria.seedqueue.SeedQueueConfig"
 		}
 	},
-	"accessWidener": "seedqueue.accesswidener",
 	"mixins": [
 		"seedqueue.mixins.json"
 	],

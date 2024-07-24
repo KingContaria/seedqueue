@@ -52,10 +52,6 @@ dependencies {
 	modCompileOnly "dev.tildejustin.state-output:state-output-common:89c99480fe"
 }
 
-loom {
-	accessWidenerPath = file("src/main/resources/seedqueue.accesswidener")
-}
-
 processResources {
 	inputs.property "version", project.version
 
