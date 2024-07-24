@@ -43,6 +43,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
 import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -441,6 +442,21 @@ public abstract class MinecraftClientMixin {
             return SeedQueueExecutorWrapper.SEEDQUEUE_EXECUTOR;
         }
         return serverWorkerExecutor;
+    }
+
+    @ModifyArg(
+            method = "createIntegratedResourceManager",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/resource/ServerResourceManager;reload(Ljava/util/List;Lnet/minecraft/server/command/CommandManager$RegistrationEnvironment;ILjava/util/concurrent/Executor;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"
+            ),
+            index = 4
+    )
+    private Executor useSeedQueueExecutorForCreatingResourcesInQueue2(Executor executor) {
+        if (SeedQueue.inQueue()) {
+            return SeedQueueExecutorWrapper.SEEDQUEUE_EXECUTOR;
+        }
+        return executor;
     }
 
     @WrapWithCondition(
