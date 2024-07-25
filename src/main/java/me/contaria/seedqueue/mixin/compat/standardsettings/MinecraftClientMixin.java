@@ -22,8 +22,8 @@ public abstract class MinecraftClientMixin {
             at = @At("HEAD"),
             cancellable = true
     )
-    private void doNotTriggerStandardSettings_reset_inQueue(CallbackInfo ci) {
-        if (SeedQueue.currentEntry != null && SeedQueue.currentEntry.loadSettingsCache()) {
+    private void loadSettingsCache(CallbackInfo ci) {
+        if (!SeedQueue.inQueue() && SeedQueue.currentEntry != null && SeedQueue.currentEntry.loadSettingsCache()) {
             ci.cancel();
         }
     }
