@@ -23,13 +23,13 @@ public abstract class CreateWorldScreenMixin {
             method = "@MixinSquared:Handler",
             at = @At(
                     value = "INVOKE",
-                    target = "Lme/voidxwalker/autoreset/AttemptTracker;increment(Lme/voidxwalker/autoreset/AttemptTracker$Type;)I",
+                    target = "Lme/voidxwalker/autoreset/AttemptTracker;incrementAndGetWorldName(Lme/voidxwalker/autoreset/AttemptTracker$Type;)Ljava/lang/String;",
                     remap = false
             )
     )
-    private int doNotIncrementAtumAttemptTracker_whenLoadingQueue(AttemptTracker tracker, AttemptTracker.Type type, Operation<Integer> original) {
+    private String doNotIncrementAtumAttemptTracker_whenLoadingQueue(AttemptTracker tracker, AttemptTracker.Type type, Operation<String> original) {
         if (!SeedQueue.inQueue() && SeedQueue.loadEntry()) {
-            return Integer.parseInt(SeedQueue.currentEntry.getServer().getSaveProperties().getLevelName().split("#")[1]);
+            return SeedQueue.currentEntry.getServer().getSaveProperties().getLevelName();
         }
         return original.call(tracker, type);
     }
@@ -48,5 +48,25 @@ public abstract class CreateWorldScreenMixin {
             return SeedQueue.currentEntry.getSession().getDirectoryName();
         }
         return worldName;
+    }
+
+    @Dynamic
+    @TargetHandler(
+            mixin = "me.voidxwalker.autoreset.mixin.config.CreateWorldScreenMixin",
+            name = "modifyAtumCreateWorldScreen"
+    )
+    @ModifyArg(
+            method = "@MixinSquared:Handler",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lme/voidxwalker/autoreset/AttemptTracker;incrementAndGetWorldName(Lme/voidxwalker/autoreset/AttemptTracker$Type;)Ljava/lang/String;",
+                    remap = false
+            )
+    )
+    private AttemptTracker.Type useBenchmarkResetCounter(AttemptTracker.Type type) {
+        if (SeedQueue.isBenchmarking()) {
+            return SeedQueue.BENCHMARK_RESETS;
+        }
+        return type;
     }
 }

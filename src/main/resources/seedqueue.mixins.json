@@ -21,6 +21,7 @@
     "client.profiling.WorldRendererMixin",
     "client.render.LevelLoadingScreenMixin",
     "client.render.MinecraftClientMixin",
+    "compat.atum.AttemptTrackerMixin",
     "compat.atum.AtumMixin",
     "compat.atum.CreateWorldScreenMixin",
     "compat.atum.KeyboardMixin",

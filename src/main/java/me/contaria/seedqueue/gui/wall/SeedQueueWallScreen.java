@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.SeedQueueProfiler;
+import me.contaria.seedqueue.SeedQueueThread;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
@@ -696,12 +697,7 @@ public class SeedQueueWallScreen extends Screen {
 
     private void startBenchmark() {
         assert this.client != null;
-        for (SeedQueueEntry entry : SeedQueue.getEntries()) {
-            SeedQueue.discard(entry);
-        }
-        for (SeedQueuePreview instance : this.getInstances()) {
-            this.removePreview(instance);
-        }
+        this.clearSeedQueueForBenchmark();
         this.benchmarkGoal = SeedQueue.config.benchmarkResets;
         this.benchmarkStart = System.currentTimeMillis();
         this.benchmarkedSeeds = 0;
@@ -717,10 +713,26 @@ public class SeedQueueWallScreen extends Screen {
         }
     }
 
+    private void clearSeedQueueForBenchmark() {
+        // clearing queue is synchronized with world creation
+        // to avoid any worlds named Benchmark Reset #xxx to be able to be played
+        synchronized (SeedQueueThread.WORLD_CREATION_LOCK) {
+            for (SeedQueueEntry entry : SeedQueue.getEntries()) {
+                SeedQueue.discard(entry);
+            }
+            for (SeedQueuePreview instance : this.getInstances()) {
+                this.removePreview(instance);
+            }
+        }
+    }
+
     private void finishBenchmark() {
         this.benchmarkFinish = System.currentTimeMillis();
         SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds.", this.benchmarkedSeeds, Math.round((this.benchmarkFinish - this.benchmarkStart) / 10.0) / 100.0);
         this.playSound(SeedQueueSounds.FINISH_BENCHMARK);
+
+        // any worlds named Benchmark Reset #xxx are cleared after benchmark finishes
+        this.clearSeedQueueForBenchmark();
     }
 
     public void tickBenchmark() {
@@ -739,7 +751,7 @@ public class SeedQueueWallScreen extends Screen {
         }
     }
 
-    protected boolean isBenchmarking() {
+    public boolean isBenchmarking() {
         return this.benchmarkedSeeds < this.benchmarkGoal;
     }
 

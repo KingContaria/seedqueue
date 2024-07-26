@@ -13,6 +13,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * This thread is to be launched at the start of a SeedQueue session and to be closed by calling {@link SeedQueueThread#stopQueue}.
  */
 public class SeedQueueThread extends Thread {
+    public static final Object WORLD_CREATION_LOCK = new Object();
+
     private final Object lock = new Object();
     private final AtomicBoolean pinged = new AtomicBoolean();
     private volatile boolean running = true;
@@ -96,7 +98,9 @@ public class SeedQueueThread extends Thread {
      * Creates a new {@link SeedQueueEntry} and adds it to the queue.
      */
     private void createSeedQueueEntry() {
-        new AtumCreateWorldScreen(null).init(MinecraftClient.getInstance(), 0, 0);
+        synchronized (WORLD_CREATION_LOCK) {
+            new AtumCreateWorldScreen(null).init(MinecraftClient.getInstance(), 0, 0);
+        }
     }
 
     public void ping() {

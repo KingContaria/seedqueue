@@ -5,6 +5,7 @@ import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
+import me.voidxwalker.autoreset.AttemptTracker;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.Version;
@@ -28,6 +29,8 @@ public class SeedQueue implements ClientModInitializer {
     private static final Object LOCK = new Object();
 
     public static SeedQueueConfig config;
+
+    public static AttemptTracker.Type BENCHMARK_RESETS = new AttemptTracker.Type("Benchmark Reset #", "benchmark-resets.txt");
 
     private static final Queue<SeedQueueEntry> SEED_QUEUE = new LinkedBlockingQueue<>();
     private static SeedQueueThread thread;
@@ -317,6 +320,14 @@ public class SeedQueue implements ClientModInitializer {
      */
     public static boolean isOnWall() {
         return MinecraftClient.getInstance().currentScreen instanceof SeedQueueWallScreen;
+    }
+
+    /**
+     * @return True if currently running a benchmark on the Wall Screen.
+     */
+    public static boolean isBenchmarking() {
+        Screen screen = MinecraftClient.getInstance().currentScreen;
+        return screen instanceof SeedQueueWallScreen && ((SeedQueueWallScreen) screen).isBenchmarking();
     }
 
     /**

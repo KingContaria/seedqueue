@@ -22,11 +22,11 @@ dependencies {
 
 	// SpeedrunAPI
 	// check for the latest versions at https://jitpack.io/#kingcontaria/speedrunapi
-	modImplementation "com.github.KingContaria:SpeedrunAPI:3d7827a9c1"
+	modImplementation "com.github.KingContaria:SpeedrunAPI:a3e3998294"
 	implementation(annotationProcessor "com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.1.1")
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/atum-rewrite
-	modImplementation ("com.github.KingContaria:atum-rewrite:c0c824d2c2") {
+	modImplementation ("com.github.KingContaria:atum-rewrite:9e90ab79ea") {
 		transitive = false
 	}
 

@@ -22,7 +22,7 @@ public abstract class LevelStorageMixin {
     )
     private boolean reduceLevelList(File file, Operation<Boolean> original) {
         String name = file.getName();
-        if (SeedQueue.config.reduceLevelList && (name.startsWith("Random Speedrun #") || name.startsWith("Set Speedrun #")) && !new File(file, "level.dat_old").exists()) {
+        if (SeedQueue.config.reduceLevelList && (name.startsWith("Benchmark Reset #") || (name.startsWith("Random Speedrun #") || name.startsWith("Set Speedrun #")) && !new File(file, "level.dat_old").exists())) {
             return false;
         }
         return original.call(file);
