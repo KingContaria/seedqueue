@@ -527,6 +527,17 @@ public abstract class MinecraftClientMixin {
     }
 
     @Inject(
+            method = "run",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/MinecraftClient;render(Z)V"
+            )
+    )
+    private void runClientTasks(CallbackInfo ci) {
+        SeedQueue.runClientThreadTasks();
+    }
+
+    @Inject(
             method = "getFramerateLimit",
             at = @At("HEAD"),
             cancellable = true

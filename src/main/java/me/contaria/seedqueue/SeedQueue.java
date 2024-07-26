@@ -32,6 +32,8 @@ public class SeedQueue implements ClientModInitializer {
 
     public static AttemptTracker.Type BENCHMARK_RESETS = new AttemptTracker.Type("Benchmark Reset #", "benchmark-resets.txt");
 
+    private static final Queue<Runnable> CLIENT_TASKS = new LinkedBlockingQueue<>();
+
     private static final Queue<SeedQueueEntry> SEED_QUEUE = new LinkedBlockingQueue<>();
     private static SeedQueueThread thread;
 
@@ -380,6 +382,21 @@ public class SeedQueue implements ClientModInitializer {
      */
     public static List<SeedQueueEntry> getEntries() {
         return new ArrayList<>(SEED_QUEUE);
+    }
+
+    /**
+     * Schedules the given {@link Runnable} to be run on the client thread.
+     * Should be used in favor of {@link net.minecraft.util.thread.ThreadExecutor#execute} on the {@link MinecraftClient} because tasks submitted that way may be cancelled.
+     */
+    public static void scheduleTaskOnClientThread(Runnable runnable) {
+        CLIENT_TASKS.add(runnable);
+    }
+
+    public static void runClientThreadTasks() {
+        Runnable runnable;
+        while ((runnable = CLIENT_TASKS.poll()) != null) {
+            runnable.run();
+        }
     }
 
     /**

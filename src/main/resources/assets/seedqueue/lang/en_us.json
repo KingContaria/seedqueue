@@ -1,6 +1,9 @@
 {
   "seedqueue.menu.clearing": "Clearing SeedQueue...",
 
+  "seedqueue.menu.crash.title": "SeedQueue crashed!",
+  "seedqueue.menu.crash.description": "Crashed with %s, check the log for more information.",
+
   "seedqueue.menu.benchmark.title": "SeedQueue Benchmark",
   "seedqueue.menu.benchmark.result": "%s resets in %ss (%s RPS)",
 
