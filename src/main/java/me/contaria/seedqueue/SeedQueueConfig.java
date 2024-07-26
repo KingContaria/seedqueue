@@ -34,7 +34,7 @@ import java.util.Objects;
  * <p>
  * When implementing new options, make sure no Minecraft classes are loaded during initialization!
  */
-@SuppressWarnings({"FieldMayBeFinal"})
+@SuppressWarnings("FieldMayBeFinal")
 @InitializeOn(InitializeOn.InitPoint.PRELAUNCH)
 public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Ignored
@@ -47,7 +47,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
     private SpeedrunConfigContainer<?> container;
 
     @Config.Category("queue")
-    @Config.Numbers.Whole.Bounds(min = 0, max = 100)
+    @Config.Numbers.Whole.Bounds(min = 0, max = 50)
     public int maxCapacity = 0;
 
     @Config.Category("queue")
