@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.IOException;
 
-@Mixin(AttemptTracker.class)
+@Mixin(value = AttemptTracker.class, remap = false)
 public abstract class AttemptTrackerMixin {
 
     @Shadow
