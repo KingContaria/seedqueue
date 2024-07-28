@@ -8,6 +8,7 @@ import net.minecraft.client.render.Camera;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.Packet;
 
+import java.util.Objects;
 import java.util.Queue;
 
 /**
@@ -21,11 +22,11 @@ public class WorldPreviewProperties {
     private final Queue<Packet<?>> packetQueue;
 
     public WorldPreviewProperties(ClientWorld world, ClientPlayerEntity player, ClientPlayerInteractionManager interactionManager, Camera camera, Queue<Packet<?>> packetQueue) {
-        this.world = world;
-        this.player = player;
-        this.interactionManager = interactionManager;
-        this.camera = camera;
-        this.packetQueue = packetQueue;
+        this.world = Objects.requireNonNull(world);
+        this.player = Objects.requireNonNull(player);
+        this.interactionManager = Objects.requireNonNull(interactionManager);
+        this.camera = Objects.requireNonNull(camera);
+        this.packetQueue = Objects.requireNonNull(packetQueue);
     }
 
     public ClientWorld getWorld() {

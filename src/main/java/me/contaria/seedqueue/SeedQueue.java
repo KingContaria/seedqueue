@@ -131,12 +131,12 @@ public class SeedQueue implements ClientModInitializer {
      * Discards the given {@link SeedQueueEntry} and removes it from the queue.
      */
     public static void discard(SeedQueueEntry entry) {
+        entry.discard();
         synchronized (LOCK) {
             if (!SEED_QUEUE.remove(entry)) {
                 throw new IllegalArgumentException("Tried to discard a SeedQueueEntry that is not currently in queue!");
             }
         }
-        entry.discard();
         ping();
     }
 
