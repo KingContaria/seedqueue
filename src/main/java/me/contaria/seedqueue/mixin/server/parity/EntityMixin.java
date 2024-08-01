@@ -38,8 +38,8 @@ public abstract class EntityMixin {
             return id;
         }
         // by storing the max entity id counter per server, we ensure entity ID's will be in order
-        // we initialize them with the current max id to preserve parity when seedqueue isn't active
+        // we initialize them in MinecraftServerMixin with the current max id to preserve parity when seedqueue isn't active
         // and also avoid entity ID's starting at 0 on every server when using seedqueue
-        return ((SQMinecraftServer) server).seedQueue$incrementAndGetEntityID(id);
+        return ((SQMinecraftServer) server).seedQueue$incrementAndGetEntityID();
     }
 }

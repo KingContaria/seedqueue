@@ -8,6 +8,7 @@
   "client": [
     "accessor.CameraAccessor",
     "accessor.DebugHudAccessor",
+    "accessor.EntityAccessor",
     "accessor.MinecraftClientAccessor",
     "accessor.MinecraftServerAccessor",
     "accessor.PlayerEntityAccessor",

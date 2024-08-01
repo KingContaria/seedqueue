@@ -7,6 +7,7 @@ import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.SeedQueueExecutorWrapper;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
+import me.contaria.seedqueue.mixin.accessor.EntityAccessor;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
@@ -51,7 +52,7 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     private volatile boolean paused;
 
     @Unique
-    private AtomicInteger maxEntityId;
+    private final AtomicInteger maxEntityId = new AtomicInteger(EntityAccessor.seedQueue$getMAX_ENTITY_ID().get());
 
     public MinecraftServerMixin(String string) {
         super(string);
@@ -226,13 +227,7 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     }
 
     @Override
-    public synchronized int seedQueue$incrementAndGetEntityID(int currentMaxID) {
-        if (this.maxEntityId == null) {
-            this.maxEntityId = new AtomicInteger(currentMaxID);
-            // currentMaxID is the ID after the initial incrementAndGet
-            // to retain full vanilla parity we return it instead of incrementing again and skipping one id
-            return currentMaxID;
-        }
+    public int seedQueue$incrementAndGetEntityID() {
         return this.maxEntityId.incrementAndGet();
     }
 }
