@@ -20,11 +20,13 @@ import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
 import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressLogger;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
+import me.contaria.seedqueue.mixin.accessor.PlayerEntityAccessor;
 import me.contaria.seedqueue.mixin.accessor.WorldGenerationProgressTrackerAccessor;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.render.entity.PlayerModelPart;
 import net.minecraft.client.sound.SoundManager;
 import net.minecraft.resource.DataPackSettings;
 import net.minecraft.resource.ResourceManager;
@@ -50,6 +52,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.File;
 import java.net.Proxy;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
@@ -64,7 +67,6 @@ public abstract class MinecraftClientMixin {
     @Shadow
     @Final
     private AtomicReference<WorldGenerationProgressTracker> worldGenProgressTracker;
-
     @Shadow
     @Nullable
     public Screen currentScreen;
@@ -225,7 +227,7 @@ public abstract class MinecraftClientMixin {
             )
     )
     private void saveWorldGenerationProgressTracker(AtomicReference<?> instance, Object tracker, Operation<Void> original) {
-        SeedQueueEntry entry;
+        Optional<SeedQueueEntry> entry;
         Thread currentThread = Thread.currentThread();
         // in a loop to avoid the probably never happening race condition
         // where this is called before MinecraftClient#server has been set
@@ -236,10 +238,10 @@ public abstract class MinecraftClientMixin {
                 return;
             }
             entry = SeedQueue.getEntry(currentThread);
-        } while (entry == null);
+        } while (!entry.isPresent());
 
         ((SQWorldGenerationProgressLogger) ((WorldGenerationProgressTrackerAccessor) tracker).getProgressLogger()).seedQueue$mute();
-        entry.setWorldGenerationProgressTracker((WorldGenerationProgressTracker) tracker);
+        entry.get().setWorldGenerationProgressTracker((WorldGenerationProgressTracker) tracker);
     }
 
     @Inject(
@@ -420,14 +422,31 @@ public abstract class MinecraftClientMixin {
         if (SeedQueue.currentEntry == null) {
             return true;
         }
-        if (!SeedQueue.currentEntry.isReady()) {
-            WorldPreviewProperties wpProperties = SeedQueue.currentEntry.getWorldPreviewProperties();
-            if (wpProperties != null) {
-                wpProperties.apply();
+        return !SeedQueue.currentEntry.isReady();
+    }
+
+    @Inject(
+            method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/MinecraftClient;render(Z)V"
+            )
+    )
+    private void applyWorldPreviewProperties(CallbackInfo ci) {
+        WorldPreviewProperties wpProperties;
+        if (!ModCompat.worldpreview$inPreview() && SeedQueue.currentEntry != null && (wpProperties = SeedQueue.currentEntry.getWorldPreviewProperties()) != null) {
+            wpProperties.apply();
+            // player model configuration is suppressed in WorldPreviewMixin#doNotSetPlayerModelParts_inQueue for SeedQueue worlds
+            // when using wall, player model will be configured in SeedQueueEntry#setSettingsCache
+            if (SeedQueue.currentEntry.getSettingsCache() == null) {
+                // see WorldPreview#configure
+                int playerModelPartsBitMask = 0;
+                for (PlayerModelPart playerModelPart : MinecraftClient.getInstance().options.getEnabledPlayerModelParts()) {
+                    playerModelPartsBitMask |= playerModelPart.getBitFlag();
+                }
+                wpProperties.getPlayer().getDataTracker().set(PlayerEntityAccessor.seedQueue$getPLAYER_MODEL_PARTS(), (byte) playerModelPartsBitMask);
             }
-            return true;
         }
-        return false;
     }
 
     @ModifyExpressionValue(
@@ -474,10 +493,9 @@ public abstract class MinecraftClientMixin {
             method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
             at = @At("TAIL")
     )
-    private void discardCurrentSeedQueueEntry(CallbackInfo ci) {
-        if (!SeedQueue.inQueue() && SeedQueue.currentEntry != null) {
-            SeedQueue.currentEntry.discardFrameBuffer();
-            SeedQueue.currentEntry = null;
+    private void clearCurrentSeedQueueEntry(CallbackInfo ci) {
+        if (!SeedQueue.inQueue()) {
+            SeedQueue.clearCurrentEntry();
         }
     }
 

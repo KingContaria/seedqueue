@@ -33,7 +33,7 @@ public abstract class WorldPreviewMixin {
             at = @At("HEAD")
     )
     private static void getSeedQueueEntry(CallbackInfo ci, @Share("seedQueueEntry") LocalRef<SeedQueueEntry> entry) {
-        entry.set(SeedQueue.getEntry(Thread.currentThread()));
+        SeedQueue.getEntryOrCurrentEntry(Thread.currentThread()).ifPresent(entry::set);
     }
 
     @WrapOperation(
@@ -48,7 +48,12 @@ public abstract class WorldPreviewMixin {
             entry.get().setWorldPreviewProperties(new WorldPreviewProperties(world, player, interactionManager, camera, packetQueue));
             return;
         }
-        original.call(world, player, interactionManager, camera, packetQueue);
+        // do not configure previews of SeedQueueEntry's that have been discarded
+        // before reaching worldpreview configuration,
+        // for example at the start/end of a benchmark or when clearing SeedQueue
+        if (SeedQueue.isOnActiveServer()) {
+            original.call(world, player, interactionManager, camera, packetQueue);
+        }
     }
 
     @WrapWithCondition(

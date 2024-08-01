@@ -25,6 +25,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -111,9 +112,8 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
             at = @At("TAIL")
     )
     private void discardWorldPreviewPropertiesOnLoad(CallbackInfo ci) {
-        SeedQueueEntry entry = this.getEntry();
-        if (entry != null && !SeedQueue.config.shouldUseWall()) {
-            entry.setWorldPreviewProperties(null);
+        if (!SeedQueue.config.shouldUseWall()) {
+            this.getEntry().ifPresent(entry -> entry.setWorldPreviewProperties(null));
         }
     }
 
@@ -139,18 +139,18 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     }
 
     @Unique
-    protected SeedQueueEntry getEntry() {
+    protected Optional<SeedQueueEntry> getEntry() {
         return SeedQueue.getEntry((MinecraftServer) (Object) this);
     }
 
     @Unique
     protected boolean inQueue() {
-        return this.getEntry() != null;
+        return this.getEntry().isPresent();
     }
 
     @Override
     public boolean seedQueue$shouldPause() {
-        SeedQueueEntry entry = this.getEntry();
+        SeedQueueEntry entry = this.getEntry().orElse(null);
         if (entry == null || entry.isDiscarded()) {
             return false;
         }

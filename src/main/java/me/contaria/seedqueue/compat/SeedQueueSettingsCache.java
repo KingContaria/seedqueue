@@ -2,10 +2,10 @@ package me.contaria.seedqueue.compat;
 
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
+import me.contaria.seedqueue.mixin.accessor.PlayerEntityAccessor;
 import me.contaria.standardsettings.StandardSettingsCache;
 import me.contaria.standardsettings.options.PlayerModelPartStandardSetting;
 import me.contaria.standardsettings.options.StandardSetting;
-import me.voidxwalker.worldpreview.mixin.access.PlayerEntityAccessor;
 import net.minecraft.client.network.ClientPlayerEntity;
 
 import java.util.*;
@@ -85,7 +85,7 @@ public class SeedQueueSettingsCache extends StandardSettingsCache {
                 playerModelPartsBitMask |= ((PlayerModelPartStandardSetting) entry.setting).playerModelPart.getBitFlag();
             }
         }
-        player.getDataTracker().set(PlayerEntityAccessor.getPLAYER_MODEL_PARTS(), (byte) playerModelPartsBitMask);
+        player.getDataTracker().set(PlayerEntityAccessor.seedQueue$getPLAYER_MODEL_PARTS(), (byte) playerModelPartsBitMask);
     }
 
     /**

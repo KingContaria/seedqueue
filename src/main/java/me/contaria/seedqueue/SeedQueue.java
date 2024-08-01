@@ -16,7 +16,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.TranslatableText;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
@@ -95,6 +94,19 @@ public class SeedQueue implements ClientModInitializer {
         }
         ping();
         return currentEntry != null;
+    }
+
+    /**
+     * Clears {@link SeedQueue#currentEntry} and discards its framebuffer.
+     */
+    public static void clearCurrentEntry() {
+        if (currentEntry == null) {
+            return;
+        }
+        synchronized (LOCK) {
+            currentEntry.discardFrameBuffer();
+            currentEntry = null;
+        }
     }
 
     /**
@@ -281,11 +293,13 @@ public class SeedQueue implements ClientModInitializer {
         Screen screen = MinecraftClient.getInstance().currentScreen;
         MinecraftClient.getInstance().setScreenAndRender(new SaveLevelScreen(new TranslatableText("seedqueue.menu.clearing")));
 
-        if (currentEntry != null) {
-            currentEntry.discardFrameBuffer();
+        synchronized (LOCK) {
+            if (currentEntry != null) {
+                currentEntry.discardFrameBuffer();
+            }
+            currentEntry = null;
+            selectedEntry = null;
         }
-        currentEntry = null;
-        selectedEntry = null;
 
         SEED_QUEUE.forEach(SeedQueueEntry::discard);
 
@@ -332,38 +346,67 @@ public class SeedQueue implements ClientModInitializer {
         return screen instanceof SeedQueueWallScreen && ((SeedQueueWallScreen) screen).isBenchmarking();
     }
 
+    public static boolean isOnActiveServer() {
+        MinecraftServer server = MinecraftClient.getInstance().getServer();
+        return server != null && server.isOnThread();
+    }
+
     /**
      * @return The {@link SeedQueueEntry} corresponding to the given server.
      */
-    public static @Nullable SeedQueueEntry getEntry(MinecraftServer server) {
+    public static Optional<SeedQueueEntry> getEntry(MinecraftServer server) {
         if (MinecraftClient.getInstance().getServer() == server) {
-            return null;
+            return Optional.empty();
         }
         synchronized (LOCK) {
             for (SeedQueueEntry entry : SEED_QUEUE) {
                 if (server == entry.getServer()) {
-                    return entry;
+                    return Optional.of(entry);
                 }
             }
-            return null;
+            return Optional.empty();
         }
     }
 
     /**
      * @return The {@link SeedQueueEntry} corresponding to the given server thread.
      */
-    public static @Nullable SeedQueueEntry getEntry(Thread serverThread) {
+    public static Optional<SeedQueueEntry> getEntry(Thread serverThread) {
         MinecraftServer server = MinecraftClient.getInstance().getServer();
         if (server != null && server.getThread() == serverThread) {
-            return null;
+            return Optional.empty();
         }
         synchronized (LOCK) {
             for (SeedQueueEntry entry : SEED_QUEUE) {
                 if (serverThread == entry.getServer().getThread()) {
-                    return entry;
+                    return Optional.of(entry);
                 }
             }
-            return null;
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * @return The {@link SeedQueueEntry} or {@link SeedQueue#currentEntry} corresponding to the given server.
+     */
+    public static Optional<SeedQueueEntry> getEntryOrCurrentEntry(MinecraftServer server) {
+        synchronized (LOCK) {
+            if (currentEntry != null && currentEntry.getServer() == server) {
+                return Optional.of(currentEntry);
+            }
+            return getEntry(server);
+        }
+    }
+
+    /**
+     * @return The {@link SeedQueueEntry} or {@link SeedQueue#currentEntry} corresponding to the given server thread.
+     */
+    public static Optional<SeedQueueEntry> getEntryOrCurrentEntry(Thread serverThread) {
+        synchronized (LOCK) {
+            if (currentEntry != null && currentEntry.getServer().getThread() == serverThread) {
+                return Optional.of(currentEntry);
+            }
+            return getEntry(serverThread);
         }
     }
 

@@ -16,6 +16,10 @@ import net.minecraft.util.math.Matrix4f;
 
 public class WorldPreviewCompat {
 
+    static boolean inPreview() {
+        return WorldPreview.inPreview;
+    }
+
     static boolean kill(MinecraftServer server) {
         return ((WPMinecraftServer) server).worldpreview$kill();
     }

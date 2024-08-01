@@ -10,6 +10,7 @@
     "accessor.DebugHudAccessor",
     "accessor.MinecraftClientAccessor",
     "accessor.MinecraftServerAccessor",
+    "accessor.PlayerEntityAccessor",
     "accessor.UtilAccessor",
     "accessor.WorldGenerationProgressTrackerAccessor",
     "accessor.WorldRendererAccessor",
