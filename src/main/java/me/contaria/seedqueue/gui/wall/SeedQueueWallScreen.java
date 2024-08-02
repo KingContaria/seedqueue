@@ -745,7 +745,9 @@ public class SeedQueueWallScreen extends Screen {
                 this.benchmarkedSeeds++;
                 if (!this.isBenchmarking()) {
                     this.finishBenchmark();
-                } else if (this.benchmarkedSeeds % 100 == 0) {
+                    break;
+                }
+                if (this.benchmarkedSeeds % 100 == 0) {
                     SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds...", this.benchmarkedSeeds, Math.round((System.currentTimeMillis() - this.benchmarkStart) / 10.0) / 100.0);
                 }
             }
