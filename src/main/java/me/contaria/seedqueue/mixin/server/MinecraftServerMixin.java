@@ -27,6 +27,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -44,7 +45,9 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     @Final
     private Executor workerExecutor;
 
-    @Shadow public abstract PlayerManager getPlayerManager();
+    @Unique
+    private CompletableFuture<SeedQueueEntry> seedQueueEntry;
+
     @Unique
     private volatile boolean pauseScheduled;
 
@@ -53,6 +56,9 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
 
     @Unique
     private final AtomicInteger maxEntityId = new AtomicInteger(EntityAccessor.seedQueue$getMAX_ENTITY_ID().get());
+
+    @Shadow
+    public abstract PlayerManager getPlayerManager();
 
     public MinecraftServerMixin(String string) {
         super(string);
@@ -86,6 +92,16 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     }
 
     @Inject(
+            method = "<init>",
+            at = @At("TAIL")
+    )
+    private void setSeedQueueEntry(CallbackInfo ci) {
+        if (SeedQueue.inQueue()) {
+            this.seedQueueEntry = new CompletableFuture<>();
+        }
+    }
+
+    @Inject(
             method = "setupSpawn",
             at = @At(
                     value = "INVOKE",
@@ -114,7 +130,7 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     )
     private void discardWorldPreviewPropertiesOnLoad(CallbackInfo ci) {
         if (!SeedQueue.config.shouldUseWall()) {
-            this.getEntry().ifPresent(entry -> entry.setWorldPreviewProperties(null));
+            this.seedQueue$getEntry().ifPresent(entry -> entry.setWorldPreviewProperties(null));
         }
     }
 
@@ -128,7 +144,7 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     )
     private void pauseServer(MinecraftServer server, boolean value, Operation<Void> original) {
         // "loading" is a bad mapping and actually means something more like "finishedLoading"
-        if (this.loading || !this.inQueue()) {
+        if (this.loading || !this.seedQueue$inQueue()) {
             original.call(server, value);
             return;
         }
@@ -137,21 +153,27 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
 
         SeedQueue.LOGGER.info("Finished loading \"{}\".", this.session.getDirectoryName());
         this.seedQueue$tryPausingServer();
+        this.seedQueueEntry = null;
     }
 
-    @Unique
-    protected Optional<SeedQueueEntry> getEntry() {
-        return SeedQueue.getEntry((MinecraftServer) (Object) this);
+    @Override
+    public Optional<SeedQueueEntry> seedQueue$getEntry() {
+        return Optional.ofNullable(this.seedQueueEntry).map(CompletableFuture::join);
     }
 
-    @Unique
-    protected boolean inQueue() {
-        return this.getEntry().isPresent();
+    @Override
+    public boolean seedQueue$inQueue() {
+        return this.seedQueueEntry != null;
+    }
+
+    @Override
+    public void seedQueue$setEntry(SeedQueueEntry entry) {
+        this.seedQueueEntry.complete(entry);
     }
 
     @Override
     public boolean seedQueue$shouldPause() {
-        SeedQueueEntry entry = this.getEntry().orElse(null);
+        SeedQueueEntry entry = this.seedQueue$getEntry().orElse(null);
         if (entry == null || entry.isDiscarded()) {
             return false;
         }

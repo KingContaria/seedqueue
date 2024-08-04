@@ -52,6 +52,8 @@ public class SeedQueueEntry {
         this.minecraftSessionService = minecraftSessionService;
         this.gameProfileRepository = gameProfileRepository;
         this.userCache = userCache;
+
+        ((SQMinecraftServer) server).seedQueue$setEntry(this);
     }
 
     public MinecraftServer getServer() {

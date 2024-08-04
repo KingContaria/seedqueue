@@ -116,14 +116,12 @@ public class SeedQueue implements ClientModInitializer {
      * @return A {@link SeedQueueEntry} from the queue matching the given predicate.
      */
     public static Optional<SeedQueueEntry> getEntryMatching(Predicate<SeedQueueEntry> predicate) {
-        synchronized (LOCK) {
-            for (SeedQueueEntry entry : SEED_QUEUE) {
-                if (predicate.test(entry)) {
-                    return Optional.of(entry);
-                }
+        for (SeedQueueEntry entry : SEED_QUEUE) {
+            if (predicate.test(entry)) {
+                return Optional.of(entry);
             }
-            return Optional.empty();
         }
+        return Optional.empty();
     }
 
     /**
@@ -346,28 +344,6 @@ public class SeedQueue implements ClientModInitializer {
         return screen instanceof SeedQueueWallScreen && ((SeedQueueWallScreen) screen).isBenchmarking();
     }
 
-    public static boolean isOnActiveServer() {
-        MinecraftServer server = MinecraftClient.getInstance().getServer();
-        return server != null && server.isOnThread();
-    }
-
-    /**
-     * @return The {@link SeedQueueEntry} corresponding to the given server.
-     */
-    public static Optional<SeedQueueEntry> getEntry(MinecraftServer server) {
-        if (MinecraftClient.getInstance().getServer() == server) {
-            return Optional.empty();
-        }
-        synchronized (LOCK) {
-            for (SeedQueueEntry entry : SEED_QUEUE) {
-                if (server == entry.getServer()) {
-                    return Optional.of(entry);
-                }
-            }
-            return Optional.empty();
-        }
-    }
-
     /**
      * @return The {@link SeedQueueEntry} corresponding to the given server thread.
      */
@@ -376,38 +352,12 @@ public class SeedQueue implements ClientModInitializer {
         if (server != null && server.getThread() == serverThread) {
             return Optional.empty();
         }
-        synchronized (LOCK) {
-            for (SeedQueueEntry entry : SEED_QUEUE) {
-                if (serverThread == entry.getServer().getThread()) {
-                    return Optional.of(entry);
-                }
+        for (SeedQueueEntry entry : SEED_QUEUE) {
+            if (serverThread == entry.getServer().getThread()) {
+                return Optional.of(entry);
             }
-            return Optional.empty();
         }
-    }
-
-    /**
-     * @return The {@link SeedQueueEntry} or {@link SeedQueue#currentEntry} corresponding to the given server.
-     */
-    public static Optional<SeedQueueEntry> getEntryOrCurrentEntry(MinecraftServer server) {
-        synchronized (LOCK) {
-            if (currentEntry != null && currentEntry.getServer() == server) {
-                return Optional.of(currentEntry);
-            }
-            return getEntry(server);
-        }
-    }
-
-    /**
-     * @return The {@link SeedQueueEntry} or {@link SeedQueue#currentEntry} corresponding to the given server thread.
-     */
-    public static Optional<SeedQueueEntry> getEntryOrCurrentEntry(Thread serverThread) {
-        synchronized (LOCK) {
-            if (currentEntry != null && currentEntry.getServer().getThread() == serverThread) {
-                return Optional.of(currentEntry);
-            }
-            return getEntry(serverThread);
-        }
+        return Optional.empty();
     }
 
     /**

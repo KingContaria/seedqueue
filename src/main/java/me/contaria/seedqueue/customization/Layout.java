@@ -80,7 +80,7 @@ public class Layout {
                 SeedQueue.LOGGER.warn("Failed to parse custom wall layout!", e);
             }
         }
-        return Layout.grid(SeedQueue.config.rows, SeedQueue.config.columns, client.getWindow().getFramebufferWidth(), client.getWindow().getFramebufferHeight());
+        return Layout.grid(SeedQueue.config.rows, SeedQueue.config.columns, client.getWindow().getWidth(), client.getWindow().getHeight());
     }
 
     public static class Group {

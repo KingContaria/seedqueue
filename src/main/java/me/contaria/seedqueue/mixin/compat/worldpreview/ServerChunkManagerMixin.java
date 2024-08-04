@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
+import me.contaria.seedqueue.interfaces.SQMinecraftServer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.options.Option;
@@ -152,7 +153,7 @@ public abstract class ServerChunkManagerMixin {
 
     @Unique
     private Optional<WorldPreviewProperties> getWorldPreviewProperties() {
-        return SeedQueue.getEntryOrCurrentEntry(this.world.getServer()).filter(entry -> !(SeedQueue.config.freezeLockedPreviews && entry.isLocked())).map(SeedQueueEntry::getWorldPreviewProperties);
+        return ((SQMinecraftServer) this.world.getServer()).seedQueue$getEntry().filter(entry -> !(SeedQueue.config.freezeLockedPreviews && entry.isLocked())).map(SeedQueueEntry::getWorldPreviewProperties);
     }
 
     @Unique

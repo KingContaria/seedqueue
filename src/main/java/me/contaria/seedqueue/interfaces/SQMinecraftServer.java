@@ -1,8 +1,17 @@
 package me.contaria.seedqueue.interfaces;
 
+import me.contaria.seedqueue.SeedQueueEntry;
+
+import java.util.Optional;
 import java.util.concurrent.Executor;
 
 public interface SQMinecraftServer {
+
+    Optional<SeedQueueEntry> seedQueue$getEntry();
+
+    boolean seedQueue$inQueue();
+
+    void seedQueue$setEntry(SeedQueueEntry entry);
 
     void seedQueue$tryPausingServer();
 

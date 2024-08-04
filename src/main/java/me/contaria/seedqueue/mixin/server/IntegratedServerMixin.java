@@ -22,7 +22,7 @@ public abstract class IntegratedServerMixin extends MinecraftServerMixin {
             )
     )
     private ClientPlayNetworkHandler doNotPauseBackgroundWorlds(ClientPlayNetworkHandler networkHandler) {
-        if (this.inQueue()) {
+        if (this.seedQueue$inQueue()) {
             return null;
         }
         return networkHandler;
@@ -33,7 +33,7 @@ public abstract class IntegratedServerMixin extends MinecraftServerMixin {
             at = @At("STORE")
     )
     private int doNotChangeViewDistanceInQueue(int viewDistance) {
-        if (this.inQueue()) {
+        if (this.seedQueue$inQueue()) {
             return this.getPlayerManager().getViewDistance();
         }
         return viewDistance;
