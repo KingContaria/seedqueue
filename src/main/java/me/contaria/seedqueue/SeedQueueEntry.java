@@ -42,6 +42,7 @@ public class SeedQueueEntry {
     private int perspective;
 
     private volatile boolean locked;
+    private volatile boolean loaded;
     private volatile boolean discarded;
 
     public SeedQueueEntry(MinecraftServer server, LevelStorage.Session session, MinecraftClient.IntegratedResourceManager resourceManager, YggdrasilAuthenticationService yggdrasilAuthenticationService, MinecraftSessionService minecraftSessionService, GameProfileRepository gameProfileRepository, @Nullable UserCache userCache) {
@@ -306,6 +307,36 @@ public class SeedQueueEntry {
         return false;
     }
 
+    /**
+     * @see SeedQueueEntry#load
+     */
+    public boolean isLoaded() {
+        return this.loaded;
+    }
+
+    /**
+     * Marks this entry as loaded and discards its framebuffer.
+     */
+    public synchronized void load() {
+        synchronized (this.server) {
+            if (this.discarded) {
+                throw new IllegalStateException("Tried to load \"" + this.session.getDirectoryName() + "\" but it has already been discarded!");
+            }
+
+            this.loaded = true;
+
+            SeedQueueProfiler.push("discard_framebuffer");
+            this.discardFrameBuffer();
+
+            SeedQueueProfiler.swap("unpause");
+            this.unpause();
+            SeedQueueProfiler.pop();
+        }
+    }
+
+    /**
+     * @see SeedQueueEntry#discard
+     */
     public boolean isDiscarded() {
         return this.discarded;
     }

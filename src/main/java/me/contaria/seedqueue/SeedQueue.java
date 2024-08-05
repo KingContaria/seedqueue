@@ -97,14 +97,10 @@ public class SeedQueue implements ClientModInitializer {
     }
 
     /**
-     * Clears {@link SeedQueue#currentEntry} and discards its framebuffer.
+     * Clears {@link SeedQueue#currentEntry}.
      */
     public static void clearCurrentEntry() {
-        if (currentEntry == null) {
-            return;
-        }
         synchronized (LOCK) {
-            currentEntry.discardFrameBuffer();
             currentEntry = null;
         }
     }
@@ -292,8 +288,8 @@ public class SeedQueue implements ClientModInitializer {
         MinecraftClient.getInstance().setScreenAndRender(new SaveLevelScreen(new TranslatableText("seedqueue.menu.clearing")));
 
         synchronized (LOCK) {
-            if (currentEntry != null) {
-                currentEntry.discardFrameBuffer();
+            if (currentEntry != null && !currentEntry.isLoaded()) {
+                currentEntry.discard();
             }
             currentEntry = null;
             selectedEntry = null;

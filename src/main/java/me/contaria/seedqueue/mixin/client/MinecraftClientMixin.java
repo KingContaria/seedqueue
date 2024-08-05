@@ -214,7 +214,7 @@ public abstract class MinecraftClientMixin {
         original.call(client, server);
         if (SeedQueue.currentEntry != null) {
             ((SQMinecraftServer) server).seedQueue$resetExecutor();
-            SeedQueue.currentEntry.unpause();
+            SeedQueue.currentEntry.load();
         }
     }
 
