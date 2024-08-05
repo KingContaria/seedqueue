@@ -1,5 +1,6 @@
 package me.contaria.seedqueue.compat;
 
+import me.contaria.standardsettings.StandardSettings;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 
@@ -49,7 +50,9 @@ public class ModCompat {
         if (HAS_STANDARDSETTINGS) {
             StandardSettingsCompat.resetPendingActions();
             StandardSettingsCompat.createCache();
-            StandardSettingsCompat.reset();
+            if (StandardSettings.isEnabled()) {
+                StandardSettings.reset();
+            }
         }
     }
 
