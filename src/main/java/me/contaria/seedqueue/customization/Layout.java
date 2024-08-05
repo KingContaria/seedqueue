@@ -35,19 +35,19 @@ public class Layout {
     }
 
     private static int getX(JsonObject jsonObject) {
-        return getAsInt(jsonObject, "x", MinecraftClient.getInstance().getWindow().getWidth());
+        return getAsInt(jsonObject, "x", MinecraftClient.getInstance().getWindow().getFramebufferWidth());
     }
 
     private static int getY(JsonObject jsonObject) {
-        return getAsInt(jsonObject, "y", MinecraftClient.getInstance().getWindow().getHeight());
+        return getAsInt(jsonObject, "y", MinecraftClient.getInstance().getWindow().getFramebufferHeight());
     }
 
     private static int getWidth(JsonObject jsonObject) {
-        return getAsInt(jsonObject, "width", MinecraftClient.getInstance().getWindow().getWidth());
+        return getAsInt(jsonObject, "width", MinecraftClient.getInstance().getWindow().getFramebufferWidth());
     }
 
     private static int getHeight(JsonObject jsonObject) {
-        return getAsInt(jsonObject, "height", MinecraftClient.getInstance().getWindow().getHeight());
+        return getAsInt(jsonObject, "height", MinecraftClient.getInstance().getWindow().getFramebufferHeight());
     }
 
     private static int getAsInt(JsonObject jsonObject, String name, int windowSize) {
@@ -80,7 +80,7 @@ public class Layout {
                 SeedQueue.LOGGER.warn("Failed to parse custom wall layout!", e);
             }
         }
-        return Layout.grid(SeedQueue.config.rows, SeedQueue.config.columns, client.getWindow().getWidth(), client.getWindow().getHeight());
+        return Layout.grid(SeedQueue.config.rows, SeedQueue.config.columns, client.getWindow().getFramebufferWidth(), client.getWindow().getFramebufferHeight());
     }
 
     public static class Group {
