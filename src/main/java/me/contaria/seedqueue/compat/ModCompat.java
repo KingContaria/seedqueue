@@ -20,6 +20,13 @@ public class ModCompat {
         }
     }
 
+    public static boolean fastReset$shouldSave(MinecraftServer server) {
+        if (HAS_FASTRESET) {
+            return FastResetCompat.shouldSave(server);
+        }
+        return false;
+    }
+
     public static void stateoutput$setWallState() {
         if (HAS_STATEOUTPUT) {
             StateOutputCompat.setWallState();

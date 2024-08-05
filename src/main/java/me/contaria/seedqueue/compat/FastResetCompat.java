@@ -8,4 +8,8 @@ class FastResetCompat {
     static void fastReset(MinecraftServer server) {
         ((FRMinecraftServer) server).fastReset$fastReset();
     }
+
+    static boolean shouldSave(MinecraftServer server) {
+        return ((FRMinecraftServer) server).fastReset$shouldSave();
+    }
 }

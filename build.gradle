@@ -39,7 +39,7 @@ dependencies {
 	modCompileOnly "com.github.Minecraft-Java-Edition-Speedrunning:sodium:7e4905f134"
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/fastreset
-	modCompileOnly ("com.github.KingContaria:fastreset:2a3d90950f") {
+	modCompileOnly ("com.github.KingContaria:fastreset:2959243b00") {
 		transitive = false
 	}
 

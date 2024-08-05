@@ -533,15 +533,15 @@ public abstract class MinecraftClientMixin {
         return !SeedQueue.isActive();
     }
 
-    @ModifyExpressionValue(
+    @WrapOperation(
             method = "disconnect(Lnet/minecraft/client/gui/screen/Screen;)V",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/server/integrated/IntegratedServer;isStopping()Z"
             )
     )
-    private boolean fastQuit(boolean value) {
-        return value || (SeedQueue.isActive() && ModCompat.HAS_FASTRESET);
+    private boolean fastQuit(IntegratedServer server, Operation<Boolean> original) {
+        return original.call(server) || (SeedQueue.isActive() && !ModCompat.fastReset$shouldSave(server));
     }
 
     @Inject(
