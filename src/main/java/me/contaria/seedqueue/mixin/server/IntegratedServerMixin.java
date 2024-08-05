@@ -5,7 +5,6 @@ import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.server.integrated.IntegratedServer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 @Mixin(IntegratedServer.class)
 public abstract class IntegratedServerMixin extends MinecraftServerMixin {
@@ -28,9 +27,12 @@ public abstract class IntegratedServerMixin extends MinecraftServerMixin {
         return networkHandler;
     }
 
-    @ModifyVariable(
+    @ModifyExpressionValue(
             method = "tick",
-            at = @At("STORE")
+            at = @At(
+                    value = "INVOKE",
+                    target = "Ljava/lang/Math;max(II)I"
+            )
     )
     private int doNotChangeViewDistanceInQueue(int viewDistance) {
         if (this.seedQueue$inQueue()) {
