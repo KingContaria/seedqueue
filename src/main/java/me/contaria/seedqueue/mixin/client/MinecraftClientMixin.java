@@ -624,6 +624,14 @@ public abstract class MinecraftClientMixin {
         SeedQueue.comingFromWall = false;
     }
 
+    @ModifyReturnValue(
+            method = "isFabulousGraphicsOrBetter",
+            at = @At("RETURN")
+    )
+    private static boolean doNotAllowFabulousGraphicsOnWall(boolean isFabulousGraphicsOrBetter) {
+        return isFabulousGraphicsOrBetter && !SeedQueue.isOnWall();
+    }
+
     @Inject(
             method = "stop",
             at = @At(
