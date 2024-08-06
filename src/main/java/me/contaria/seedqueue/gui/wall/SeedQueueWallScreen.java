@@ -560,22 +560,26 @@ public class SeedQueueWallScreen extends Screen {
 
     private void playInstance(SeedQueuePreview instance) {
         assert this.client != null;
-        SeedQueueEntry entry = instance.getSeedQueueEntry();
-        if (instance.hasPreviewRendered() && this.playInstance(entry)) {
-            this.removePreview(instance);
+        if (!instance.hasPreviewRendered() || !this.canPlayInstance(instance.getSeedQueueEntry()) || !this.removePreview(instance)) {
+            return;
         }
+        this.playSound(SeedQueueSounds.PLAY_INSTANCE);
+        SeedQueue.comingFromWall = true;
+        SeedQueue.selectedEntry = instance.getSeedQueueEntry();
+        this.client.openScreen(this.createWorldScreen);
     }
 
-    private boolean playInstance(SeedQueueEntry entry) {
+    private void playInstance(SeedQueueEntry entry) {
         assert this.client != null;
-        if (this.client.getServer() != null || SeedQueue.selectedEntry != null || !entry.isReady()) {
-            return false;
-        }
         this.playSound(SeedQueueSounds.PLAY_INSTANCE);
         SeedQueue.comingFromWall = true;
         SeedQueue.selectedEntry = entry;
         this.client.openScreen(this.createWorldScreen);
-        return true;
+    }
+
+    private boolean canPlayInstance(SeedQueueEntry entry) {
+        assert this.client != null;
+        return this.client.currentScreen == this && !this.client.isIntegratedServerRunning() && SeedQueue.selectedEntry == null && entry.isReady();
     }
 
     private void lockInstance(SeedQueuePreview instance) {
@@ -591,22 +595,16 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private boolean resetInstance(SeedQueuePreview instance, boolean ignoreLock, boolean ignoreResetCooldown, boolean playSound) {
-        if (instance == null || !instance.canReset(ignoreLock, ignoreResetCooldown)) {
+        if (instance == null || !instance.canReset(ignoreLock, ignoreResetCooldown) || !this.removePreview(instance)) {
             return false;
         }
 
         SeedQueueProfiler.push("reset_instance");
-        SeedQueueProfiler.push("discard_entry");
         SeedQueue.discard(instance.getSeedQueueEntry());
 
-        SeedQueueProfiler.swap("remove_preview");
-        this.removePreview(instance);
-
         if (playSound) {
-            SeedQueueProfiler.swap("play_sound");
             this.playSound(SeedQueueSounds.RESET_INSTANCE);
         }
-        SeedQueueProfiler.pop();
         SeedQueueProfiler.pop();
         return true;
     }
@@ -620,19 +618,22 @@ public class SeedQueueWallScreen extends Screen {
         return null;
     }
 
-    private void removePreview(SeedQueuePreview preview) {
+    private boolean removePreview(SeedQueuePreview preview) {
         if (preview == null) {
-            return;
+            return false;
         }
+        boolean removed = false;
         for (int i = 0; i < this.mainPreviews.length; i++) {
             if (this.mainPreviews[i] == preview) {
                 this.mainPreviews[i] = null;
+                removed = true;
             }
         }
-        this.preparingPreviews.remove(preview);
+        removed |= this.preparingPreviews.remove(preview);
         if (this.lockedPreviews != null) {
-            this.lockedPreviews.remove(preview);
+            removed |= this.lockedPreviews.remove(preview);
         }
+        return removed;
     }
 
     private void resetAllInstances() {
@@ -678,8 +679,10 @@ public class SeedQueueWallScreen extends Screen {
 
     private void playNextLock() {
         SeedQueue.getEntryMatching(entry -> entry.isLocked() && entry.isReady()).ifPresent(entry -> {
-            this.playInstance(entry);
-            this.removePreview(this.getPreview(entry));
+            if (this.canPlayInstance(entry)) {
+                this.removePreview(this.getPreview(entry));
+                this.playInstance(entry);
+            }
         });
     }
 
