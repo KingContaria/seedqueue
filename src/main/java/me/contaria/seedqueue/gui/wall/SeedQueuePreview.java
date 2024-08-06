@@ -13,7 +13,6 @@ import net.minecraft.client.gui.screen.LevelLoadingScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.Nullable;
@@ -120,19 +119,11 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     public void build() {
         this.updateWorldPreviewProperties();
         if (this.worldPreviewProperties != null) {
-            try {
-                this.runAsPreview(() -> WorldPreview.runAsPreview(() -> {
-                    WorldPreview.tickPackets();
-                    WorldPreview.tickEntities();
-                    WorldPreviewCompat.buildChunks();
-                }));
-            } catch (NullPointerException e) {
-                SeedQueue.LOGGER.warn("About to crash, logging some debug info:");
-                ClientWorld world = this.worldRenderer == null ? null : ((WorldRendererAccessor) this.worldRenderer).seedQueue$getWorld();
-                SeedQueue.LOGGER.warn("WorldRenderer: {}", this.worldRenderer == null ? "MISSING" : (world == null ? "null" : world == this.worldPreviewProperties.getWorld()));
-                this.printDebug();
-                throw e;
-            }
+            this.runAsPreview(() -> WorldPreview.runAsPreview(() -> {
+                WorldPreview.tickPackets();
+                WorldPreview.tickEntities();
+                WorldPreviewCompat.buildChunks();
+            }));
         }
     }
 
