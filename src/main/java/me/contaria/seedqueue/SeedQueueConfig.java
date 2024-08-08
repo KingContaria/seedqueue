@@ -51,11 +51,11 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int maxCapacity = 0;
 
     @Config.Category("queue")
-    @Config.Numbers.Whole.Bounds(min = 0, max = 32, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    @Config.Numbers.Whole.Bounds(min = 0, max = 30)
     public int maxConcurrently = 1;
 
     @Config.Category("queue")
-    @Config.Numbers.Whole.Bounds(min = 1, max = 32, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    @Config.Numbers.Whole.Bounds(min = 1, max = 30)
     public int maxConcurrently_onWall = 1;
 
     @Config.Category("queue")
@@ -76,11 +76,11 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean useWall = false;
 
     @Config.Category("wall")
-    @Config.Numbers.Whole.Bounds(min = 1, max = 10, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    @Config.Numbers.Whole.Bounds(min = 1, max = 10)
     public int rows = 2;
 
     @Config.Category("wall")
-    @Config.Numbers.Whole.Bounds(min = 1, max = 10, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    @Config.Numbers.Whole.Bounds(min = 1, max = 10)
     public int columns = 2;
 
     @Config.Category("wall")
@@ -105,7 +105,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int previewFPS = 15;
 
     @Config.Category("performance")
-    @Config.Numbers.Whole.Bounds(min = 0, max = 50, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    @Config.Numbers.Whole.Bounds(min = 0, max = 30)
     public int backgroundPreviews = 0;
 
     @Config.Category("performance")
