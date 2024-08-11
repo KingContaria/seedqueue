@@ -209,7 +209,7 @@ public class SeedQueueWallScreen extends Screen {
 
     private void drawLock(MatrixStack matrices, Layout.Pos pos, LockTexture lock) {
         assert this.client != null;
-        this.setOrtho(this.client.getWindow().getWidth(), this.client.getWindow().getHeight());
+        this.setOrtho(this.client.getWindow().getFramebufferWidth(), this.client.getWindow().getFramebufferHeight());
         this.client.getTextureManager().bindTexture(lock.getId());
         DrawableHelper.drawTexture(
                 matrices,
