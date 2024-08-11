@@ -56,7 +56,7 @@ public abstract class OptionsScreenMixin extends Screen {
             return;
         }
 
-        if (shouldClearQueue()) {
+        if (shouldClearQueue() && this.atumButton.isHovered()) {
             atumButton.setMessage(new TranslatableText("seedqueue.menu.clearQueue"));
         } else {
             atumButton.setMessage(new TranslatableText("atum.menu.stop_resets"));
