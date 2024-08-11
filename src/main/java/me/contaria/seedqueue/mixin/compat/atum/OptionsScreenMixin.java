@@ -25,11 +25,6 @@ public abstract class OptionsScreenMixin extends Screen {
         super(title);
     }
 
-    @Unique
-    private boolean shouldClearQueue() {
-        return Screen.hasShiftDown() && SeedQueue.isActive();
-    }
-
     @Dynamic
     @TargetHandler(
             mixin = "me.voidxwalker.autoreset.mixin.gui.OptionsScreenMixin",
@@ -43,15 +38,13 @@ public abstract class OptionsScreenMixin extends Screen {
             )
     )
     private ButtonWidget stopQueueWhenShiftClicked(int x, int y, int width, int height, Text text, ButtonWidget.PressAction action, Operation<ButtonWidget> original) {
-        this.atumButton = new ButtonWidget(x, y, width, height, text, button -> {
+        return this.atumButton = original.call(x, y, width, height, text, (ButtonWidget.PressAction)button -> {
             if (shouldClearQueue()) {
                 SeedQueue.stop();
             } else {
                 action.onPress(button);
             }
         });
-
-        return this.atumButton;
     }
 
     @Inject(
@@ -59,7 +52,7 @@ public abstract class OptionsScreenMixin extends Screen {
         at = @At("HEAD")
     )
     private void setAtumButtonText(CallbackInfo ci) {
-        if (atumButton == null) {
+        if (this.atumButton == null) {
             return;
         }
 
@@ -68,5 +61,10 @@ public abstract class OptionsScreenMixin extends Screen {
         } else {
             atumButton.setMessage(new TranslatableText("atum.menu.stop_resets"));
         }
+    }
+
+    @Unique
+    private boolean shouldClearQueue() {
+        return Screen.hasShiftDown() && SeedQueue.isActive();
     }
 }
