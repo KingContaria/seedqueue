@@ -17,13 +17,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = OptionsScreen.class, priority = 1500)
-public abstract class OptionsScreenMixin extends Screen {
+public abstract class OptionsScreenMixin {
     @Unique
     private ButtonWidget atumButton;
-
-    protected OptionsScreenMixin(Text title) {
-        super(title);
-    }
 
     @Dynamic
     @TargetHandler(
