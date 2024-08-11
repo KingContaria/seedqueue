@@ -46,13 +46,24 @@ public class ModCompat {
         }
     }
 
-    public static void standardsettings$cacheAndReset() {
+    public static void standardsettings$cache() {
+        if (HAS_STANDARDSETTINGS) {
+            StandardSettingsCompat.createCache();
+        }
+    }
+
+    public static void standardsettings$reset() {
         if (HAS_STANDARDSETTINGS) {
             StandardSettingsCompat.resetPendingActions();
-            StandardSettingsCompat.createCache();
             if (StandardSettings.isEnabled()) {
-                StandardSettings.reset();
+                StandardSettingsCompat.reset();
             }
+        }
+    }
+
+    public static void standardsettings$loadCache() {
+        if (HAS_STANDARDSETTINGS) {
+            StandardSettingsCompat.loadCache();
         }
     }
 

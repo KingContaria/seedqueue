@@ -19,4 +19,8 @@ class StandardSettingsCompat {
     static void onWorldJoin() {
         StandardSettings.onWorldJoin();
     }
+
+    static void loadCache() {
+        StandardSettings.loadCache(StandardSettings.lastWorld);
+    }
 }
