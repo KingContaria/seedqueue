@@ -1,6 +1,8 @@
 {
   "seedqueue.menu.clearing": "Clearing SeedQueue...",
 
+  "seedqueue.menu.clearQueue": "Clear Queue",
+
   "seedqueue.menu.crash.title": "SeedQueue crashed!",
   "seedqueue.menu.crash.description": "Crashed with %s, check the log for more information.",
 
