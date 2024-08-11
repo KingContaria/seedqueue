@@ -39,7 +39,7 @@ public abstract class OptionsScreenMixin extends Screen {
     )
     private ButtonWidget stopQueueWhenShiftClicked(int x, int y, int width, int height, Text text, ButtonWidget.PressAction action, Operation<ButtonWidget> original) {
         return this.atumButton = original.call(x, y, width, height, text, (ButtonWidget.PressAction)button -> {
-            if (shouldClearQueue()) {
+            if (this.shouldClearQueue()) {
                 SeedQueue.stop();
             } else {
                 action.onPress(button);
@@ -56,10 +56,10 @@ public abstract class OptionsScreenMixin extends Screen {
             return;
         }
 
-        if (shouldClearQueue() && this.atumButton.isHovered()) {
-            atumButton.setMessage(new TranslatableText("seedqueue.menu.clearQueue"));
+        if (this.shouldClearQueue() && this.atumButton.isHovered()) {
+            this.atumButton.setMessage(new TranslatableText("seedqueue.menu.clearQueue"));
         } else {
-            atumButton.setMessage(new TranslatableText("atum.menu.stop_resets"));
+            this.atumButton.setMessage(new TranslatableText("atum.menu.stop_resets"));
         }
     }
 
