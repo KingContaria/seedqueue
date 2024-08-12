@@ -27,6 +27,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.render.entity.PlayerModelPart;
+import net.minecraft.client.sound.MusicTracker;
 import net.minecraft.client.sound.SoundManager;
 import net.minecraft.resource.DataPackSettings;
 import net.minecraft.resource.ResourceManager;
@@ -406,7 +407,8 @@ public abstract class MinecraftClientMixin {
             method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/MinecraftClient;openScreen(Lnet/minecraft/client/gui/screen/Screen;)V"
+                    target = "Lnet/minecraft/client/MinecraftClient;openScreen(Lnet/minecraft/client/gui/screen/Screen;)V",
+                    ordinal = 0
             ),
             slice = @Slice(
                     from = @At(
@@ -600,6 +602,17 @@ public abstract class MinecraftClientMixin {
             ((SeedQueueWallScreen) this.currentScreen).populateResetCooldowns();
             ((SeedQueueWallScreen) this.currentScreen).tickBenchmark();
         }
+    }
+
+    @WrapWithCondition(
+            method = "tick",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/sound/MusicTracker;tick()V"
+            )
+    )
+    private boolean doNotPlayMusicOnWall(MusicTracker musicTracker) {
+        return !SeedQueue.isOnWall();
     }
 
     // don't clear sounds when coming from the wall screen
