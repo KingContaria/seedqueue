@@ -183,9 +183,19 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
         if (!entry.hasWorldPreview()) {
             return false;
         }
-        if (!entry.isLocked() && SeedQueue.config.maxWorldGenerationPercentage < 100) {
+        if (entry.isLocked()) {
+            return false;
+        }
+        if (SeedQueue.config.resumeOnFilledQueue && SeedQueue.noPrioritizedRemaining() && !SeedQueue.hasMoreCapacity()) {
+            return false;
+        }
+        if (SeedQueue.config.maxWorldGenerationPercentage < 100) {
             WorldGenerationProgressTracker tracker = entry.getWorldGenerationProgressTracker();
-            return tracker != null && tracker.getProgressPercentage() >= SeedQueue.config.maxWorldGenerationPercentage;
+            if (tracker != null && tracker.getProgressPercentage() >= SeedQueue.config.maxWorldGenerationPercentage) {
+                entry.deprioritize();
+                return true;
+            }
+            return false;
         }
         return false;
     }

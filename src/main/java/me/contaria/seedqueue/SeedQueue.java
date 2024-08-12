@@ -151,8 +151,29 @@ public class SeedQueue implements ClientModInitializer {
      */
     public static boolean shouldGenerate() {
         synchronized (LOCK) {
-            return getGeneratingCount() < getMaxGeneratingCount() && SEED_QUEUE.size() < config.maxCapacity;
+            return getGeneratingCount() < getMaxGeneratingCount() && hasMoreCapacity();
         }
+    }
+
+    /**
+     * @return If the queue is not filled to capacity.
+     */
+    public static boolean hasMoreCapacity() {
+        return SEED_QUEUE.size() < config.maxCapacity;
+    }
+
+    /**
+     * @return If all {@link SeedQueueEntry} have reached the {@link SeedQueueConfig#maxWorldGenerationPercentage}.
+     */
+    public static boolean noPrioritizedRemaining() {
+        return SEED_QUEUE.stream().noneMatch(SeedQueueEntry::isPrioritized);
+    }
+
+    /**
+     * @return If all {@link SeedQueueEntry} are not locked.
+     */
+    public static boolean noLockedRemaining() {
+        return SEED_QUEUE.stream().noneMatch(entry -> entry.isLocked() && !entry.isReady());
     }
 
     /**

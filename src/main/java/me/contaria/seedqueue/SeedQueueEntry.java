@@ -44,6 +44,7 @@ public class SeedQueueEntry {
     private volatile boolean locked;
     private volatile boolean loaded;
     private volatile boolean discarded;
+    private volatile boolean prioritized = true;
 
     /**
      * Stores the position (index) of the queue entry in the wall screen's main group.
@@ -296,6 +297,20 @@ public class SeedQueueEntry {
      */
     public boolean isLocked() {
         return this.locked;
+    }
+
+    /**
+     * @return True if the {@link MinecraftServer} has not reached {@link SeedQueueConfig#maxWorldGenerationPercentage}.
+     */
+    public boolean isPrioritized() {
+        return this.prioritized;
+    }
+
+    /**
+     * Marks this entry as having reached {@link SeedQueueConfig#maxWorldGenerationPercentage}.
+     */
+    public void deprioritize() {
+        this.prioritized = false;
     }
 
     /**

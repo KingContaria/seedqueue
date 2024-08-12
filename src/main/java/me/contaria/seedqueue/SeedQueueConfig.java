@@ -62,6 +62,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Numbers.Whole.Bounds(max = 100)
     public int maxWorldGenerationPercentage = 100;
 
+    @Config.Category("queue")
+    public boolean resumeOnFilledQueue = false;
+
     @Config.Category("chunkmap")
     public ChunkMapVisibility chunkMapVisibility = ChunkMapVisibility.TRUE;
 
