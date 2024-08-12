@@ -305,9 +305,7 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void addLockedPreview(SeedQueuePreview preview) {
-        Objects.requireNonNull(preview);
-
-        this.lockedPreviews.add(preview);
+        Objects.requireNonNull(this.lockedPreviews).add(preview);
         preview.getSeedQueueEntry().mainPosition = -1;
     }
 
