@@ -11,6 +11,8 @@ public class SeedQueueSounds {
     public static final SoundEvent RESET_ALL = register("reset_all");
     public static final SoundEvent RESET_COLUMN = register("reset_column");
     public static final SoundEvent RESET_ROW = register("reset_row");
+    public static final SoundEvent SCHEDULE_JOIN = register("schedule_join");
+    public static final SoundEvent SCHEDULED_JOIN_WARNING = register("scheduled_join_warning");
     public static final SoundEvent START_BENCHMARK = register("start_benchmark");
     public static final SoundEvent FINISH_BENCHMARK = register("finish_benchmark");
 

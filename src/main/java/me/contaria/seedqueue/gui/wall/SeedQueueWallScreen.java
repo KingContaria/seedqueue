@@ -62,6 +62,9 @@ public class SeedQueueWallScreen extends Screen {
 
     private final Set<Integer> blockedMainPositions = new HashSet<>();
 
+    private final Set<SeedQueueEntry> scheduledEntries = new HashSet<>();
+    private boolean playedScheduledEnterWarning;
+
     private List<LockTexture> lockTextures;
     @Nullable
     private AnimatedTexture background;
@@ -73,7 +76,7 @@ public class SeedQueueWallScreen extends Screen {
     private int ticks;
 
     protected int frame;
-    private int nextSoundTick;
+    private int nextResetSoundTick;
 
     @Nullable
     private Layout.Pos currentPos;
@@ -251,12 +254,17 @@ public class SeedQueueWallScreen extends Screen {
         if (soundInstance.getSound().equals(SoundManager.MISSING_SOUND)) {
             return false;
         }
-        if (this.nextSoundTick < this.ticks) {
-            this.client.getSoundManager().play(soundInstance);
-            this.nextSoundTick = this.ticks;
-        } else {
-            this.client.getSoundManager().play(soundInstance, ++this.nextSoundTick - this.ticks);
+
+        // spread out reset sounds over multiple ticks
+        if (sound == SeedQueueSounds.RESET_INSTANCE) {
+            if (this.nextResetSoundTick >= this.ticks) {
+                this.client.getSoundManager().play(soundInstance, ++this.nextResetSoundTick - this.ticks);
+                return true;
+            }
+            this.nextResetSoundTick = this.ticks;
         }
+
+        this.client.getSoundManager().play(soundInstance);
         return true;
     }
 
@@ -435,6 +443,9 @@ public class SeedQueueWallScreen extends Screen {
         if (SeedQueueKeyBindings.focusReset.matchesMouse(button)) {
             this.focusReset(instance);
         }
+        if (SeedQueueKeyBindings.scheduleJoin.matchesMouse(button)) {
+            this.scheduleJoin(instance);
+        }
         return true;
     }
 
@@ -506,6 +517,9 @@ public class SeedQueueWallScreen extends Screen {
         if (SeedQueueKeyBindings.focusReset.matchesKey(keyCode, scanCode)) {
             this.focusReset(instance);
         }
+        if (SeedQueueKeyBindings.scheduleJoin.matchesKey(keyCode, scanCode)) {
+            this.scheduleJoin(instance);
+        }
         return true;
     }
 
@@ -560,16 +574,19 @@ public class SeedQueueWallScreen extends Screen {
 
     private void playInstance(SeedQueuePreview instance) {
         assert this.client != null;
-        if (!instance.hasPreviewRendered() || !this.canPlayInstance(instance.getSeedQueueEntry()) || !this.removePreview(instance)) {
-            return;
+        if (instance.hasPreviewRendered() && this.canPlayInstance(instance.getSeedQueueEntry()) && this.removePreview(instance)) {
+            this.playEntry(instance.getSeedQueueEntry());
         }
-        this.playSound(SeedQueueSounds.PLAY_INSTANCE);
-        SeedQueue.comingFromWall = true;
-        SeedQueue.selectedEntry = instance.getSeedQueueEntry();
-        this.client.openScreen(this.createWorldScreen);
     }
 
     private void playInstance(SeedQueueEntry entry) {
+        if (this.canPlayInstance(entry)) {
+            this.removePreview(this.getPreview(entry));
+            this.playEntry(entry);
+        }
+    }
+
+    private void playEntry(SeedQueueEntry entry) {
         assert this.client != null;
         this.playSound(SeedQueueSounds.PLAY_INSTANCE);
         SeedQueue.comingFromWall = true;
@@ -678,12 +695,33 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void playNextLock() {
-        SeedQueue.getEntryMatching(entry -> entry.isLocked() && entry.isReady()).ifPresent(entry -> {
-            if (this.canPlayInstance(entry)) {
-                this.removePreview(this.getPreview(entry));
-                this.playInstance(entry);
+        SeedQueue.getEntryMatching(entry -> entry.isLocked() && entry.isReady()).ifPresent(this::playInstance);
+    }
+
+    private void scheduleJoin(SeedQueuePreview instance) {
+        if (instance.hasPreviewRendered() && !this.scheduledEntries.contains(instance.getSeedQueueEntry())) {
+            this.lockInstance(instance);
+            this.scheduledEntries.add(instance.getSeedQueueEntry());
+            this.playSound(SeedQueueSounds.SCHEDULE_JOIN);
+        }
+    }
+
+    // TODO: look into decoupling this from Window#swapBuffers, so it can also load the seed during downtime between frames
+    public void joinScheduledInstance() {
+        // catch the case were someone resets a scheduled entry after it has played the warning sound
+        this.playedScheduledEnterWarning &= !this.scheduledEntries.isEmpty();
+
+        for (SeedQueueEntry entry : this.scheduledEntries) {
+            // TODO: make 95% world gen percentage configurable, maybe through .mcmeta?
+            if (!this.playedScheduledEnterWarning && entry.getWorldGenerationProgressTracker() != null && entry.getWorldGenerationProgressTracker().getProgressPercentage() >= 95) {
+                this.playSound(SeedQueueSounds.SCHEDULED_JOIN_WARNING);
+                this.playedScheduledEnterWarning = true;
             }
-        });
+            if (entry.isReady()) {
+                this.playInstance(entry);
+                break;
+            }
+        }
     }
 
     @Override

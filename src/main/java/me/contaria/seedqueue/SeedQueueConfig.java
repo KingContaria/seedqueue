@@ -173,6 +173,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
             SeedQueueKeyBindings.resetColumn,
             SeedQueueKeyBindings.resetRow,
             SeedQueueKeyBindings.playNextLock,
+            SeedQueueKeyBindings.scheduleJoin,
             SeedQueueKeyBindings.startBenchmark,
             SeedQueueKeyBindings.cancelBenchmark
     };

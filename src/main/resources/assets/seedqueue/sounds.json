@@ -25,6 +25,14 @@
     "sounds": [
     ]
   },
+  "schedule_join": {
+    "sounds": [
+    ]
+  },
+  "scheduled_join_warning": {
+    "sounds": [
+    ]
+  },
   "start_benchmark": {
     "sounds": [
     ]
