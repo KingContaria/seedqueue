@@ -300,8 +300,8 @@ public class SeedQueueWallScreen extends Screen {
 
     private void updatePreviews() {
         this.updateLockedPreviews();
-        this.updateMainPreviews();
         this.updatePreparingPreviews();
+        this.updateMainPreviews();
     }
 
     private void updateLockedPreviews() {
