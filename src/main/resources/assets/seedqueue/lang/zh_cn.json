@@ -115,9 +115,9 @@
   "speedrunapi.config.seedqueue.option.reduceLevelList": "减少世界列表",
   "speedrunapi.config.seedqueue.option.reduceLevelList.description": "从世界列表中隐藏在墙界面上被重置或在预览加载期间的世界，以减少卡顿。",
   "speedrunapi.config.seedqueue.option.useWatchdog": "看门狗",
-  "speedrunapi.config.seedqueue.option.useWatchdog.description": "启动一个额外的线程，每10秒打印一次主线程堆栈跟踪，以诊断冻结问题。\n§c要更新此选项，请重新启动游戏。",
+  "speedrunapi.config.seedqueue.option.useWatchdog.description": "启动一个额外的线程，每10秒打印一次主线程堆栈跟踪，以诊断冻结问题。\n§c要更新此选项，请重启游戏。",
   "speedrunapi.config.seedqueue.option.showDebugMenu": "显示调试菜单",
   "speedrunapi.config.seedqueue.option.showDebugMenu.description": "在墙界面上显示FPS图形和分析器。\n§c仅用于调试，启用此选项时完成任何的记录都将无法过审！",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "跑分重置",
-  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "启动跑分时执行的默认重置数量。\n您可以使用\“开始跑分\”键启动跑分，并在达到设定的重置数量之前使用\“停止跑分\”键停止跑分。"
+  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "启动跑分时执行的默认重置数量。\n您可以使用“开始跑分”键启动跑分，并在达到设定的重置数量之前使用“停止跑分”键停止跑分。"
 }
