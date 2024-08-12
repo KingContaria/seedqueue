@@ -45,7 +45,11 @@ public class SeedQueueEntry {
     private volatile boolean loaded;
     private volatile boolean discarded;
 
-    public volatile int mainPosition;
+    /**
+     * Stores the position (index) of the queue entry in the wall screen's main group.
+     * A value of -1 indicates that this entry is not in the main group.
+     */
+    public int mainPosition = -1;
 
     public SeedQueueEntry(MinecraftServer server, LevelStorage.Session session, MinecraftClient.IntegratedResourceManager resourceManager, YggdrasilAuthenticationService yggdrasilAuthenticationService, MinecraftSessionService minecraftSessionService, GameProfileRepository gameProfileRepository, @Nullable UserCache userCache) {
         this.server = server;
@@ -55,8 +59,6 @@ public class SeedQueueEntry {
         this.minecraftSessionService = minecraftSessionService;
         this.gameProfileRepository = gameProfileRepository;
         this.userCache = userCache;
-
-        this.mainPosition = -1;
 
         ((SQMinecraftServer) server).seedQueue$setEntry(this);
     }

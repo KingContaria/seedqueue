@@ -305,7 +305,10 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void addLockedPreview(SeedQueuePreview preview) {
-        assert this.lockedPreviews != null;
+        if (this.lockedPreviews == null) {
+            SeedQueue.LOGGER.error("Attempted to add locked preview without locked group");
+            return;
+        }
 
         this.lockedPreviews.add(preview);
         preview.getSeedQueueEntry().mainPosition = -1;
@@ -341,11 +344,10 @@ public class SeedQueueWallScreen extends Screen {
     private void updateMainPreviews() {
         int preparingCount = this.preparingPreviews.size();
         for (int i = 0; i < preparingCount; i++) {
-            SeedQueuePreview preview = this.preparingPreviews.remove(0);
+            SeedQueuePreview preview = this.preparingPreviews.get(0);
             int position = preview.getSeedQueueEntry().mainPosition;
 
             if (position == -1) {
-                this.preparingPreviews.add(preview);
                 break;
             }
 
@@ -354,8 +356,12 @@ public class SeedQueueWallScreen extends Screen {
                 continue;
             }
 
-            assert this.mainPreviews[position] == null;
-            this.mainPreviews[position] = preview;
+            if (this.mainPreviews[position] != null) {
+                SeedQueue.LOGGER.warn("Main preview {} already populated", position);
+            } else {
+                this.mainPreviews[position] = preview;
+                this.preparingPreviews.remove(0);
+            }
         }
 
         this.preparingPreviews.sort(Comparator.comparing(SeedQueuePreview::isPreviewReady, Comparator.reverseOrder()));
@@ -366,8 +372,11 @@ public class SeedQueueWallScreen extends Screen {
             if (this.mainPreviews[i] == null && !this.blockedMainPositions.contains(i)) {
                 this.mainPreviews[i] = this.preparingPreviews.remove(0);
 
-                assert this.mainPreviews[i].getSeedQueueEntry().mainPosition == -1;
-                this.mainPreviews[i].getSeedQueueEntry().mainPosition = i;
+                if (this.mainPreviews[i].getSeedQueueEntry().mainPosition != -1) {
+                    SeedQueue.LOGGER.warn("Main preview {} already assigned a position", i);
+                } else {
+                    this.mainPreviews[i].getSeedQueueEntry().mainPosition = i;
+                }
             }
         }
     }
