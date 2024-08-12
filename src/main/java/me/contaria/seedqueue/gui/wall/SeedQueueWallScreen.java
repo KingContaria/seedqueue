@@ -299,9 +299,27 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void updatePreviews() {
+        this.restoreLockedPreviews();
         this.updateLockedPreviews();
         this.updateMainPreviews();
         this.updatePreparingPreviews();
+    }
+
+    private void restoreLockedPreviews() {
+        List<SeedQueueEntry> entries = this.getAvailableSeedQueueEntries();
+        for (SeedQueueEntry entry : entries) {
+            int lockPosition = entry.getLockPosition();
+            if (lockPosition == -1) {
+                continue;
+            }
+
+            if (lockPosition >= this.mainPreviews.length) {
+                continue;
+            }
+
+            assert this.mainPreviews[lockPosition] == null;
+            this.mainPreviews[lockPosition] = new SeedQueuePreview(this, entry);
+        }
     }
 
     private void updateLockedPreviews() {
@@ -583,7 +601,16 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void lockInstance(SeedQueuePreview instance) {
-        if (instance.hasPreviewRendered() && instance.getSeedQueueEntry().lock()) {
+        // TODO: Pass the index of the preview as an argument to lockInstance?
+        int lockPosition = -1;
+        for (int i = 0; i < this.mainPreviews.length; i++) {
+            if (this.mainPreviews[i] == instance) {
+                lockPosition = i;
+                break;
+            }
+        }
+
+        if (instance.hasPreviewRendered() && instance.getSeedQueueEntry().lock(lockPosition)) {
             if (SeedQueue.config.freezeLockedPreviews) {
                 // clearing WorldPreviewProperties frees the previews WorldRenderer, allowing resources to be cleared
                 // it also means the amount of WorldRenderers does not exceed Rows * Columns + Background Previews
