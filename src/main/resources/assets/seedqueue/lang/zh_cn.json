@@ -119,5 +119,5 @@
   "speedrunapi.config.seedqueue.option.showDebugMenu": "显示调试菜单",
   "speedrunapi.config.seedqueue.option.showDebugMenu.description": "在墙界面上显示FPS图形和分析器。\n§c仅用于调试，启用此选项时完成任何的记录都将无法过审！",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "跑分重置",
-  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "启动跑分时执行的默认重置数量。\n您可以使用“开始跑分”键启动跑分，并在达到设定的重置数量之前使用“停止跑分”键停止跑分。"
+  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "启动跑分时执行的默认重置数量。\n您可以使用\"开始跑分\"键启动跑分，并在达到设定的重置数量之前使用\"停止跑分\"键停止跑分。"
 }
