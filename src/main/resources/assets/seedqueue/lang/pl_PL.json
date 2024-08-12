@@ -75,7 +75,7 @@
   "speedrunapi.config.seedqueue.option.resetCooldown.description": "Cooldown po którym świat może być zresetowany, zaczyna się po tym gdy podgląd świata zaczął się renderować.",
   "speedrunapi.config.seedqueue.option.waitForPreviewSetup": "Czekaj na start podglądu świata",
   "speedrunapi.config.seedqueue.option.waitForPreviewSetup.description": "Jeśli ta opcja jest włączona, seedy będą wyświetlane na ekranie ściany dopiero po przygotowaniu ich podglądu.\nMożesz wyłączyć tę opcję, jeśli chcesz zobaczyć chunkmapy podczas gdy podgląd jest jeszcze w trakcie przygotowywania.",
-  "speedrunapi.config.seedqueue.option.bypassWall": "Ekran Omijającej Ściany",
+  "speedrunapi.config.seedqueue.option.bypassWall": "Omiń Ekran Ściany",
   "speedrunapi.config.seedqueue.option.bypassWall.description": "Omija Ekran Ściany i od razu idzie do kolejnego seeda z kłódką gdy jest to możliwe.",
   "speedrunapi.config.seedqueue.option.wallFPS": "FPS na Ścianie",
   "speedrunapi.config.seedqueue.option.wallFPS.description": "Maksymalne klatki na sekundę na Ścianie",
