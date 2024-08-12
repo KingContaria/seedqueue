@@ -45,7 +45,7 @@ public class SeedQueueEntry {
     private volatile boolean loaded;
     private volatile boolean discarded;
 
-    private volatile int lockPosition;
+    public volatile int mainPosition;
 
     public SeedQueueEntry(MinecraftServer server, LevelStorage.Session session, MinecraftClient.IntegratedResourceManager resourceManager, YggdrasilAuthenticationService yggdrasilAuthenticationService, MinecraftSessionService minecraftSessionService, GameProfileRepository gameProfileRepository, @Nullable UserCache userCache) {
         this.server = server;
@@ -56,7 +56,7 @@ public class SeedQueueEntry {
         this.gameProfileRepository = gameProfileRepository;
         this.userCache = userCache;
 
-        this.lockPosition = -1;
+        this.mainPosition = -1;
 
         ((SQMinecraftServer) server).seedQueue$setEntry(this);
     }
@@ -297,23 +297,14 @@ public class SeedQueueEntry {
     }
 
     /**
-     * @see SeedQueueEntry#lock
-     */
-    public int getLockPosition() {
-        return this.lockPosition;
-    }
-
-    /**
      * Locks this entry from being mass-reset on the Wall Screen.
      * Mass Resets include Reset All, Focus Reset, Reset Row, Reset Column.
      *
-     * @param lockPosition The position (index) of this entry in the wall screen's main group.
      * @return True if the entry was not locked before.
      */
-    public boolean lock(int lockPosition) {
+    public boolean lock() {
         if (!this.locked) {
             this.locked = true;
-            this.lockPosition = lockPosition;
             SeedQueue.ping();
             return true;
         }

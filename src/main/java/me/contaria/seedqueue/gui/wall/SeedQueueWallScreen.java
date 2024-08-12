@@ -299,26 +299,25 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void updatePreviews() {
-        this.restoreLockedPreviews();
+        this.restoreMainPreviews();
         this.updateLockedPreviews();
         this.updateMainPreviews();
         this.updatePreparingPreviews();
     }
 
-    private void restoreLockedPreviews() {
+    private void restoreMainPreviews() {
         List<SeedQueueEntry> entries = this.getAvailableSeedQueueEntries();
         for (SeedQueueEntry entry : entries) {
-            int lockPosition = entry.getLockPosition();
-            if (lockPosition == -1) {
+            if (entry.mainPosition == -1) {
                 continue;
             }
 
-            if (lockPosition >= this.mainPreviews.length) {
+            if (entry.mainPosition >= this.mainPreviews.length) {
                 continue;
             }
 
-            assert this.mainPreviews[lockPosition] == null;
-            this.mainPreviews[lockPosition] = new SeedQueuePreview(this, entry);
+            assert this.mainPreviews[entry.mainPosition] == null;
+            this.mainPreviews[entry.mainPosition] = new SeedQueuePreview(this, entry);
         }
     }
 
@@ -357,6 +356,7 @@ public class SeedQueueWallScreen extends Screen {
             }
             if (this.mainPreviews[i] == null && !this.blockedMainPositions.contains(i)) {
                 this.mainPreviews[i] = this.preparingPreviews.remove(0);
+                this.mainPreviews[i].getSeedQueueEntry().mainPosition = i;
             }
         }
     }
@@ -601,16 +601,7 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void lockInstance(SeedQueuePreview instance) {
-        // TODO: Pass the index of the preview as an argument to lockInstance?
-        int lockPosition = -1;
-        for (int i = 0; i < this.mainPreviews.length; i++) {
-            if (this.mainPreviews[i] == instance) {
-                lockPosition = i;
-                break;
-            }
-        }
-
-        if (instance.hasPreviewRendered() && instance.getSeedQueueEntry().lock(lockPosition)) {
+        if (instance.hasPreviewRendered() && instance.getSeedQueueEntry().lock()) {
             if (SeedQueue.config.freezeLockedPreviews) {
                 // clearing WorldPreviewProperties frees the previews WorldRenderer, allowing resources to be cleared
                 // it also means the amount of WorldRenderers does not exceed Rows * Columns + Background Previews
