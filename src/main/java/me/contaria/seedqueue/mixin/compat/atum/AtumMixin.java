@@ -26,6 +26,7 @@ public abstract class AtumMixin {
             )
     )
     private static Screen openSeedQueueWallScreen(Screen screen) {
+        ModCompat.standardsettings$cache();
         if (SeedQueue.isActive() && SeedQueue.config.shouldUseWall()) {
             if (SeedQueue.config.bypassWall) {
                 Optional<SeedQueueEntry> nextSeedQueueEntry = SeedQueue.getEntryMatching(entry -> entry.isReady() && entry.isLocked());
@@ -34,7 +35,7 @@ public abstract class AtumMixin {
                     return screen;
                 }
             }
-            ModCompat.standardsettings$cacheAndReset();
+            ModCompat.standardsettings$reset();
             ModCompat.stateoutput$setWallState();
             return new SeedQueueWallScreen(screen);
         }
