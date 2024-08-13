@@ -36,6 +36,7 @@
   "seedqueue.key.resetRow": "Reset Row",
   "seedqueue.key.resetColumn": "Reset Column",
   "seedqueue.key.playNextLock": "Play Next Lock",
+  "seedqueue.key.schedule_join": "Schedule Instance",
   "seedqueue.key.startBenchmark": "Start Benchmark",
   "seedqueue.key.cancelBenchmark": "Stop Benchmark",
 
