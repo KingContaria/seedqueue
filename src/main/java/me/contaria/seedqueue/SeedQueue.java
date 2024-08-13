@@ -44,6 +44,7 @@ public class SeedQueue implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         SeedQueueSounds.init();
+        SeedQueue.logSystemInformation();
 
         if (config.useWatchdog) {
             Thread watchDog = new Thread(() -> {
@@ -69,6 +70,19 @@ public class SeedQueue implements ClientModInitializer {
             watchDog.setName("SeedQueue WatchDog");
             watchDog.start();
         }
+    }
+
+    public static void logSystemInformation() {
+        LOGGER.info("System Information:");
+        LOGGER.info("Operating System: {}", System.getProperty("os.name"));
+        LOGGER.info("OS Version: {}", System.getProperty("os.version"));
+        LOGGER.info("CPU: {}", System.getenv("PROCESSOR_IDENTIFIER"));
+        LOGGER.info("Available Processors (Cores): {}", Runtime.getRuntime().availableProcessors());
+        LOGGER.info("Java Version: {}", System.getProperty("java.version"));
+        LOGGER.info("JVM Arguments: {}", String.join(" ", java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments()));
+        LOGGER.info("Allocated Memory (MB): {}", Runtime.getRuntime().totalMemory() / (1024 * 1024));
+        LOGGER.info("Max Memory (MB): {}", Runtime.getRuntime().maxMemory() / (1024 * 1024));
+        LOGGER.info("Free Memory (MB): {}", Runtime.getRuntime().freeMemory() / (1024 * 1024));
     }
 
     /**
