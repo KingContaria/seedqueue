@@ -619,6 +619,8 @@ public class SeedQueueWallScreen extends Screen {
         SeedQueueProfiler.push("reset_instance");
         SeedQueue.discard(instance.getSeedQueueEntry());
 
+        this.scheduledEntries.remove(instance.getSeedQueueEntry());
+
         if (playSound) {
             this.playSound(SeedQueueSounds.RESET_INSTANCE);
         }
