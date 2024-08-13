@@ -33,13 +33,13 @@ SeedQueue is a mod designed to replace multi-instancing in Minecraft. Instead of
 All the mods listed below can be downloaded from the [MCSR Mod List](https://mods.tildejustin.dev/).
 | Mod | Description | Required | Required for Wall Screen | Recommended |
 | :----------------- | :----------------------------------------------------------------------------------------------------------------: | :----------------: | :----------------------: | :----------------: |
-| Atum | Automatically reset RSG and SSG | :heavy_check_mark: | | :heavy_check_mark: |
-| SpeedrunAPI | API for MCSR mods, providing a Config API, selected Fabric API modules and MixinExtras. | :heavy_check_mark: | | :heavy_check_mark: |
-| WorldPreview | Makes you reset block game fast | | :heavy_check_mark: | :heavy_check_mark: |
-| Sodium | Sodium is a free and open-source optimization mod for Minecraft which improves frame rates and reduces lag spikes. | | :heavy_check_mark: | :heavy_check_mark: |
-| FastReset | Skips saving worlds to reset faster. | | :heavy_check_mark: | :heavy_check_mark: |
-| AntiResourceReload | Disables the monitored reload upon world creation. | | | :heavy_check_mark: |
-| Starlight | Rewrites the light engine to fix lighting performance and lighting errors | | | :heavy_check_mark: |
+| Atum | Automatically reset RSG and SSG | ✅ | | ✅ |
+| SpeedrunAPI | API for MCSR mods, providing a Config API, selected Fabric API modules and MixinExtras. | ✅ | | ✅ |
+| WorldPreview | Makes you reset block game fast | | ✅ | ✅ |
+| Sodium | Sodium is a free and open-source optimization mod for Minecraft which improves frame rates and reduces lag spikes. | | ✅ | ✅ |
+| FastReset | Skips saving worlds to reset faster. | | ✅ | ✅ |
+| AntiResourceReload | Disables the monitored reload upon world creation. | | | ✅ |
+| Starlight | Rewrites the light engine to fix lighting performance and lighting errors | | | ✅ |
 
 ## Getting Started
 
