@@ -2,7 +2,14 @@
 
 ## Description
 
-SeedQueue is a mod designed to replace multi-instancing in Minecraft. Instead of running multiple instances of Minecraft to generate worlds, SeedQueue allows you to do it all within a single instance. It features a built-in wall screen that can be configured through the SpeedrunAPI menu and further customized with resource packs. This significantly improves performance, especially on lower-end hardware, and makes speedrunning more accessible.
+SeedQueue is a mod for Minecraft Speedrunning that enables quick resetting of worlds by loading multiple worlds at one time. Designed to replace multi-instancing, SeedQueue is able to achieve this with only one instance of Minecraft.
+
+### Key Features
+
+- Built-in "Wall" screen
+- Highly configurable with in game options and resource packs
+- Improved performance, particularly on lower-end hardware
+- Easy to setup
 
 ## Installation
 
