@@ -24,9 +24,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.client.sound.SoundInstance;
-import net.minecraft.client.sound.SoundManager;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
@@ -73,7 +70,7 @@ public class SeedQueueWallScreen extends Screen {
     private int ticks;
 
     protected int frame;
-    private int nextSoundTick;
+    private int nextResetSoundTick;
 
     @Nullable
     private Layout.Pos currentPos;
@@ -245,19 +242,14 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private boolean playSound(SoundEvent sound) {
-        assert this.client != null;
-        SoundInstance soundInstance = PositionedSoundInstance.master(sound, 1.0f);
-        soundInstance.getSoundSet(this.client.getSoundManager());
-        if (soundInstance.getSound().equals(SoundManager.MISSING_SOUND)) {
-            return false;
+        // spread out reset sounds over multiple ticks
+        if (sound == SeedQueueSounds.RESET_INSTANCE) {
+            if (this.nextResetSoundTick >= this.ticks) {
+                return SeedQueueSounds.play(sound, ++this.nextResetSoundTick - this.ticks);
+            }
+            this.nextResetSoundTick = this.ticks;
         }
-        if (this.nextSoundTick < this.ticks) {
-            this.client.getSoundManager().play(soundInstance);
-            this.nextSoundTick = this.ticks;
-        } else {
-            this.client.getSoundManager().play(soundInstance, ++this.nextSoundTick - this.ticks);
-        }
-        return true;
+        return SeedQueueSounds.play(sound);
     }
 
     private void setViewport(Layout.Pos pos) {
