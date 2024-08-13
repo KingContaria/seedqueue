@@ -342,7 +342,7 @@ public class SeedQueueWallScreen extends Screen {
             int position = preview.getSeedQueueEntry().mainPosition;
 
             if (position == -1) {
-                continue;
+                break;
             }
 
             if (position >= this.mainPreviews.length) {
@@ -380,7 +380,16 @@ public class SeedQueueWallScreen extends Screen {
         int capacity = SeedQueue.config.backgroundPreviews + urgent;
         if (this.preparingPreviews.size() < capacity) {
             int budget = Math.max(1, urgent);
-            for (SeedQueueEntry entry : this.getAvailableSeedQueueEntries()) {
+
+            // see SeedQueueWallScreen#updateMainPreviews
+            // Previews which have previously been in the main group will have a position assigned
+            // to them. They must be sorted to appear first in SeedQueueWallScreen#preparingPreviews
+            // so that they can be restored to the correct location before any other previews take
+            // their place.
+            List<SeedQueueEntry> entries = this.getAvailableSeedQueueEntries();
+            entries.sort(Comparator.comparing(entry -> entry.mainPosition, Comparator.reverseOrder()));
+
+            for (SeedQueueEntry entry : entries) {
                 this.preparingPreviews.add(new SeedQueuePreview(this, entry));
                 if (--budget <= 0) {
                     break;
