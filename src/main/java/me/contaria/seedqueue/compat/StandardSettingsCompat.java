@@ -16,7 +16,7 @@ class StandardSettingsCompat {
         StandardSettings.resetPendingActions();
     }
 
-    static void onWorldJoin() {
-        StandardSettings.onWorldJoin();
+    static void loadCache() {
+        StandardSettings.loadCache(StandardSettings.lastWorld);
     }
 }
