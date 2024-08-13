@@ -36,6 +36,9 @@ import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.*;
 
 public class SeedQueueWallScreen extends Screen {
@@ -746,6 +749,9 @@ public class SeedQueueWallScreen extends Screen {
         if (this.isBenchmarking()) {
             this.benchmarkGoal = this.benchmarkedSeeds;
             this.finishBenchmark();
+
+            SeedQueue.LOGGER.info("BENCHMARK | Benchmark goal was {} resets.", this.benchmarkGoal);
+            SeedQueue.LOGGER.info("BENCHMARK | Total seeds benchmarked: {}", this.benchmarkedSeeds);
         }
     }
 
@@ -767,7 +773,25 @@ public class SeedQueueWallScreen extends Screen {
         SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds.", this.benchmarkedSeeds, Math.round((this.benchmarkFinish - this.benchmarkStart) / 10.0) / 100.0);
         this.playSound(SeedQueueSounds.FINISH_BENCHMARK);
 
-        // any worlds named Benchmark Reset #xxx are cleared after benchmark finishes
+        try {
+            File configFile = new File(MinecraftClient.getInstance().runDirectory, "config/mcsr/seedqueue.json");
+            if (configFile.exists()) {
+                BufferedReader reader = new BufferedReader(new FileReader(configFile));
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    sb.append(line).append(System.lineSeparator());
+                }
+                reader.close();
+                SeedQueue.LOGGER.info("SeedQueue Config file Settings: {}", sb.toString().trim());
+            }
+        } catch (Exception e) {
+            SeedQueue.LOGGER.warn("An error occurred while reading seedqueue.json.", e);
+        }
+
+        SeedQueue.logSystemInformation();
+
+        // Any worlds named Benchmark Reset #xxx are cleared after benchmark finishes
         this.clearSeedQueueForBenchmark();
     }
 
