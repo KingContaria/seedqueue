@@ -662,6 +662,10 @@ public abstract class MinecraftClientMixin {
             at = @At("HEAD")
     )
     private static void shutdownQueueOnCrash(CallbackInfo ci) {
-        SeedQueue.stop();
+        // don't try to stop SeedQueue if Minecraft crashes before the client is initialized
+        // if Minecraft crashes in MinecraftClient#<init>, MinecraftClient#thread can be null
+        if (MinecraftClient.getInstance() == null || !MinecraftClient.getInstance().isOnThread()) {
+            SeedQueue.stop();
+        }
     }
 }
