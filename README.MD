@@ -6,14 +6,26 @@ SeedQueue is a mod designed to replace multi-instancing in Minecraft. Instead of
 
 ## Installation
 
-### Latest Release
+> [!IMPORTANT]
+> SeedQueue is only compatible with Fabric Loader version 16.0 and later.
 
-Download the latest release of SeedQueue from [GitHub](https://github.com/KingContaria/seedqueue/releases/latest).
+### Prerequisites
+
+1. **Fabric Installation:**  
+    Ensure [Fabric](https://fabricmc.net/use/installer/) is installed. [Prism](https://prismlauncher.org/) and [MultiMC](https://multimc.org/) are easy tools for installing Fabric.
+1. **Compatible Mods:**  
+   SeedQueue only works with mods approved for speedrunning. You can find the list of compatible mods on the [MCSR Mod List](https://mods.tildejustin.dev/).
+
+### Installation Steps
+
+1. **Download SeedQueue:**  
+    [Download the latest release](https://github.com/KingContaria/seedqueue/releases/latest) of SeedQueue
+1. **Place in Mod Folder:**  
+    Put the SeedQueue `.jar` file along with its dependencies in your `mods` folder
+1. **Launch the Game:**  
+    Happy resetting and good luck!
 
 ### Dependencies
-
-> [!WARNING]
-> SpeedQueue is only compatible with other mods approved for speedrunning. Check the [MCSR Mod List](https://mods.tildejustin.dev/) for a list of approved mods.
 
 All the mods listed below can be downloaded from the [MCSR Mod List](https://mods.tildejustin.dev/).
 | Mod | Description | Required | Required for Wall Screen | Recommended |
