@@ -453,7 +453,6 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         if (keyCode == GLFW.GLFW_KEY_ESCAPE && Screen.hasShiftDown()) {
-            ModCompat.standardsettings$onWorldJoin();
             ModCompat.standardsettings$loadCache();
             Atum.stopRunning();
             this.client.openScreen(new TitleScreen());

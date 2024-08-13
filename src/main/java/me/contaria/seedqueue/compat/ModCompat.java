@@ -67,12 +67,6 @@ public class ModCompat {
         }
     }
 
-    public static void standardsettings$onWorldJoin() {
-        if (HAS_STANDARDSETTINGS) {
-            StandardSettingsCompat.onWorldJoin();
-        }
-    }
-
     public static boolean worldpreview$inPreview() {
         if (HAS_WORLDPREVIEW) {
             return WorldPreviewCompat.inPreview();
