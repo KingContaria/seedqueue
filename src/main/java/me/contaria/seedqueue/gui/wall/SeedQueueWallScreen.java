@@ -63,6 +63,7 @@ public class SeedQueueWallScreen extends Screen {
     private final Set<Integer> blockedMainPositions = new HashSet<>();
 
     private final Set<SeedQueueEntry> scheduledEntries = new HashSet<>();
+    private int scheduledEnterWarningWorldGenPercentage;
     private boolean playedScheduledEnterWarning;
 
     private List<LockTexture> lockTextures;
