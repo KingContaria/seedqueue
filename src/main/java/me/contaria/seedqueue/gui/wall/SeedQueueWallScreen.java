@@ -304,19 +304,24 @@ public class SeedQueueWallScreen extends Screen {
         this.updateMainPreviews();
     }
 
+    private void addLockedPreview(SeedQueuePreview preview) {
+        Objects.requireNonNull(this.lockedPreviews).add(preview);
+        preview.getSeedQueueEntry().mainPosition = -1;
+    }
+
     private void updateLockedPreviews() {
         if (this.lockedPreviews == null) {
             return;
         }
         for (SeedQueueEntry entry : this.getAvailableSeedQueueEntries()) {
             if (entry.isLocked()) {
-                this.lockedPreviews.add(new SeedQueuePreview(this, entry));
+                this.addLockedPreview(new SeedQueuePreview(this, entry));
             }
         }
         for (int i = 0; i < this.mainPreviews.length; i++) {
             SeedQueuePreview instance = this.mainPreviews[i];
             if (instance != null && instance.getSeedQueueEntry().isLocked()) {
-                this.lockedPreviews.add(instance);
+                this.addLockedPreview(instance);
                 this.mainPreviews[i] = null;
                 if (!this.layout.replaceLockedInstances) {
                     this.blockedMainPositions.add(i);
@@ -325,13 +330,34 @@ public class SeedQueueWallScreen extends Screen {
         }
         for (SeedQueuePreview instance : this.preparingPreviews) {
             if (instance.getSeedQueueEntry().isLocked()) {
-                this.lockedPreviews.add(instance);
+                this.addLockedPreview(instance);
             }
         }
         this.preparingPreviews.removeAll(this.lockedPreviews);
     }
 
     private void updateMainPreviews() {
+        for (int i = this.preparingPreviews.size() - 1; i >= 0; i--) {
+            SeedQueuePreview preview = this.preparingPreviews.get(i);
+            int position = preview.getSeedQueueEntry().mainPosition;
+
+            if (position == -1) {
+                continue;
+            }
+
+            if (position >= this.mainPreviews.length) {
+                preview.getSeedQueueEntry().mainPosition = -1;
+                continue;
+            }
+
+            if (this.mainPreviews[position] != null) {
+                SeedQueue.LOGGER.warn("Main preview {} already populated", position);
+            } else {
+                this.mainPreviews[position] = preview;
+                this.preparingPreviews.remove(i);
+            }
+        }
+
         this.preparingPreviews.sort(Comparator.comparing(SeedQueuePreview::isPreviewReady, Comparator.reverseOrder()));
         for (int i = 0; i < this.mainPreviews.length && !this.preparingPreviews.isEmpty(); i++) {
             if (SeedQueue.config.waitForPreviewSetup && !this.preparingPreviews.get(0).isPreviewReady()) {
@@ -339,6 +365,12 @@ public class SeedQueueWallScreen extends Screen {
             }
             if (this.mainPreviews[i] == null && !this.blockedMainPositions.contains(i)) {
                 this.mainPreviews[i] = this.preparingPreviews.remove(0);
+
+                if (this.mainPreviews[i].getSeedQueueEntry().mainPosition != -1) {
+                    SeedQueue.LOGGER.warn("Main preview {} already assigned a position", i);
+                } else {
+                    this.mainPreviews[i].getSeedQueueEntry().mainPosition = i;
+                }
             }
         }
     }
