@@ -19,7 +19,7 @@ SeedQueue is a mod for Minecraft Speedrunning that enables quick resetting of wo
 ### Prerequisites
 
 1. **Fabric Installation:**  
-    Ensure [Fabric](https://fabricmc.net/use/installer/) is installed. [Prism](https://prismlauncher.org/) and [MultiMC](https://multimc.org/) are easy tools for installing Fabric.
+    Ensure [Fabric](https://fabricmc.net/use/installer/) is installed. [MultiMC](https://multimc.org/) or [Prism](https://prismlauncher.org/) are both easy tools for installing Fabric.
 
 1. **Compatible Mods:**  
    SeedQueue only works with mods approved for speedrunning. You can find the list of compatible mods on the [MCSR Mod List](https://mods.tildejustin.dev/).
