@@ -699,9 +699,16 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void scheduleJoin(SeedQueuePreview instance) {
-        if (instance.hasPreviewRendered() && !this.scheduledEntries.contains(instance.getSeedQueueEntry())) {
-            this.lockInstance(instance);
-            this.scheduledEntries.add(instance.getSeedQueueEntry());
+        if (!instance.hasPreviewRendered()) {
+            return;
+        }
+        SeedQueueEntry entry = instance.getSeedQueueEntry();
+        if (this.canPlayInstance(entry)) {
+            this.playInstance(instance);
+            return;
+        }
+        this.lockInstance(instance);
+        if (this.scheduledEntries.add(entry)) {
             this.playSound(SeedQueueSounds.SCHEDULE_JOIN);
         }
     }
