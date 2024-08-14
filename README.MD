@@ -58,4 +58,47 @@ For more information on configuration settings and customization options for the
 
 ## Community
 
-Join the SeedQueue community on Discord by clicking [here](https://discord.gg/9P6PJkHCdU).
+Have questions, need help, or just want to hang out in the community? Join the SeedQueue community on Discord by clicking [here](https://discord.gg/9P6PJkHCdU).
+
+## FAQs
+
+### Can I use SeedQueue with other mods?
+
+SpeedQueue is only compatiable mods approved for speedrunning. You can find the list of compatible mods on the [MCSR Mod List](https://mods.tildejustin.dev/).
+
+### How do I exit the Wall Screen?
+
+Pressing `shift + esc` will end reseting and take you back to the main menu.
+
+### How can I make my previews pause with F3 on wall?
+
+Go to StandardSettings and enable F3 Pause on World Load.
+
+### How do I change textures/sounds/wall layout?
+
+You can customize using a resourcepack,
+I recommend downloading the example pack [here](https://github.com/KingContaria/julti-dynamic-resourcepack/releases/tag/1.0). You can find out everything you need to know in [the wiki](https://github.com/KingContaria/seedqueue/wiki/Customization). If you have any more questions about stuff that isn't working the way you want it to please create a post in the [⁠support-forum](https://discord.gg/nq4zcusTDP).
+
+### Why are no previews showing up in the 'preparing' group of my custom layout?
+
+Go to `Performance Settings > Background Previews` and set it to the size of your preparing group.
+
+### How can I limit reset sounds?
+
+By default, SeedQueue will play one reset sound for every preview that gets reset.
+You can add a Reset All sound that will play instead of a bunch of individual reset sounds with a resource pack.
+
+### How can I show my reset counter on OBS?
+
+1) Open OBS
+2) Go to Sources
+3) Click the `+` icon
+4) Select Text
+5) Name it and press Okay
+6) Check the checkbox that says `Read from file`
+7) Add `<pathtoyourinstance>/.minecraft/config/mcsr/atum/rsg-attempts.txt as file`
+8) Press Okay to create the text source
+
+### When will SeedQueue be ported to other versions?
+
+SeedQueue relies on porting a bunch of other mods first, so its going to take a while. Additionally, there will be at the very least a month of time between release and starting porting efforts to catch any issues or implement important feedback.
