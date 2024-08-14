@@ -93,6 +93,9 @@ public class SeedQueueThread extends Thread {
             }
         }
         for (SeedQueueEntry entry : entries) {
+            if(/*option check for village wall && */ entry.getWorldGenerationProgressTracker() != null && System.currentTimeMillis() - entry.lastGeneratingTime > 160L /*(should be set with options)*/)
+        		entry.getWorldGenerationProgressTracker().stop();
+            
             if (entry.tryToUnpause()) {
                 return true;
             }
