@@ -77,6 +77,8 @@ public class SeedQueuePreview extends LevelLoadingScreen {
                 SeedQueue.config.simulatedWindowSize.height() / scale
         );
 
+        this.seedQueueEntry.lastGeneratingTime = System.currentTimeMillis();
+        
         if (Boolean.TRUE.equals(SpeedrunConfigAPI.getConfigValue("standardsettings", "autoF3Esc"))) {
             Text backToGame = new TranslatableText("menu.returnToGame");
             for (Element e : this.children()) {
