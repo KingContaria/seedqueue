@@ -51,6 +51,11 @@ public class SeedQueueEntry {
      */
     public int mainPosition = -1;
 
+    /**
+     * Stores the time in ms when the entry last started generating a new world.
+     */
+    public long lastGeneratingTime;
+    
     public SeedQueueEntry(MinecraftServer server, LevelStorage.Session session, MinecraftClient.IntegratedResourceManager resourceManager, YggdrasilAuthenticationService yggdrasilAuthenticationService, MinecraftSessionService minecraftSessionService, GameProfileRepository gameProfileRepository, @Nullable UserCache userCache) {
         this.server = server;
         this.session = session;
