@@ -776,7 +776,7 @@ public class SeedQueueWallScreen extends Screen {
         SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds.", this.benchmarkedSeeds, Math.round((this.benchmarkFinish - this.benchmarkStart) / 10.0) / 100.0);
         this.playSound(SeedQueueSounds.FINISH_BENCHMARK);
 
-        // Any worlds named Benchmark Reset #xxx are cleared after benchmark finishes
+        // any worlds named Benchmark Reset #xxx are cleared after benchmark finishes
         this.clearSeedQueueForBenchmark();
     }
 
