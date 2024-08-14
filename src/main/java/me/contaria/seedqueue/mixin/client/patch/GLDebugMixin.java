@@ -20,9 +20,9 @@ public abstract class GLDebugMixin {
             method = "info",
             at = @At(
                     value = "INVOKE",
-                    target = "Lorg/apache/logging/log4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V"
-            ),
-            remap = false
+                    target = "Lorg/apache/logging/log4j/Logger;info(Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V",
+                    remap = false
+            )
     )
     private static void suppressOpenGLDebugMessageSpam(Logger logger, String message, Object id, Object source, Object type, Object severity, Object msg, Operation<Void> original) {
         if (Objects.equals(id, 1281)) {
