@@ -1,6 +1,7 @@
 package me.contaria.seedqueue;
 
 import com.google.gson.JsonParseException;
+import com.sun.management.OperatingSystemMXBean;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
@@ -45,7 +46,7 @@ public class SeedQueue implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         SeedQueueSounds.init();
-        SeedQueue.logSystemInformation();
+        logSystemInformation();
 
         if (config.useWatchdog) {
             Thread watchDog = new Thread(() -> {
@@ -80,14 +81,10 @@ public class SeedQueue implements ClientModInitializer {
         LOGGER.info("CPU: {}", System.getenv("PROCESSOR_IDENTIFIER"));
         LOGGER.info("Java Version: {}", System.getProperty("java.version"));
         LOGGER.info("JVM Arguments: {}", String.join(" ", ManagementFactory.getRuntimeMXBean().getInputArguments()));
-        LOGGER.info("Total Physical Memory (MB): {}", getTotalPhysicalMemorySize() / (1024 * 1024)); // Logs the total RAM on the system
+        LOGGER.info("Total Physical Memory (MB): {}", ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class).getTotalPhysicalMemorySize() / (1024 * 1024)); // Logs the total RAM on the system
+        LOGGER.info("Max Memory (MB): {}", Runtime.getRuntime().maxMemory() / (1024 * 1024));
         LOGGER.info("Total Processors: {}", ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors()); // Logs the total number of processors (not affected by affinity)
         LOGGER.info("Available Processors: {}", Runtime.getRuntime().availableProcessors()); // Logs the available number of processors (affected by affinity)
-    }
-
-    private static long getTotalPhysicalMemorySize() {
-        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
-        return osBean.getTotalPhysicalMemorySize();
     }
 
     /**
