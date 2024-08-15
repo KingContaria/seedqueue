@@ -32,12 +32,15 @@ public class SeedQueueThread extends Thread {
             try {
                 // clear pinged state when starting a new check
                 this.pinged.set(false);
-
                 if (SeedQueue.shouldPauseGenerating()) {
                     this.pauseSeedQueueEntry();
                     continue;
                 }
-                if (!SeedQueue.shouldGenerate()) {
+                if (!SeedQueue.shouldGenerate() || SeedQueue.shouldResumeAfterQueueFull()) {
+                    if (!SeedQueue.shouldResumeGenerating() && !SeedQueue.noLockedRemaining()) {
+                        this.pauseSeedQueueEntry();
+                        continue;
+                    }
                     if (SeedQueue.shouldResumeGenerating() && this.unpauseSeedQueueEntry()) {
                         continue;
                     }

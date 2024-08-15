@@ -166,7 +166,7 @@ public class SeedQueue implements ClientModInitializer {
      * @return If all {@link SeedQueueEntry} have reached the {@link SeedQueueConfig#maxWorldGenerationPercentage}.
      */
     public static boolean noPrioritizedRemaining() {
-        return SEED_QUEUE.stream().noneMatch(SeedQueueEntry::isPrioritized);
+        return SEED_QUEUE.stream().noneMatch(entry -> entry.isPrioritized() && !entry.isLocked());
     }
 
     /**
@@ -184,6 +184,19 @@ public class SeedQueue implements ClientModInitializer {
             return getGeneratingCount() < getMaxGeneratingCount();
         }
     }
+
+    /**
+     * @return If the {@link SeedQueueThread} should unpause a {@link SeedQueueEntry} that was previously scheduled to pause
+     * (after the queue is filled).
+     * @see SeedQueue#hasMoreCapacity()
+     * @see SeedQueue#noPrioritizedRemaining()
+     */
+    public static boolean shouldResumeAfterQueueFull() {
+       synchronized (LOCK) {
+           return config.resumeOnFilledQueue && !hasMoreCapacity() && noPrioritizedRemaining();
+       }
+    }
+
 
     /**
      * @return If the {@link SeedQueueThread} should actively schedule a {@link SeedQueueEntry} to be paused.
@@ -218,7 +231,6 @@ public class SeedQueue implements ClientModInitializer {
         if (!SeedQueue.config.shouldUseWall() && (currentServer == null || !currentServer.isLoading())) {
             count++;
         }
-
         return count;
     }
 
