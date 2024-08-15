@@ -1,4 +1,4 @@
-package me.contaria.seedqueue.customization;
+package me.contaria.seedqueue.customization.textures;
 
 import me.contaria.seedqueue.SeedQueue;
 import net.minecraft.client.MinecraftClient;
