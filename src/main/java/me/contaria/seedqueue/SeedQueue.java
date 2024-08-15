@@ -74,24 +74,20 @@ public class SeedQueue implements ClientModInitializer {
     }
 
     private static void logSystemInformation() {
-        int availableProcessors = Runtime.getRuntime().availableProcessors();
-        int totalProcessors = getTotalProcessors();
-
         LOGGER.info("System Information (Logged by SeedQueue):");
         LOGGER.info("Operating System: {}", System.getProperty("os.name"));
         LOGGER.info("OS Version: {}", System.getProperty("os.version"));
         LOGGER.info("CPU: {}", System.getenv("PROCESSOR_IDENTIFIER"));
         LOGGER.info("Java Version: {}", System.getProperty("java.version"));
-        LOGGER.info("JVM Arguments: {}", String.join(" ", java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments()));
-        LOGGER.info("Allocated Memory (MB): {}", Runtime.getRuntime().totalMemory() / (1024 * 1024));
-        LOGGER.info("Max Memory (MB): {}", Runtime.getRuntime().maxMemory() / (1024 * 1024));
-        LOGGER.info("Free Memory (MB): {}", Runtime.getRuntime().freeMemory() / (1024 * 1024));
-        LOGGER.info("Total Processors: {}", totalProcessors); // Log the total number of processors (not affected by affinity)
-        LOGGER.info("Available Processors: {}", availableProcessors); // Log the available number of processors (affected by affinity)
+        LOGGER.info("JVM Arguments: {}", String.join(" ", ManagementFactory.getRuntimeMXBean().getInputArguments()));
+        LOGGER.info("Total Physical Memory (MB): {}", getTotalPhysicalMemorySize() / (1024 * 1024)); // Logs the total RAM on the system
+        LOGGER.info("Total Processors: {}", ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors()); // Logs the total number of processors (not affected by affinity)
+        LOGGER.info("Available Processors: {}", Runtime.getRuntime().availableProcessors()); // Logs the available number of processors (affected by affinity)
     }
 
-    private static int getTotalProcessors() {
-        return ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors();
+    private static long getTotalPhysicalMemorySize() {
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+        return osBean.getTotalPhysicalMemorySize();
     }
 
     /**
