@@ -337,8 +337,9 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void updateMainPreviews() {
-        for (int i = this.preparingPreviews.size() - 1; i >= 0; i--) {
-            SeedQueuePreview preview = this.preparingPreviews.get(i);
+        int preparingCount = this.preparingPreviews.size();
+        for (int i = 0; i < preparingCount; i++) {
+            SeedQueuePreview preview = this.preparingPreviews.get(0);
             int position = preview.getSeedQueueEntry().mainPosition;
 
             if (position == -1) {
@@ -354,7 +355,7 @@ public class SeedQueueWallScreen extends Screen {
                 SeedQueue.LOGGER.warn("Main preview {} already populated", position);
             } else {
                 this.mainPreviews[position] = preview;
-                this.preparingPreviews.remove(i);
+                this.preparingPreviews.remove(0);
             }
         }
 
