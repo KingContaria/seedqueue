@@ -131,6 +131,20 @@ public class SeedQueueEntry {
     }
 
     /**
+     * Removes this entry's framebuffer, deletion of the buffer has to be handled by the caller of this method!
+     *
+     * @see WorldPreviewFrameBuffer#delete
+     */
+    public WorldPreviewFrameBuffer removeFrameBuffer() {
+        if (!MinecraftClient.getInstance().isOnThread()) {
+            throw new RuntimeException("Tried to remove WorldPreviewFrameBuffer off-thread!");
+        }
+        WorldPreviewFrameBuffer frameBuffer = this.frameBuffer;
+        this.frameBuffer = null;
+        return frameBuffer;
+    }
+
+    /**
      * Deletes and removes this entry's framebuffer.
      *
      * @see WorldPreviewFrameBuffer#delete

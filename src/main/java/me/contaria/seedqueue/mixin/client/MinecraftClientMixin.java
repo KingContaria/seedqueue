@@ -17,6 +17,7 @@ import me.contaria.seedqueue.SeedQueueExecutorWrapper;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
+import me.contaria.seedqueue.gui.wall.SeedQueueTransitionScreen;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
 import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressLogger;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
@@ -643,6 +644,17 @@ public abstract class MinecraftClientMixin {
     )
     private static boolean doNotAllowFabulousGraphicsOnWall(boolean isFabulousGraphicsOrBetter) {
         return isFabulousGraphicsOrBetter && !SeedQueue.isOnWall();
+    }
+
+    @Inject(
+            method = "openScreen",
+            at = @At("HEAD"),
+            cancellable = true
+    )
+    private void smoothWallToWorldTransition(Screen screen, CallbackInfo ci) {
+        if (this.currentScreen instanceof SeedQueueTransitionScreen && screen != null) {
+            ci.cancel();
+        }
     }
 
     @Inject(

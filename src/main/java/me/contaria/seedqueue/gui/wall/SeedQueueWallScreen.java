@@ -42,6 +42,7 @@ public class SeedQueueWallScreen extends Screen {
     private static final Set<WorldRenderer> WORLD_RENDERERS = new HashSet<>();
 
     public static final Identifier CUSTOM_LAYOUT = new Identifier("seedqueue", "wall/custom_layout.json");
+    public static final Identifier TRANSITIONS = new Identifier("seedqueue", "wall/transitions.json");
     private static final Identifier WALL_BACKGROUND = new Identifier("seedqueue", "textures/gui/wall/background.png");
     private static final Identifier WALL_OVERLAY = new Identifier("seedqueue", "textures/gui/wall/overlay.png");
     private static final Identifier INSTANCE_BACKGROUND = new Identifier("seedqueue", "textures/gui/wall/instance_background.png");
@@ -430,6 +431,28 @@ public class SeedQueueWallScreen extends Screen {
         this.client.options.perspective = perspective;
     }
 
+    private @Nullable Layout.Pos getPreviewPos(SeedQueuePreview preview) {
+        if (preview == null) {
+            return null;
+        }
+        int index = preview.getSeedQueueEntry().mainPosition;
+        if (index != -1) {
+            return this.layout.main.getPos(index);
+        }
+        if (this.layout.locked != null && this.lockedPreviews != null && (index = this.lockedPreviews.indexOf(preview)) != -1) {
+            return this.layout.locked.getPos(index);
+        }
+        if ((index = this.preparingPreviews.indexOf(preview)) != -1) {
+            for (Layout.Group group : this.layout.preparing) {
+                if (index < group.size()) {
+                    return group.getPos(index);
+                }
+                index += group.size();
+            }
+        }
+        return null;
+    }
+
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         assert this.client != null;
@@ -601,13 +624,14 @@ public class SeedQueueWallScreen extends Screen {
 
     private void playInstance(SeedQueuePreview instance) {
         assert this.client != null;
+        Layout.Pos pos = this.getPreviewPos(instance);
         if (!instance.hasPreviewRendered() || !this.canPlayInstance(instance.getSeedQueueEntry()) || !this.removePreview(instance)) {
             return;
         }
         this.playSound(SeedQueueSounds.PLAY_INSTANCE);
         SeedQueue.comingFromWall = true;
         SeedQueue.selectedEntry = instance.getSeedQueueEntry();
-        this.client.openScreen(this.createWorldScreen);
+        SeedQueueTransitionScreen.transition(this.createWorldScreen, pos);
     }
 
     private void playInstance(SeedQueueEntry entry) {
@@ -615,7 +639,11 @@ public class SeedQueueWallScreen extends Screen {
         this.playSound(SeedQueueSounds.PLAY_INSTANCE);
         SeedQueue.comingFromWall = true;
         SeedQueue.selectedEntry = entry;
-        this.client.openScreen(this.createWorldScreen);
+        // TODO: figure out a way to get the position
+        //       the problem is that before an entry is played,
+        //       it's SeedQueuePreview has to be removed
+        //       maybe saving the position in a field is the easiest solution
+        SeedQueueTransitionScreen.transition(this.createWorldScreen, null);
     }
 
     private boolean canPlayInstance(SeedQueueEntry entry) {

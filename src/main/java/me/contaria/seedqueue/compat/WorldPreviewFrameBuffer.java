@@ -52,10 +52,19 @@ public class WorldPreviewFrameBuffer {
     }
 
     /**
+     * Draws the internal {@link Framebuffer} to the specified width and height.
+     *
+     * @see WorldPreviewFrameBuffer#draw(int, int, int, int)
+     */
+    public void draw(int width, int height) {
+        this.draw(0, 0, width, height);
+    }
+
+    /**
      * Draws the internal {@link Framebuffer} without setting {@link RenderSystem#ortho} and {@link RenderSystem#viewport}.
      */
     @SuppressWarnings("deprecation")
-    public void draw(int width, int height) {
+    public void draw(int x1, int y1, int x2, int y2) {
         RenderSystem.assertThread(RenderSystem::isOnRenderThread);
 
         RenderSystem.colorMask(true, true, true, false);
@@ -71,10 +80,10 @@ public class WorldPreviewFrameBuffer {
         Tessellator tessellator = RenderSystem.renderThreadTesselator();
         BufferBuilder bufferBuilder = tessellator.getBuffer();
         bufferBuilder.begin(7, VertexFormats.POSITION_TEXTURE_COLOR);
-        bufferBuilder.vertex(0.0, height, 0.0).texture(0.0f, 0.0f).color(255, 255, 255, 255).next();
-        bufferBuilder.vertex(width, height, 0.0).texture(1.0f, 0.0f).color(255, 255, 255, 255).next();
-        bufferBuilder.vertex(width, 0.0, 0.0).texture(1.0f, 1.0f).color(255, 255, 255, 255).next();
-        bufferBuilder.vertex(0.0, 0.0, 0.0).texture(0.0f, 1.0f).color(255, 255, 255, 255).next();
+        bufferBuilder.vertex(x1, y2, 0.0).texture(0.0f, 0.0f).color(255, 255, 255, 255).next();
+        bufferBuilder.vertex(x2, y2, 0.0).texture(1.0f, 0.0f).color(255, 255, 255, 255).next();
+        bufferBuilder.vertex(x2, y1, 0.0).texture(1.0f, 1.0f).color(255, 255, 255, 255).next();
+        bufferBuilder.vertex(x1, y1, 0.0F).texture(0.0f, 1.0f).color(255, 255, 255, 255).next();
         tessellator.draw();
         this.framebuffer.endRead();
 
