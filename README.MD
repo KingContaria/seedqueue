@@ -50,7 +50,9 @@ All the mods listed below can be downloaded from the [MCSR Mod List](https://mod
 
 ## Getting Started
 
-If you're new to SeedQueue, watch this [tutorial video](https://www.youtube.com/watch?v=fGu2MYZxh_c) to get started.
+If you're new to SeedQueue, watch the video below to get started
+
+https://github.com/user-attachments/assets/bd303011-90c1-4ab5-ad05-5ce4e3de983e
 
 ## Documentation
 
