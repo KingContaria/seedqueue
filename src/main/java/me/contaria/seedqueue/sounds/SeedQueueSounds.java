@@ -1,7 +1,5 @@
 package me.contaria.seedqueue.sounds;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.sound.WeightedSoundSet;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
@@ -27,10 +25,5 @@ public class SeedQueueSounds {
 
     private static SoundEvent register(Identifier id) {
         return Registry.register(Registry.SOUND_EVENT, id, new SoundEvent(id));
-    }
-
-    public static <T> T getMetadata(SoundEvent soundEvent) {
-        WeightedSoundSet soundSet = MinecraftClient.getInstance().getSoundManager().get(soundEvent.getId());
-        return soundSet.getSound().
     }
 }
