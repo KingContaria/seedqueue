@@ -11,6 +11,7 @@ import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.customization.textures.AnimatedTexture;
 import me.contaria.seedqueue.customization.Layout;
 import me.contaria.seedqueue.customization.textures.LockTexture;
+import me.contaria.seedqueue.customization.transitions.Transition;
 import me.contaria.seedqueue.keybindings.SeedQueueKeyBindings;
 import me.contaria.seedqueue.mixin.accessor.DebugHudAccessor;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
@@ -71,6 +72,8 @@ public class SeedQueueWallScreen extends Screen {
     @Nullable
     private AnimatedTexture instanceBackground;
 
+    private Map<String, Transition> transitions;
+
     private int ticks;
 
     protected int frame;
@@ -103,6 +106,7 @@ public class SeedQueueWallScreen extends Screen {
         this.background = AnimatedTexture.of(WALL_BACKGROUND);
         this.overlay = AnimatedTexture.of(WALL_OVERLAY);
         this.instanceBackground = AnimatedTexture.of(INSTANCE_BACKGROUND);
+        this.transitions = Transition.createTransitions();
     }
 
     protected LockTexture getLockTexture() {
@@ -175,6 +179,9 @@ public class SeedQueueWallScreen extends Screen {
         assert this.client != null;
         if (pos == null) {
             return;
+        }
+        if (instance != null) {
+            pos = instance.applyTransition(pos);
         }
         try {
             SeedQueueProfiler.push("set_viewport");
@@ -299,6 +306,14 @@ public class SeedQueueWallScreen extends Screen {
         this.setOrtho(this.width, this.height);
     }
 
+    private void startTransition(String id, SeedQueuePreview preview) {
+        Transition transition = this.transitions.get(id);
+        Layout.Pos pos = this.getPreviewPos(preview);
+        if (transition != null && pos != null) {
+            preview.startTransition(transition, pos);
+        }
+    }
+
     private void updatePreviews() {
         this.updateLockedPreviews();
         this.updatePreparingPreviews();
@@ -306,6 +321,7 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void addLockedPreview(SeedQueuePreview preview) {
+        this.startTransition("lock_instance", preview);
         Objects.requireNonNull(this.lockedPreviews).add(preview);
         preview.getSeedQueueEntry().mainPosition = -1;
     }
@@ -365,6 +381,7 @@ public class SeedQueueWallScreen extends Screen {
                 break;
             }
             if (this.mainPreviews[i] == null && !this.blockedMainPositions.contains(i)) {
+                this.startTransition("preparing_to_main", this.preparingPreviews.get(0));
                 this.mainPreviews[i] = this.preparingPreviews.remove(0);
 
                 if (this.mainPreviews[i].getSeedQueueEntry().mainPosition != -1) {
@@ -631,7 +648,7 @@ public class SeedQueueWallScreen extends Screen {
         this.playSound(SeedQueueSounds.PLAY_INSTANCE);
         SeedQueue.comingFromWall = true;
         SeedQueue.selectedEntry = instance.getSeedQueueEntry();
-        SeedQueueTransitionScreen.transition(this.createWorldScreen, pos);
+        SeedQueueTransitionScreen.transition(this.createWorldScreen, this.transitions.get("play_instance"), pos);
     }
 
     private void playInstance(SeedQueueEntry entry) {
@@ -643,7 +660,7 @@ public class SeedQueueWallScreen extends Screen {
         //       the problem is that before an entry is played,
         //       it's SeedQueuePreview has to be removed
         //       maybe saving the position in a field is the easiest solution
-        SeedQueueTransitionScreen.transition(this.createWorldScreen, null);
+        SeedQueueTransitionScreen.transition(this.createWorldScreen, this.transitions.get("play_instance"), null);
     }
 
     private boolean canPlayInstance(SeedQueueEntry entry) {
@@ -896,5 +913,4 @@ public class SeedQueueWallScreen extends Screen {
     private static ClientWorld getWorld(WorldRenderer worldRenderer) {
         return ((WorldRendererAccessor) worldRenderer).seedQueue$getWorld();
     }
-
 }

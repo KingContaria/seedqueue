@@ -4,7 +4,9 @@ import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.compat.WorldPreviewCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
+import me.contaria.seedqueue.customization.Layout;
 import me.contaria.seedqueue.customization.textures.LockTexture;
+import me.contaria.seedqueue.customization.transitions.Transition;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.voidxwalker.worldpreview.WorldPreview;
 import net.minecraft.client.MinecraftClient;
@@ -29,6 +31,11 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     private WorldRenderer worldRenderer;
 
     private LockTexture lockTexture;
+
+    @Nullable
+    private Transition transition;
+    private long transitionStart;
+    private Layout.Pos oldPos;
 
     private boolean previewRendered;
     private int lastPreviewFrame;
@@ -218,10 +225,30 @@ public class SeedQueuePreview extends LevelLoadingScreen {
         return this.worldRenderer;
     }
 
-    public LockTexture getLockTexture() {
+    protected LockTexture getLockTexture() {
         if (this.lockTexture == null) {
             this.lockTexture = this.wall.getLockTexture();
         }
         return this.lockTexture;
+    }
+
+    protected void startTransition(Transition transition, Layout.Pos oldPos) {
+        this.transition = transition;
+        this.transitionStart = System.currentTimeMillis();
+        this.oldPos = oldPos;
+    }
+
+    public Layout.Pos applyTransition(Layout.Pos pos) {
+        if (this.transition == null) {
+            return pos;
+        }
+        long time = System.currentTimeMillis();
+        if (time - this.transitionStart > this.transition.getDuration()) {
+            this.transition = null;
+            this.transitionStart = 0;
+            this.oldPos = null;
+            return pos;
+        }
+        return this.transition.transform(this.oldPos, pos, (double) (time - this.transitionStart) / this.transition.getDuration());
     }
 }

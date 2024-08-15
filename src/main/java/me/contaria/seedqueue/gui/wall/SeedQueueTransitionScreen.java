@@ -45,30 +45,25 @@ public class SeedQueueTransitionScreen extends Screen {
         this.transitionTo.delete();
     }
 
-    public static void transition(Screen atumCreateWorldScreen, Layout.Pos startPos) {
-        if (startPos == null) {
+    public static void transition(Screen atumCreateWorldScreen, Transition transition, Layout.Pos startPos) {
+        if (transition == null || startPos == null) {
             MinecraftClient.getInstance().openScreen(atumCreateWorldScreen);
             return;
         }
-        Transition transition = Transition.createTransition("wall_to_world");
-        if (transition != null) {
-            long start = System.currentTimeMillis();
-            MinecraftClient.getInstance().openScreen(new SeedQueueTransitionScreen(
-                    SeedQueue.selectedEntry.removeFrameBuffer(),
-                    transition,
-                    start,
-                    scale(startPos.x),
-                    scale(startPos.y),
-                    scale(startPos.x + startPos.width),
-                    scale(startPos.y + startPos.height)
-            ));
-            while (System.currentTimeMillis() - start < transition.getDuration()) {
-                ((MinecraftClientAccessor) MinecraftClient.getInstance()).seedQueue$render(false);
-            }
-            atumCreateWorldScreen.init(MinecraftClient.getInstance(), 0, 0);
-            return;
+        long start = System.currentTimeMillis();
+        MinecraftClient.getInstance().openScreen(new SeedQueueTransitionScreen(
+                SeedQueue.selectedEntry.removeFrameBuffer(),
+                transition,
+                start,
+                scale(startPos.x),
+                scale(startPos.y),
+                scale(startPos.x + startPos.width),
+                scale(startPos.y + startPos.height)
+        ));
+        while (System.currentTimeMillis() - start < transition.getDuration()) {
+            ((MinecraftClientAccessor) MinecraftClient.getInstance()).seedQueue$render(false);
         }
-        MinecraftClient.getInstance().openScreen(atumCreateWorldScreen);
+        atumCreateWorldScreen.init(MinecraftClient.getInstance(), 0, 0);
     }
 
     private static int scale(int value) {

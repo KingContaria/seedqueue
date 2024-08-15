@@ -111,7 +111,7 @@ public class Layout {
             int rowHeight = (height - padding * (rows - 1)) / rows;
             for (int row = 0; row < rows; row++) {
                 for (int column = 0; column < columns; column++) {
-                    positions[row * columns + column] = new Pos(
+                    positions[row * columns + column] = Pos.from(
                             x + column * columnWidth + padding * column,
                             y + row * rowHeight + padding * row,
                             columnWidth,
@@ -163,7 +163,7 @@ public class Layout {
         public final int width;
         public final int height;
 
-        Pos(int x, int y, int width, int height) {
+        private Pos(int x, int y, int width, int height) {
             this.x = x;
             this.y = y;
             this.width = width;
@@ -177,6 +177,10 @@ public class Layout {
                     getWidth(jsonObject),
                     getHeight(jsonObject)
             );
+        }
+
+        public static Pos from(int x, int y, int width, int height) {
+            return new Pos(x, y, width, height);
         }
     }
 }
