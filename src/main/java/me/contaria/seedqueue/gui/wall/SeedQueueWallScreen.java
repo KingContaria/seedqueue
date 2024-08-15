@@ -63,7 +63,6 @@ public class SeedQueueWallScreen extends Screen {
     private final Set<Integer> blockedMainPositions = new HashSet<>();
 
     private final Set<SeedQueueEntry> scheduledEntries = new HashSet<>();
-    private int scheduledEnterWarningWorldGenPercentage;
     private boolean playedScheduledEnterWarning;
 
     private List<LockTexture> lockTextures;
@@ -716,13 +715,13 @@ public class SeedQueueWallScreen extends Screen {
         }
     }
 
-    // TODO: look into decoupling this from Window#swapBuffers, so it can also load the seed during downtime between frames
     public void joinScheduledInstance() {
         // catch the case were someone resets a scheduled entry after it has played the warning sound
         this.playedScheduledEnterWarning &= !this.scheduledEntries.isEmpty();
 
         for (SeedQueueEntry entry : this.scheduledEntries) {
-            // TODO: make 95% world gen percentage configurable, maybe through .mcmeta?
+            // 95% world gen percentage should be made configurable in the future
+            // not sure how, maybe through .mcmeta
             if (!this.playedScheduledEnterWarning && entry.getWorldGenerationProgressTracker() != null && entry.getWorldGenerationProgressTracker().getProgressPercentage() >= 95) {
                 this.playSound(SeedQueueSounds.SCHEDULED_JOIN_WARNING);
                 this.playedScheduledEnterWarning = true;
