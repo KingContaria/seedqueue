@@ -75,10 +75,13 @@ public class SeedQueue implements ClientModInitializer {
     }
 
     private static void logSystemInformation() {
+        oshi.hardware.Processor[] processors = new oshi.SystemInfo().getHardware().getProcessors();
+        String cpuInfo = String.format("%dx %s", processors.length, processors[0]).replaceAll("\\s+", " ");
+
         LOGGER.info("System Information (Logged by SeedQueue):");
         LOGGER.info("Operating System: {}", System.getProperty("os.name"));
         LOGGER.info("OS Version: {}", System.getProperty("os.version"));
-        LOGGER.info("CPU: {}", System.getenv("PROCESSOR_IDENTIFIER"));
+        LOGGER.info("CPU: {}", cpuInfo);
         LOGGER.info("Java Version: {}", System.getProperty("java.version"));
         LOGGER.info("JVM Arguments: {}", String.join(" ", ManagementFactory.getRuntimeMXBean().getInputArguments()));
         LOGGER.info("Total Physical Memory (MB): {}", ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class).getTotalPhysicalMemorySize() / (1024 * 1024)); // Logs the total RAM on the system
