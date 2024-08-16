@@ -1,6 +1,7 @@
 package me.contaria.seedqueue;
 
 import com.google.gson.JsonParseException;
+import com.sun.management.OperatingSystemMXBean;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
@@ -18,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Predicate;
@@ -45,6 +47,10 @@ public class SeedQueue implements ClientModInitializer {
     public void onInitializeClient() {
         SeedQueueSounds.init();
 
+        if (Boolean.parseBoolean(System.getProperty("seedqueue.logSystemInfo", "true"))) {
+            logSystemInformation();
+        }
+
         if (config.useWatchdog) {
             Thread watchDog = new Thread(() -> {
                 try {
@@ -69,6 +75,23 @@ public class SeedQueue implements ClientModInitializer {
             watchDog.setName("SeedQueue WatchDog");
             watchDog.start();
         }
+    }
+
+    private static void logSystemInformation() {
+        // see GLX#_init
+        oshi.hardware.Processor[] processors = new oshi.SystemInfo().getHardware().getProcessors();
+        String cpuInfo = String.format("%dx %s", processors.length, processors[0]).replaceAll("\\s+", " ");
+
+        LOGGER.info("System Information (Logged by SeedQueue):");
+        LOGGER.info("Operating System: {}", System.getProperty("os.name"));
+        LOGGER.info("OS Version: {}", System.getProperty("os.version"));
+        LOGGER.info("CPU: {}", cpuInfo);
+        LOGGER.info("Java Version: {}", System.getProperty("java.version"));
+        LOGGER.info("JVM Arguments: {}", String.join(" ", ManagementFactory.getRuntimeMXBean().getInputArguments()));
+        LOGGER.info("Total Physical Memory (MB): {}", ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class).getTotalPhysicalMemorySize() / (1024 * 1024)); // Logs the total RAM on the system
+        LOGGER.info("Max Memory (MB): {}", Runtime.getRuntime().maxMemory() / (1024 * 1024));
+        LOGGER.info("Total Processors: {}", ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors()); // Logs the total number of processors (not affected by affinity)
+        LOGGER.info("Available Processors: {}", Runtime.getRuntime().availableProcessors()); // Logs the available number of processors (affected by affinity)
     }
 
     /**
