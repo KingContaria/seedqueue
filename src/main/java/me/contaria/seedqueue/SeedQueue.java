@@ -81,7 +81,7 @@ public class SeedQueue implements ClientModInitializer {
         LOGGER.info("System Information (Logged by SeedQueue):");
         LOGGER.info("Operating System: {}", System.getProperty("os.name"));
         LOGGER.info("OS Version: {}", System.getProperty("os.version"));
-        LOGGER.info("CPU: {}", cpuInfo);
+        LOGGER.info("CPU: {}", cpuInfo); // see GLX#_init
         LOGGER.info("Java Version: {}", System.getProperty("java.version"));
         LOGGER.info("JVM Arguments: {}", String.join(" ", ManagementFactory.getRuntimeMXBean().getInputArguments()));
         LOGGER.info("Total Physical Memory (MB): {}", ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class).getTotalPhysicalMemorySize() / (1024 * 1024)); // Logs the total RAM on the system
