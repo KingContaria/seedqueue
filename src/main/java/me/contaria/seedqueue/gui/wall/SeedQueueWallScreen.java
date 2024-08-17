@@ -498,7 +498,6 @@ public class SeedQueueWallScreen extends Screen {
         if (keyCode == GLFW.GLFW_KEY_ESCAPE && Screen.hasShiftDown()) {
             ModCompat.standardsettings$loadCache();
             Atum.stopRunning();
-            this.showFinishedBenchmarkResults = false;
             this.client.openScreen(new TitleScreen());
             return true;
         }
@@ -876,4 +875,11 @@ public class SeedQueueWallScreen extends Screen {
         return ((WorldRendererAccessor) worldRenderer).seedQueue$getWorld();
     }
 
+    @Override
+    public void removed() {
+        super.removed();
+        if (this.client != null) {
+            this.client.getToastManager().clear();
+        }
+    }
 }
