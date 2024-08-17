@@ -82,7 +82,7 @@ public class SeedQueueWallScreen extends Screen {
     protected int benchmarkedSeeds;
     protected int benchmarkGoal;
     protected long benchmarkFinish;
-    private boolean showFinishedBenchmarkResults;
+    protected boolean showFinishedBenchmarkResults;
 
     public SeedQueueWallScreen(Screen createWorldScreen) {
         super(LiteralText.EMPTY);
@@ -498,6 +498,7 @@ public class SeedQueueWallScreen extends Screen {
         if (keyCode == GLFW.GLFW_KEY_ESCAPE && Screen.hasShiftDown()) {
             ModCompat.standardsettings$loadCache();
             Atum.stopRunning();
+            this.showFinishedBenchmarkResults = false;
             this.client.openScreen(new TitleScreen());
             return true;
         }
@@ -538,6 +539,7 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         if (SeedQueueKeyBindings.play.matchesKey(keyCode, scanCode)) {
+            this.showFinishedBenchmarkResults = false;
             this.playInstance(instance);
         }
         if (SeedQueueKeyBindings.lock.matchesKey(keyCode, scanCode)) {
@@ -687,7 +689,6 @@ public class SeedQueueWallScreen extends Screen {
             this.resetInstance(instance, false, false, playSound);
         }
         this.blockedMainPositions.clear();
-        this.showFinishedBenchmarkResults = false;
     }
 
     private void focusReset(SeedQueuePreview instance) {
@@ -709,7 +710,6 @@ public class SeedQueueWallScreen extends Screen {
                 this.resetInstance(this.mainPreviews[i], false, false, playSound);
             }
         }
-        this.showFinishedBenchmarkResults = false;
     }
 
     private void resetRow(double mouseY) {
@@ -722,7 +722,6 @@ public class SeedQueueWallScreen extends Screen {
                 this.resetInstance(this.mainPreviews[i], false, false, playSound);
             }
         }
-        this.showFinishedBenchmarkResults = false;
     }
 
     private void playNextLock() {
@@ -808,10 +807,6 @@ public class SeedQueueWallScreen extends Screen {
 
     public boolean isBenchmarking() {
         return this.benchmarkedSeeds < this.benchmarkGoal;
-    }
-
-    public boolean shouldNotShowBenchmarkResults() {
-        return !this.showFinishedBenchmarkResults;
     }
 
     public static WorldRenderer getOrCreateWorldRenderer(ClientWorld world) {

@@ -26,7 +26,7 @@ public class SeedQueueBenchmarkToast implements Toast {
 
         this.finished |= !this.wall.isBenchmarking();
 
-        if (this.finished && !this.fadeOut && this.wall.shouldNotShowBenchmarkResults()) {
+        if (this.finished && !this.fadeOut && !this.wall.showFinishedBenchmarkResults) {
             this.fadeOut = true;
         }
 
