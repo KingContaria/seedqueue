@@ -82,6 +82,7 @@ public class SeedQueueWallScreen extends Screen {
     protected int benchmarkedSeeds;
     protected int benchmarkGoal;
     protected long benchmarkFinish;
+    private boolean showFinishedBenchmarkResults;
 
     public SeedQueueWallScreen(Screen createWorldScreen) {
         super(LiteralText.EMPTY);
@@ -647,6 +648,8 @@ public class SeedQueueWallScreen extends Screen {
         if (playSound) {
             this.playSound(SeedQueueSounds.RESET_INSTANCE);
         }
+        this.showFinishedBenchmarkResults = false;
+
         SeedQueueProfiler.pop();
         return true;
     }
@@ -684,6 +687,7 @@ public class SeedQueueWallScreen extends Screen {
             this.resetInstance(instance, false, false, playSound);
         }
         this.blockedMainPositions.clear();
+        this.showFinishedBenchmarkResults = false;
     }
 
     private void focusReset(SeedQueuePreview instance) {
@@ -705,6 +709,7 @@ public class SeedQueueWallScreen extends Screen {
                 this.resetInstance(this.mainPreviews[i], false, false, playSound);
             }
         }
+        this.showFinishedBenchmarkResults = false;
     }
 
     private void resetRow(double mouseY) {
@@ -717,6 +722,7 @@ public class SeedQueueWallScreen extends Screen {
                 this.resetInstance(this.mainPreviews[i], false, false, playSound);
             }
         }
+        this.showFinishedBenchmarkResults = false;
     }
 
     private void playNextLock() {
@@ -776,6 +782,7 @@ public class SeedQueueWallScreen extends Screen {
         this.benchmarkFinish = System.currentTimeMillis();
         SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds.", this.benchmarkedSeeds, Math.round((this.benchmarkFinish - this.benchmarkStart) / 10.0) / 100.0);
         this.playSound(SeedQueueSounds.FINISH_BENCHMARK);
+        this.showFinishedBenchmarkResults = true;
 
         // any worlds named Benchmark Reset #xxx are cleared after benchmark finishes
         this.clearSeedQueueForBenchmark();
@@ -801,6 +808,10 @@ public class SeedQueueWallScreen extends Screen {
 
     public boolean isBenchmarking() {
         return this.benchmarkedSeeds < this.benchmarkGoal;
+    }
+
+    public boolean shouldNotShowBenchmarkResults() {
+        return !this.showFinishedBenchmarkResults;
     }
 
     public static WorldRenderer getOrCreateWorldRenderer(ClientWorld world) {
