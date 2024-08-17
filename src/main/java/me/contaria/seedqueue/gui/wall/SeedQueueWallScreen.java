@@ -538,7 +538,6 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         if (SeedQueueKeyBindings.play.matchesKey(keyCode, scanCode)) {
-            this.showFinishedBenchmarkResults = false;
             this.playInstance(instance);
         }
         if (SeedQueueKeyBindings.lock.matchesKey(keyCode, scanCode)) {
@@ -877,9 +876,7 @@ public class SeedQueueWallScreen extends Screen {
 
     @Override
     public void removed() {
-        super.removed();
-        if (this.client != null) {
-            this.client.getToastManager().clear();
-        }
+        assert this.client != null;
+        this.client.getToastManager().clear();
     }
 }
