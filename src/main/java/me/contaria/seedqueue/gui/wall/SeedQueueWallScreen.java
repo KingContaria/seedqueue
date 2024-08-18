@@ -365,7 +365,9 @@ public class SeedQueueWallScreen extends Screen {
                 break;
             }
             if (this.mainPreviews[i] == null && !this.blockedMainPositions.contains(i)) {
+                SeedQueuePreview preview = this.preparingPreviews.get(0);
                 this.mainPreviews[i] = this.preparingPreviews.remove(0);
+                preview.resetCooldown();
 
                 if (this.mainPreviews[i].getSeedQueueEntry().mainPosition != -1) {
                     SeedQueue.LOGGER.warn("Main preview {} already assigned a position", i);
