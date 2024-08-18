@@ -37,11 +37,12 @@ public class SeedQueueThread extends Thread {
                     continue;
                 }
                 if (!SeedQueue.shouldGenerate() || SeedQueue.shouldResumeAfterQueueFull()) {
-                    if (!SeedQueue.shouldResumeGenerating() && !SeedQueue.noLockedRemaining()) {
+                    boolean shouldResumeGenerating = SeedQueue.shouldResumeGenerating();
+                    if (!shouldResumeGenerating && !SeedQueue.noLockedRemaining()) {
                         this.pauseSeedQueueEntry();
                         continue;
                     }
-                    if (SeedQueue.shouldResumeGenerating() && this.unpauseSeedQueueEntry()) {
+                    if (shouldResumeGenerating && this.unpauseSeedQueueEntry()) {
                         continue;
                     }
                     synchronized (this.lock) {

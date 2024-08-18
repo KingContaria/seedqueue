@@ -151,29 +151,40 @@ public class SeedQueue implements ClientModInitializer {
      */
     public static boolean shouldGenerate() {
         synchronized (LOCK) {
-            return getGeneratingCount() < getMaxGeneratingCount() && hasMoreCapacity();
+            return getGeneratingCount() < getMaxGeneratingCount() && !isFull();
         }
     }
 
     /**
-     * @return If the queue is not filled to capacity.
+     * @return If the queue is filled to capacity.
+     * @see SeedQueueConfig#maxCapacity
      */
-    public static boolean hasMoreCapacity() {
-        return SEED_QUEUE.size() < config.maxCapacity;
+    public static boolean isFull() {
+        return SEED_QUEUE.size() >= config.maxCapacity;
     }
 
     /**
      * @return If all {@link SeedQueueEntry} have reached the {@link SeedQueueConfig#maxWorldGenerationPercentage}.
      */
-    public static boolean noPrioritizedRemaining() {
-        return SEED_QUEUE.stream().noneMatch(entry -> entry.isPrioritized() && !entry.isLocked());
+    public static boolean allMaxWorldGenerationReached() {
+        for (SeedQueueEntry entry: SEED_QUEUE) {
+            if (!entry.isMaxWorldGenerationReached() && !entry.isLocked()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
      * @return If all {@link SeedQueueEntry} are not locked.
      */
     public static boolean noLockedRemaining() {
-        return SEED_QUEUE.stream().noneMatch(entry -> entry.isLocked() && !entry.isReady());
+        for (SeedQueueEntry entry: SEED_QUEUE) {
+            if (entry.isLocked() && !entry.isReady()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -188,12 +199,12 @@ public class SeedQueue implements ClientModInitializer {
     /**
      * @return If the {@link SeedQueueThread} should unpause a {@link SeedQueueEntry} that was previously scheduled to pause
      * (after the queue is filled).
-     * @see SeedQueue#hasMoreCapacity()
-     * @see SeedQueue#noPrioritizedRemaining()
+     * @see SeedQueue#isFull()
+     * @see SeedQueue#allMaxWorldGenerationReached()
      */
     public static boolean shouldResumeAfterQueueFull() {
        synchronized (LOCK) {
-           return config.resumeOnFilledQueue && !hasMoreCapacity() && noPrioritizedRemaining();
+           return config.resumeOnFilledQueue && isFull() && allMaxWorldGenerationReached();
        }
     }
 
@@ -224,7 +235,14 @@ public class SeedQueue implements ClientModInitializer {
      * @see SeedQueueConfig#shouldUseWall
      */
     private static long getGeneratingCount(boolean treatScheduledAsPaused) {
-        long count = SEED_QUEUE.stream().filter(entry -> !((treatScheduledAsPaused && entry.isScheduledToPause()) || entry.isPaused())).count();
+        long count = 0;
+        for (SeedQueueEntry entry: SEED_QUEUE) {
+            boolean isScheduled = treatScheduledAsPaused && entry.isScheduledToPause();
+            boolean isPaused = entry.isPaused();
+            if (!isPaused && !isScheduled) {
+                count ++;
+            }
+        }
 
         // add 1 when not using wall and the main world is currently generating
         MinecraftServer currentServer = MinecraftClient.getInstance().getServer();
