@@ -24,6 +24,8 @@
     "client.profiling.WorldRendererMixin",
     "client.render.LevelLoadingScreenMixin",
     "client.render.MinecraftClientMixin",
+    "client.sounds.SoundManagerMixin",
+    "client.sounds.SoundSystemMixin",
     "compat.atum.AttemptTrackerMixin",
     "compat.atum.AtumMixin",
     "compat.atum.CreateWorldScreenMixin",

@@ -597,7 +597,6 @@ public class SeedQueueWallScreen extends Screen {
             return;
         }
         this.playSound(SeedQueueSounds.PLAY_INSTANCE);
-        SeedQueue.comingFromWall = true;
         SeedQueue.selectedEntry = instance.getSeedQueueEntry();
         this.client.openScreen(this.createWorldScreen);
     }
@@ -605,7 +604,6 @@ public class SeedQueueWallScreen extends Screen {
     private void playInstance(SeedQueueEntry entry) {
         assert this.client != null;
         this.playSound(SeedQueueSounds.PLAY_INSTANCE);
-        SeedQueue.comingFromWall = true;
         SeedQueue.selectedEntry = entry;
         this.client.openScreen(this.createWorldScreen);
     }
