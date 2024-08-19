@@ -203,7 +203,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
     }
 
     public void resetCooldown() {
-        this.cooldownStart = System.currentTimeMillis();
+        this.cooldownStart = Long.MAX_VALUE;
     }
 
     public boolean canReset(boolean ignoreLock, boolean ignoreResetCooldown) {
