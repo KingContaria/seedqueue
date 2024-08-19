@@ -151,14 +151,14 @@ public class SeedQueueWallScreen extends Screen {
             SeedQueueProfiler.pop();
         }
 
+        SeedQueueProfiler.swap("reset");
+        this.resetViewport();
+        this.loadPreviewSettings(this.settingsCache, 0);
+
         if (this.overlay != null) {
             SeedQueueProfiler.swap("overlay");
             this.drawAnimatedTexture(this.overlay, matrices, 0, 0, this.width, this.height);
         }
-
-        SeedQueueProfiler.swap("reset");
-        this.resetViewport();
-        this.loadPreviewSettings(this.settingsCache, 0);
 
         if (this.debugHud != null) {
             SeedQueueProfiler.swap("fps_graph");
