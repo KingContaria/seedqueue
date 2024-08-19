@@ -425,6 +425,9 @@ public class SeedQueueWallScreen extends Screen {
         if (SeedQueueKeyBindings.playNextLock.matchesMouse(button)) {
             this.playNextLock();
         }
+        if (SeedQueueKeyBindings.scheduleAll.matchesMouse(button)) {
+            this.scheduleAll();
+        }
 
         SeedQueuePreview instance = this.getInstance(mouseX, mouseY);
         if (instance == null) {
@@ -483,14 +486,17 @@ public class SeedQueueWallScreen extends Screen {
         if (SeedQueueKeyBindings.resetAll.matchesKey(keyCode, scanCode)) {
             this.resetAllInstances();
         }
-        if (SeedQueueKeyBindings.playNextLock.matchesKey(keyCode, scanCode)) {
-            this.playNextLock();
-        }
         if (SeedQueueKeyBindings.resetColumn.matchesKey(keyCode, scanCode)) {
             this.resetColumn(mouseX);
         }
         if (SeedQueueKeyBindings.resetRow.matchesKey(keyCode, scanCode)) {
             this.resetRow(mouseY);
+        }
+        if (SeedQueueKeyBindings.playNextLock.matchesKey(keyCode, scanCode)) {
+            this.playNextLock();
+        }
+        if (SeedQueueKeyBindings.scheduleAll.matchesKey(keyCode, scanCode)) {
+            this.scheduleAll();
         }
 
         SeedQueuePreview instance = this.getInstance(mouseX, mouseY);
@@ -700,19 +706,38 @@ public class SeedQueueWallScreen extends Screen {
         SeedQueue.getEntryMatching(entry -> entry.isLocked() && entry.isReady()).ifPresent(this::playInstance);
     }
 
+    private void scheduleAll() {
+        this.playSound(SeedQueueSounds.SCHEDULE_ALL);
+        for (SeedQueueEntry entry : SeedQueue.getEntries()) {
+            if (!entry.isLocked()) {
+                continue;
+            }
+            this.scheduleJoin(entry);
+            if (entry.isLoaded()) {
+                break;
+            }
+        }
+    }
+
     private void scheduleJoin(SeedQueuePreview instance) {
-        if (!instance.hasPreviewRendered()) {
-            return;
+        if (instance.hasPreviewRendered()) {
+            this.lockInstance(instance);
+            if (this.scheduleJoin(instance.getSeedQueueEntry())) {
+                this.playSound(SeedQueueSounds.SCHEDULE_JOIN);
+            }
         }
-        SeedQueueEntry entry = instance.getSeedQueueEntry();
+    }
+
+    private boolean scheduleJoin(SeedQueueEntry entry) {
+        if (!entry.isLocked()) {
+            SeedQueue.LOGGER.warn("Tried to schedule join but entry isn't locked!");
+            return false;
+        }
         if (this.canPlayInstance(entry)) {
-            this.playInstance(instance);
-            return;
+            this.playInstance(entry);
+            return false;
         }
-        this.lockInstance(instance);
-        if (this.scheduledEntries.add(entry)) {
-            this.playSound(SeedQueueSounds.SCHEDULE_JOIN);
-        }
+        return this.scheduledEntries.add(entry);
     }
 
     public void joinScheduledInstance() {
