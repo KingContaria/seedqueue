@@ -44,7 +44,7 @@ public class SeedQueueEntry {
     private volatile boolean locked;
     private volatile boolean loaded;
     private volatile boolean discarded;
-    private volatile boolean maxWorldGenerationReached = false;
+    private volatile boolean maxWorldGenerationReached;
 
     /**
      * Stores the position (index) of the queue entry in the wall screen's main group.

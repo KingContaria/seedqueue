@@ -176,7 +176,7 @@ public class SeedQueue implements ClientModInitializer {
     }
 
     /**
-     * @return If all {@link SeedQueueEntry} are not locked.
+     * @return If all currently generating {@link SeedQueueEntry} are not locked.
      */
     public static boolean noLockedRemaining() {
         for (SeedQueueEntry entry: SEED_QUEUE) {
@@ -237,9 +237,7 @@ public class SeedQueue implements ClientModInitializer {
     private static long getGeneratingCount(boolean treatScheduledAsPaused) {
         long count = 0;
         for (SeedQueueEntry entry: SEED_QUEUE) {
-            boolean isScheduled = treatScheduledAsPaused && entry.isScheduledToPause();
-            boolean isPaused = entry.isPaused();
-            if (!isPaused && !isScheduled) {
+            if (!(entry.isPaused() || (treatScheduledAsPaused && entry.isScheduledToPause()))) {
                 count ++;
             }
         }
