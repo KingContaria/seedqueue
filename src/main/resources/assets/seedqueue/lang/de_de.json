@@ -99,7 +99,7 @@
   "speedrunapi.config.seedqueue.option.backgroundExecutorThreads.description": "Legt die Anzahl der Arbeiterthreads für Seeds, die in der Warteschlange in einer Welt generieren fest.\n§6Es wird empfohlen, diesen Wert nicht höher, als die Anzahl der Prozessoren die dein CPU hat zu setzen, aber nicht niedriger als die maximale Anzahl der generierten Seeds.",
   "speedrunapi.config.seedqueue.option.backgroundExecutorThreads.value.0": "Automatisch",
   "speedrunapi.config.seedqueue.option.backgroundExecutorThreadPriority": "Hintergrundarbeiter Priorität",
-  "speedrunapi.config.seedqueue.option.backgroundExecutorThreadPriority.description": "Legt die Thread Priorität für die Seedqueue Arbeiterthreads.",
+  "speedrunapi.config.seedqueue.option.backgroundExecutorThreadPriority.description": "Legt die Thread Priorität für die SeedQueue Arbeiterthreads.",
   "speedrunapi.config.seedqueue.option.wallExecutorThreads": "Wand Arbeiterthreads",
   "speedrunapi.config.seedqueue.option.wallExecutorThreads.description": "Legt die Anzahl von Arbeiterthreads für generierende Seeds in der Warteschlange auf der Wand fest.\n§6Es wird empfohlen, diesen Wert nicht höher als die Anzahl von Prozessoren, die dein CPU hat, zu setzen, aber nicht niedriger als die maximale Anzahl der Seeds auf der Wand.",
   "speedrunapi.config.seedqueue.option.wallExecutorThreads.value.0": "Automatisch",
