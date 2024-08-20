@@ -11,6 +11,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.Version;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.SaveLevelScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.server.MinecraftServer;
@@ -38,6 +39,7 @@ public class SeedQueue implements ClientModInitializer {
     private static final Queue<SeedQueueEntry> SEED_QUEUE = new LinkedBlockingQueue<>();
     private static SeedQueueThread thread;
 
+    public static final ThreadLocal<SeedQueueEntry> LOCAL_ENTRY = new ThreadLocal<>();
     public static SeedQueueEntry currentEntry;
     public static SeedQueueEntry selectedEntry;
 
@@ -364,19 +366,10 @@ public class SeedQueue implements ClientModInitializer {
     }
 
     /**
-     * @return The {@link SeedQueueEntry} corresponding to the given server thread.
+     * @return The {@link SeedQueueEntry} corresponding to the calling server thread. Returns {@link Optional#empty()} if called before the server has created it's {@link WorldGenerationProgressTracker} because that's when the field is set!
      */
-    public static Optional<SeedQueueEntry> getEntry(Thread serverThread) {
-        MinecraftServer server = MinecraftClient.getInstance().getServer();
-        if (server != null && server.getThread() == serverThread) {
-            return Optional.empty();
-        }
-        for (SeedQueueEntry entry : SEED_QUEUE) {
-            if (serverThread == entry.getServer().getThread()) {
-                return Optional.of(entry);
-            }
-        }
-        return Optional.empty();
+    public static Optional<SeedQueueEntry> getThreadLocalEntry() {
+        return Optional.ofNullable(LOCAL_ENTRY.get());
     }
 
     /**

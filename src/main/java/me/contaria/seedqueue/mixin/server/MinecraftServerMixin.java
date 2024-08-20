@@ -102,6 +102,17 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     }
 
     @Inject(
+            method = "loadWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/server/WorldGenerationProgressListenerFactory;create(I)Lnet/minecraft/server/WorldGenerationProgressListener;"
+            )
+    )
+    private void setThreadLocalSeedQueueEntry(CallbackInfo ci) {
+        this.seedQueue$getEntry().ifPresent(SeedQueue.LOCAL_ENTRY::set);
+    }
+
+    @Inject(
             method = "setupSpawn",
             at = @At(
                     value = "INVOKE",
