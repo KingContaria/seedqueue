@@ -110,7 +110,7 @@
   "speedrunapi.config.seedqueue.option.chunkUpdateThreads.value.0": "Automatisch",
   "speedrunapi.config.seedqueue.option.chunkUpdateThreadPriority": "Sodium Aktualisierung Priorität",
   "speedrunapi.config.seedqueue.option.chunkUpdateThreadPriority.description": "Legt die Thread Priorität für Sodium Chunk Aktualisierung Threads auf dem Wandbildschirm fest.",
-  "speedrunapi.config.seedqueue.option.reduceSchedulingBudget": "Gleichmäßiger Chunkbau",
+  "speedrunapi.config.seedqueue.option.reduceSchedulingBudget": "Flüssiger Chunkbau",
   "speedrunapi.config.seedqueue.option.reduceSchedulingBudget.description": "Verringert die Anzahl von geplanten Sodium chunk Neubauen pro Frame. Dies verbessert die Stabilität der Bildrate zu Kosten von langsameren Chunkladungen.",
   "speedrunapi.config.seedqueue.option.reduceLevelList": "Reduzierte Weltliste",
   "speedrunapi.config.seedqueue.option.reduceLevelList.description": "Versteckt Welten, die auf dem Wandbildschirm oder in der Vorschau neu gestartet wurden, in der Weltliste, um Verzögerungen zu vermeiden.",
