@@ -74,7 +74,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("chunkmap")
     @Config.Numbers.Whole.Bounds(max = Long.MAX_VALUE)
-    @Config.Numbers.TextField()
+    @Config.Numbers.TextField
     public long chunkMapFreezeTime = 160;
 
     @Config.Ignored
