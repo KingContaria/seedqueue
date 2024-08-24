@@ -47,8 +47,8 @@ public class SeedQueueConfig implements SpeedrunConfig {
     private SpeedrunConfigContainer<?> container;
 
     @Config.Category("queue")
-    @Config.Numbers.Whole.Bounds(min = 0, max = 30)
-    public int maxCapacity = 0;
+    @Config.Numbers.Whole.Bounds(min = -1, max = 30)
+    public int maxCapacity = -1;
 
     @Config.Category("queue")
     @Config.Numbers.Whole.Bounds(min = 0, max = 30)
@@ -182,6 +182,24 @@ public class SeedQueueConfig implements SpeedrunConfig {
     }
 
     /**
+     * Calculates a sane default for Max Queued Seeds if it's set to -1, works same as {@link SeedQueueConfig#AUTO}.
+     *
+     * @return The amount of Max Queued Seeds you can have for the amount of max RAM you've allocated.
+     */
+    public double getMaxCapacity() {
+        if (this.maxCapacity == -1) {
+            long maxRam = Runtime.getRuntime().maxMemory() / (1024 * 1024);
+            if ((maxRam - 2000) / 250 > 30) {
+                return 30;
+            }
+            else {
+                return Math.floor((double) (maxRam - 2000) / 250);
+            }
+        }
+        return this.maxCapacity;
+    }
+
+    /**
      * Returns the amount of threads the Background Executor should use according to {@link SeedQueueConfig#backgroundExecutorThreads}.
      * Calculates a good default based on {@link SeedQueueConfig#maxConcurrently} if set to {@link SeedQueueConfig#AUTO}.
      *
@@ -221,7 +239,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
     }
 
     public boolean shouldUseWall() {
-        return this.canUseWall && this.maxCapacity > 0 && this.useWall;
+        return this.canUseWall && this.getMaxCapacity() > 0 && this.useWall;
     }
 
     // see Window#calculateScaleFactor

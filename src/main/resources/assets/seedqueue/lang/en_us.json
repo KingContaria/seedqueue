@@ -50,6 +50,7 @@
 
   "speedrunapi.config.seedqueue.option.maxCapacity": "Max Queued Seeds",
   "speedrunapi.config.seedqueue.option.maxCapacity.description": "Maximum number of seeds that can be queued.\nOnce the limit is reached, no more seeds will be queued until the current seed has been reset.",
+  "speedrunapi.config.seedqueue.option.maxCapacity.value.-1": "Auto",
   "speedrunapi.config.seedqueue.option.maxConcurrently": "Max Generating Seeds",
   "speedrunapi.config.seedqueue.option.maxConcurrently.description": "Maximum number of seeds that can be generating at the same time.",
   "speedrunapi.config.seedqueue.option.maxConcurrently_onWall": "Max Generating Seeds (Wall)",

@@ -176,7 +176,7 @@ public class SeedQueue implements ClientModInitializer {
      */
     public static boolean shouldGenerate() {
         synchronized (LOCK) {
-            return getGeneratingCount() < getMaxGeneratingCount() && SEED_QUEUE.size() < config.maxCapacity;
+            return getGeneratingCount() < getMaxGeneratingCount() && SEED_QUEUE.size() < config.getMaxCapacity();
         }
     }
 
@@ -270,7 +270,7 @@ public class SeedQueue implements ClientModInitializer {
     }
 
     private static boolean shouldStart() {
-        return config.maxCapacity > 0 && (config.maxConcurrently > 0 || config.shouldUseWall());
+        return config.getMaxCapacity() > 0 && (config.maxConcurrently > 0 || config.shouldUseWall());
     }
 
     /**
@@ -412,7 +412,7 @@ public class SeedQueue implements ClientModInitializer {
         debugText.add("");
         debugText.add("SeedQueue v" + VERSION.getFriendlyString());
         debugText.add(String.join(", ",
-                "E: " + SEED_QUEUE.size() + "/" + SeedQueue.config.maxCapacity,
+                "E: " + SEED_QUEUE.size() + "/" + SeedQueue.config.getMaxCapacity(),
                 "C: " + SeedQueue.config.maxConcurrently
                         + (SeedQueue.config.shouldUseWall() ? " | " + SeedQueue.config.maxConcurrently_onWall : ""),
                 "W: " + (SeedQueue.config.backgroundExecutorThreads == SeedQueueConfig.AUTO ? "Auto" : SeedQueue.config.backgroundExecutorThreads)
