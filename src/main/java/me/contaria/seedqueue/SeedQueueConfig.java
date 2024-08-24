@@ -69,6 +69,14 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Numbers.Whole.Bounds(min = 1, max = 5)
     public int chunkMapScale = 2;
 
+    @Config.Category("chunkmap")
+    public boolean chunkMapShouldFreeze = false;
+
+    @Config.Category("chunkmap")
+    @Config.Numbers.Whole.Bounds(max = Long.MAX_VALUE)
+    @Config.Numbers.TextField()
+    public long chunkMapFreezeTime = 160;
+
     @Config.Ignored
     public final boolean canUseWall = ModCompat.HAS_WORLDPREVIEW && ModCompat.HAS_STANDARDSETTINGS && ModCompat.HAS_SODIUM;
 
