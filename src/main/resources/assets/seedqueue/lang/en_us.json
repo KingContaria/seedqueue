@@ -87,7 +87,7 @@
   "speedrunapi.config.seedqueue.option.previewFPS.value.255": "Unlimited",
   "speedrunapi.config.seedqueue.option.backgroundPreviews": "Background Previews",
   "speedrunapi.config.seedqueue.option.backgroundPreviews.description": "Builds previews in the background before they start being rendered, allowing for a smoother transition when loading a new preview onto the Wall Screen.",
-  "speedrunapi.config.seedqueue.option.backgroundPreviews.value.0": "Auto",
+  "speedrunapi.config.seedqueue.option.backgroundPreviews.value.-1": "Auto",
   "speedrunapi.config.seedqueue.option.freezeLockedPreviews": "Freeze Locked Previews",
   "speedrunapi.config.seedqueue.option.freezeLockedPreviews.description": "If enabled, locked previews will not be sent any new chunks and their preview will not be updated.",
   "speedrunapi.config.seedqueue.option.keyBindings": "Keybindings",

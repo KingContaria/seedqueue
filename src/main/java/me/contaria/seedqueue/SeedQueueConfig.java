@@ -28,6 +28,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Config class based on SpeedrunAPI, initialized on prelaunch.
@@ -105,8 +106,8 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int previewFPS = 15;
 
     @Config.Category("performance")
-    @Config.Numbers.Whole.Bounds(min = 0, max = 30)
-    public int backgroundPreviews = AUTO;
+    @Config.Numbers.Whole.Bounds(min = -1, max = 30)
+    public int backgroundPreviews = -1; // auto
 
     @Config.Category("performance")
     public boolean freezeLockedPreviews = false;
@@ -181,12 +182,11 @@ public class SeedQueueConfig implements SpeedrunConfig {
         SeedQueue.config = this;
     }
 
-    public int getBackgroundPreviews() {
-        if (this.backgroundPreviews == AUTO) {
-            int mainGroupSize = this.rows * this.columns;
-            return Math.min(mainGroupSize, this.maxCapacity - mainGroupSize);
+    public Optional<Integer> getBackgroundPreviews() {
+        if (this.backgroundPreviews == -1) {
+            return Optional.empty();
         }
-        return this.backgroundPreviews;
+        return Optional.of(this.backgroundPreviews);
     }
 
     /**
