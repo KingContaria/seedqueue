@@ -19,60 +19,83 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(WorldGenerationProgressTracker.class)
 public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGenerationProgressTracker {
-    @Shadow @Final private Long2ObjectOpenHashMap<ChunkStatus> chunkStatuses;
-    @Shadow @Final private WorldGenerationProgressLogger progressLogger;
-    @Shadow private ChunkPos spawnPos;
-    @Shadow @Final private int radius;
+    @Shadow @Final
+    private Long2ObjectOpenHashMap<ChunkStatus> chunkStatuses;
+    @Shadow @Final
+    private WorldGenerationProgressLogger progressLogger;
+    @Shadow
+    private ChunkPos spawnPos;
+    @Shadow @Final
+    private int radius;
 
-    @Unique private long creationTime = -1;
+    @Unique
+    private long creationTime = -1;
 
-    @Unique private boolean frozenStatesGathered = false;
-    @Unique private Long2ObjectOpenHashMap<ChunkStatus> frozenChunkStatuses;
-    @Unique private int frozenProgressPercentage;
-    @Unique private ChunkPos frozenSpawnPos;
+    @Unique
+    private boolean frozenStatesGathered = false;
+    @Unique
+    private Long2ObjectOpenHashMap<ChunkStatus> frozenChunkStatuses;
+    @Unique
+    private int frozenProgressPercentage;
+    @Unique
+    private ChunkPos frozenSpawnPos;
 
-    @Unique private boolean unfrozen = false;
+    @Unique
+    private boolean unfrozen = false;
 
-    @Inject(method = "start()V", at = @At("TAIL"))
+    @Inject(
+            method = "start()V",
+            at = @At("TAIL")
+    )
     private void onStart(CallbackInfo ci) {
         this.creationTime = Util.getMeasuringTimeMs();
     }
 
-    @Inject(method = "setChunkStatus", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/WorldGenerationProgressLogger;setChunkStatus(Lnet/minecraft/util/math/ChunkPos;Lnet/minecraft/world/chunk/ChunkStatus;)V", shift = At.Shift.BEFORE))
+    @Inject(
+            method = "setChunkStatus",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/server/WorldGenerationProgressLogger;setChunkStatus(Lnet/minecraft/util/math/ChunkPos;Lnet/minecraft/world/chunk/ChunkStatus;)V",
+                    shift = At.Shift.BEFORE
+            )
+    )
     private void onSetChunkStatus(ChunkPos pos, ChunkStatus status, CallbackInfo ci) {
-        if (SeedQueue.config.chunkMapShouldFreeze && !isFrozen() && isPastFreezingTime()) {
+        if (SeedQueue.config.chunkMapShouldFreeze && !this.isFrozen() && this.isPastFreezingTime()) {
             this.freezeHere();
         }
     }
 
 
-    @Inject(method = "getChunkStatus", at = @At("HEAD"), cancellable = true)
+    @Inject(
+            method = "getChunkStatus", at = @At("HEAD"),
+            cancellable = true
+    )
     private void giveFrozenChunkStatus(int x, int z, CallbackInfoReturnable<ChunkStatus> cir) {
         if (this.isFrozen()) {
-            cir.setReturnValue(frozenChunkStatuses.get(ChunkPos.toLong(x + this.frozenSpawnPos.x - this.radius, z + this.frozenSpawnPos.z - this.radius)));
+            cir.setReturnValue(this.frozenChunkStatuses.get(ChunkPos.toLong(x + this.frozenSpawnPos.x - this.radius, z + this.frozenSpawnPos.z - this.radius)));
         }
     }
 
     @Unique
     private boolean isPastFreezingTime() {
-        return creationTime != -1 && Util.getMeasuringTimeMs() - this.creationTime > SeedQueue.config.chunkMapFreezeTime;
+        return this.creationTime != -1 && Util.getMeasuringTimeMs() - this.creationTime > SeedQueue.config.chunkMapFreezeTime;
     }
 
     @Unique
     private boolean isFrozen() {
-        return !unfrozen && frozenStatesGathered;
+        return !this.unfrozen && this.frozenStatesGathered;
     }
 
     @Unique
     private void freezeHere() {
-        frozenChunkStatuses = new Long2ObjectOpenHashMap<>(chunkStatuses);
-        frozenProgressPercentage = this.progressLogger.getProgressPercentage();
-        frozenSpawnPos = spawnPos;
-        frozenStatesGathered = true;
+        this.frozenChunkStatuses = new Long2ObjectOpenHashMap<>(this.chunkStatuses);
+        this.frozenProgressPercentage = this.progressLogger.getProgressPercentage();
+        this.frozenSpawnPos = this.spawnPos;
+        this.frozenStatesGathered = true;
     }
 
     @Override
     public void seedQueue$unfreeze() {
-        unfrozen = true;
+        this.unfrozen = true;
     }
 }
