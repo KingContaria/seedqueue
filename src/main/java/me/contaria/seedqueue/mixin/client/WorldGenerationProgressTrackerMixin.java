@@ -67,7 +67,8 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
 
 
     @Inject(
-            method = "getChunkStatus", at = @At("HEAD"),
+            method = "getChunkStatus",
+            at = @At("HEAD"),
             cancellable = true
     )
     private void giveFrozenChunkStatus(int x, int z, CallbackInfoReturnable<ChunkStatus> cir) {
