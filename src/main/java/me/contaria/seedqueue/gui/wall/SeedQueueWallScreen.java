@@ -407,7 +407,7 @@ public class SeedQueueWallScreen extends Screen {
             int mainGroupSize = this.layout.main.size();
             int preparingGroupSize = Layout.Group.totalSize(this.layout.preparing);
 
-            return Math.min(mainGroupSize + preparingGroupSize, SeedQueue.config.maxCapacity - mainGroupSize);
+            return Math.min(Math.max(mainGroupSize, preparingGroupSize), SeedQueue.config.maxCapacity - mainGroupSize);
         });
     }
 
