@@ -182,13 +182,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
         SeedQueue.config = this;
     }
 
-    public Optional<Integer> getBackgroundPreviews() {
-        if (this.backgroundPreviews == -1) {
-            return Optional.empty();
-        }
-        return Optional.of(this.backgroundPreviews);
-    }
-
     /**
      * Returns the amount of threads the Background Executor should use according to {@link SeedQueueConfig#backgroundExecutorThreads}.
      * Calculates a good default based on {@link SeedQueueConfig#maxConcurrently} if set to {@link SeedQueueConfig#AUTO}.

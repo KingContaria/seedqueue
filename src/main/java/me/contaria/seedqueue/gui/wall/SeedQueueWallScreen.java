@@ -403,12 +403,13 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private int getBackgroundPreviews() {
-        return SeedQueue.config.getBackgroundPreviews().orElseGet(() -> {
+        if (SeedQueue.config.backgroundPreviews == -1) {
             int mainGroupSize = this.layout.main.size();
             int preparingGroupSize = Layout.Group.totalSize(this.layout.preparing);
 
             return Math.min(Math.max(mainGroupSize, preparingGroupSize), SeedQueue.config.maxCapacity - mainGroupSize);
-        });
+        }
+        return SeedQueue.config.backgroundPreviews;
     }
 
     private List<SeedQueueEntry> getAvailableSeedQueueEntries() {
