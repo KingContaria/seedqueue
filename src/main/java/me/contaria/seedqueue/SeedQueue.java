@@ -52,9 +52,6 @@ public class SeedQueue implements ClientModInitializer {
         if (Boolean.parseBoolean(System.getProperty("seedqueue.logSystemInfo", "true"))) {
             logSystemInformation();
         }
-        if (Boolean.parseBoolean(System.getProperty("seedqueue.checkRamAllocation", "true"))) {
-            checkRamAllocation();
-        }
 
         if (config.useWatchdog) {
             Thread watchDog = new Thread(() -> {
@@ -97,17 +94,6 @@ public class SeedQueue implements ClientModInitializer {
         LOGGER.info("Max Memory (MB): {}", Runtime.getRuntime().maxMemory() / (1024 * 1024));
         LOGGER.info("Total Processors: {}", ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors()); // Logs the total number of processors (not affected by affinity)
         LOGGER.info("Available Processors: {}", Runtime.getRuntime().availableProcessors()); // Logs the available number of processors (affected by affinity)
-    }
-
-    private static void checkRamAllocation() {
-        int recommendedMaxRam = 2000 + (config.maxCapacity * 250);
-        long difference = Math.abs((Runtime.getRuntime().maxMemory() / (1024 * 1024)) - recommendedMaxRam);
-
-        // Check offset of Max RAM from recommendedMaxRam to tolerate AA-like categories
-        // where your RAM allocation needs to be 1000 MB above due to high render distance, etc
-        if (difference > 1100) {
-            LOGGER.warn("SeedQueue (warning): Your current max allocated RAM ({} MB) is off by {} MB from our recommended max RAM allocation. It is recommended to set it to {} MB.", Runtime.getRuntime().maxMemory() / (1024 * 1024), difference, recommendedMaxRam);
-        }
     }
 
     /**
