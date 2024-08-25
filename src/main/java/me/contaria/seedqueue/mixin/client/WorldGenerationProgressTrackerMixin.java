@@ -53,13 +53,6 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
         }
     }
 
-    @Inject(method = "getProgressPercentage", at = @At("HEAD"), cancellable = true)
-    private void giveFrozenProgressPercentage(CallbackInfoReturnable<Integer> cir) {
-        if (this.isFrozen()) {
-            cir.setReturnValue(frozenProgressPercentage);
-        }
-    }
-
     @Unique
     private boolean isPastFreezingTime() {
         return creationTime != -1 && Util.getMeasuringTimeMs() - this.creationTime > SeedQueue.config.chunkMapFreezeTime;
