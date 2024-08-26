@@ -13,7 +13,9 @@ import net.minecraft.client.gui.screen.ConfirmScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ScreenTexts;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.gui.widget.SliderWidget;
 import net.minecraft.text.StringRenderable;
+import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.Nullable;
 import org.mcsr.speedrunapi.config.SpeedrunConfigAPI;
@@ -22,6 +24,8 @@ import org.mcsr.speedrunapi.config.api.SpeedrunConfig;
 import org.mcsr.speedrunapi.config.api.SpeedrunOption;
 import org.mcsr.speedrunapi.config.api.annotations.Config;
 import org.mcsr.speedrunapi.config.api.annotations.InitializeOn;
+import org.mcsr.speedrunapi.config.option.WholeNumberOption;
+import org.mcsr.speedrunapi.config.screen.widgets.option.WholeNumberOptionSliderWidget;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -68,14 +72,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Category("chunkmap")
     @Config.Numbers.Whole.Bounds(min = 1, max = 5)
     public int chunkMapScale = 2;
-
-    @Config.Category("chunkmap")
-    public boolean chunkMapShouldFreeze = false;
-
-    @Config.Category("chunkmap")
-    @Config.Numbers.Whole.Bounds(max = Long.MAX_VALUE)
-    @Config.Numbers.TextField
-    public long chunkMapFreezeTime = 160;
 
     @Config.Ignored
     public final boolean canUseWall = ModCompat.HAS_WORLDPREVIEW && ModCompat.HAS_STANDARDSETTINGS && ModCompat.HAS_SODIUM;
@@ -124,6 +120,10 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("performance")
     public boolean reduceLevelList = true;
+
+    @Config.Category("misc")
+    @Config.Numbers.Whole.Bounds(min=-1, max = 500)
+    public long chunkMapFreezing = -1;
 
     @Config.Category("advanced")
     public boolean showAdvancedSettings = false;

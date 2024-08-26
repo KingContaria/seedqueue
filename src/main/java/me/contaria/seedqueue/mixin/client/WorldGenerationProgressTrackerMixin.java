@@ -1,7 +1,6 @@
 package me.contaria.seedqueue.mixin.client;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressTracker;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.server.WorldGenerationProgressLogger;
@@ -21,35 +20,22 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGenerationProgressTracker {
     @Shadow @Final
     private Long2ObjectOpenHashMap<ChunkStatus> chunkStatuses;
-    @Shadow @Final
-    private WorldGenerationProgressLogger progressLogger;
     @Shadow
     private ChunkPos spawnPos;
     @Shadow @Final
     private int radius;
 
     @Unique
-    private long creationTime = -1;
+    private long freezeTime = -1;
 
     @Unique
     private boolean frozenStatesGathered = false;
     @Unique
     private Long2ObjectOpenHashMap<ChunkStatus> frozenChunkStatuses;
-    @Unique
-    private int frozenProgressPercentage;
+//    @Unique
+//    private int frozenProgressPercentage;
     @Unique
     private ChunkPos frozenSpawnPos;
-
-    @Unique
-    private boolean unfrozen = false;
-
-    @Inject(
-            method = "start()V",
-            at = @At("TAIL")
-    )
-    private void onStart(CallbackInfo ci) {
-        this.creationTime = Util.getMeasuringTimeMs();
-    }
 
     @Inject(
             method = "setChunkStatus",
@@ -60,7 +46,7 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
             )
     )
     private void onSetChunkStatus(ChunkPos pos, ChunkStatus status, CallbackInfo ci) {
-        if (SeedQueue.config.chunkMapShouldFreeze && !this.isFrozen() && this.isPastFreezingTime()) {
+        if (!this.isFrozen() && this.isPastFreezingTime()) {
             this.freezeHere();
         }
     }
@@ -79,24 +65,31 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
 
     @Unique
     private boolean isPastFreezingTime() {
-        return this.creationTime != -1 && Util.getMeasuringTimeMs() - this.creationTime > SeedQueue.config.chunkMapFreezeTime;
+        return this.freezeTime != -1 && Util.getMeasuringTimeMs() > this.freezeTime;
     }
 
     @Unique
     private boolean isFrozen() {
-        return !this.unfrozen && this.frozenStatesGathered;
+        return this.frozenStatesGathered;
     }
 
     @Unique
     private void freezeHere() {
         this.frozenChunkStatuses = new Long2ObjectOpenHashMap<>(this.chunkStatuses);
-        this.frozenProgressPercentage = this.progressLogger.getProgressPercentage();
+//        this.frozenProgressPercentage = this.progressLogger.getProgressPercentage();
         this.frozenSpawnPos = this.spawnPos;
         this.frozenStatesGathered = true;
     }
 
     @Override
+    public void seedQueue$freezeAfterMillis(long millis) {
+        this.freezeTime = Util.getMeasuringTimeMs() + millis;
+
+    }
+
+    @Override
     public void seedQueue$unfreeze() {
-        this.unfrozen = true;
+        this.freezeTime = -1;
+        this.frozenStatesGathered = false;
     }
 }
