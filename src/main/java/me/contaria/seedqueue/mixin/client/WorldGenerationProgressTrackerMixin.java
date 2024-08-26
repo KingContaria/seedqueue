@@ -7,6 +7,7 @@ import net.minecraft.server.WorldGenerationProgressLogger;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.ChunkStatus;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,17 +26,14 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     @Shadow @Final
     private int radius;
 
+    @Shadow @Final private WorldGenerationProgressLogger progressLogger;
     @Unique
     private long freezeTime = -1;
+    @Unique
+    WorldGenerationProgressTracker frozenCopy = null;
 
     @Unique
-    private boolean frozenStatesGathered = false;
-    @Unique
-    private Long2ObjectOpenHashMap<ChunkStatus> frozenChunkStatuses;
-//    @Unique
-//    private int frozenProgressPercentage;
-    @Unique
-    private ChunkPos frozenSpawnPos;
+    private int progressOverride = -1; // Overrides the returned progress percentage if equal to anything other than -1
 
     @Inject(
             method = "setChunkStatus",
@@ -46,21 +44,26 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
             )
     )
     private void onSetChunkStatus(ChunkPos pos, ChunkStatus status, CallbackInfo ci) {
-        if (!this.isFrozen() && this.isPastFreezingTime()) {
-            this.freezeHere();
+        if (this.frozenCopy == null && this.isPastFreezingTime()) {
+            this.makeFrozenCopy();
         }
     }
 
-
     @Inject(
-            method = "getChunkStatus",
+            method = "getProgressPercentage",
             at = @At("HEAD"),
             cancellable = true
     )
-    private void giveFrozenChunkStatus(int x, int z, CallbackInfoReturnable<ChunkStatus> cir) {
-        if (this.isFrozen()) {
-            cir.setReturnValue(this.frozenChunkStatuses.get(ChunkPos.toLong(x + this.frozenSpawnPos.x - this.radius, z + this.frozenSpawnPos.z - this.radius)));
+    private void replaceProgressPercentage(CallbackInfoReturnable<Integer> cir) {
+        if (this.progressOverride != -1) {
+            cir.setReturnValue(this.progressOverride);
         }
+    }
+
+    @Unique
+    private void makeFrozenCopy() {
+        this.frozenCopy = new WorldGenerationProgressTracker(this.radius - ChunkStatus.getMaxTargetGenerationRadius());
+        ((SQWorldGenerationProgressTracker) this.frozenCopy).seedQueue$setAsFrozenCopy(this.chunkStatuses, this.spawnPos, this.progressLogger.getProgressPercentage());
     }
 
     @Unique
@@ -68,28 +71,20 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
         return this.freezeTime != -1 && Util.getMeasuringTimeMs() > this.freezeTime;
     }
 
-    @Unique
-    private boolean isFrozen() {
-        return this.frozenStatesGathered;
-    }
-
-    @Unique
-    private void freezeHere() {
-        this.frozenChunkStatuses = new Long2ObjectOpenHashMap<>(this.chunkStatuses);
-//        this.frozenProgressPercentage = this.progressLogger.getProgressPercentage();
-        this.frozenSpawnPos = this.spawnPos;
-        this.frozenStatesGathered = true;
-    }
-
     @Override
-    public void seedQueue$freezeAfterMillis(long millis) {
+    public void seedQueue$makeFrozenCopyAfter(long millis) {
         this.freezeTime = Util.getMeasuringTimeMs() + millis;
-
     }
 
     @Override
-    public void seedQueue$unfreeze() {
-        this.freezeTime = -1;
-        this.frozenStatesGathered = false;
+    public void seedQueue$setAsFrozenCopy(Long2ObjectOpenHashMap<ChunkStatus> chunkStatuses, ChunkPos spawnPos, int progressPercentage) {
+        this.chunkStatuses.putAll(chunkStatuses);
+        this.spawnPos = spawnPos;
+        this.progressOverride = progressPercentage;
+    }
+
+    @Override
+    public @Nullable WorldGenerationProgressTracker seedQueue$getFrozenCopy() {
+        return this.frozenCopy;
     }
 }
