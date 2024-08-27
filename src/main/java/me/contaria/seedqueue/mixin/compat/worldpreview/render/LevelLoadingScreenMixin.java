@@ -143,6 +143,8 @@ public abstract class LevelLoadingScreenMixin {
     )
     private WorldGenerationProgressTracker replaceChunkMap(WorldGenerationProgressTracker progress) {
         if (!SeedQueue.isOnWall()) return progress;
+        Optional<SeedQueuePreview> seedQueuePreview = getAsSeedQueuePreview();
+        if (!seedQueuePreview.isPresent() || seedQueuePreview.get().getSeedQueueEntry().isLocked()) return progress;
         return ((SQWorldGenerationProgressTracker) progress).seedQueue$getFrozenCopy().orElse(progress);
     }
 }
