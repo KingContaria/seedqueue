@@ -4,7 +4,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressTracker;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
-import net.minecraft.server.WorldGenerationProgressLogger;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.ChunkStatus;
@@ -28,7 +27,6 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     @Shadow @Final
     private int radius;
 
-    @Shadow @Final private WorldGenerationProgressLogger progressLogger;
     @Unique
     private long freezeTime = -1;
     @Unique
@@ -62,7 +60,7 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     @Unique
     private void makeFrozenCopy() {
         WorldGenerationProgressTracker frozenCopy = new WorldGenerationProgressTracker(this.radius - ChunkStatus.getMaxTargetGenerationRadius()); // This will trigger a makeFrozenCopyAfter inside the frozen copy itself which could lead to further recursion, but as long as setChunkStatus isn't called, this will never be an issue.
-        ((WorldGenerationProgressTrackerMixin) (Object) frozenCopy).setAsFrozenCopy(this.chunkStatuses, this.spawnPos, this.progressLogger.getProgressPercentage());
+        ((WorldGenerationProgressTrackerMixin) (Object) frozenCopy).setAsFrozenCopy(this.chunkStatuses, this.spawnPos);
         this.frozenCopy = frozenCopy;
     }
 
@@ -77,7 +75,7 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     }
 
     @Unique
-    private void setAsFrozenCopy(Long2ObjectOpenHashMap<ChunkStatus> chunkStatuses, ChunkPos spawnPos, int progressPercentage) {
+    private void setAsFrozenCopy(Long2ObjectOpenHashMap<ChunkStatus> chunkStatuses, ChunkPos spawnPos) {
         this.chunkStatuses.putAll(chunkStatuses);
         this.spawnPos = spawnPos;
     }
