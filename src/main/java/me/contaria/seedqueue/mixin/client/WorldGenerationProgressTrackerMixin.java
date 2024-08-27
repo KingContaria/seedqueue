@@ -16,7 +16,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Optional;
 
@@ -73,12 +72,12 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     }
 
     @Unique
-    public void makeFrozenCopyAfter(long millis) {
+    private void makeFrozenCopyAfter(long millis) {
         this.freezeTime = Util.getMeasuringTimeMs() + millis;
     }
 
     @Unique
-    public void setAsFrozenCopy(Long2ObjectOpenHashMap<ChunkStatus> chunkStatuses, ChunkPos spawnPos, int progressPercentage) {
+    private void setAsFrozenCopy(Long2ObjectOpenHashMap<ChunkStatus> chunkStatuses, ChunkPos spawnPos, int progressPercentage) {
         this.chunkStatuses.putAll(chunkStatuses);
         this.spawnPos = spawnPos;
     }
