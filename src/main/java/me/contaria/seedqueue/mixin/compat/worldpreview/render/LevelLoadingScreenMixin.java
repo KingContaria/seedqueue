@@ -3,7 +3,6 @@ package me.contaria.seedqueue.mixin.compat.worldpreview.render;
 import com.bawnorton.mixinsquared.TargetHandler;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.compat.WorldPreviewCompat;
 import me.contaria.seedqueue.compat.WorldPreviewFrameBuffer;
 import me.contaria.seedqueue.gui.wall.SeedQueuePreview;
@@ -142,8 +141,7 @@ public abstract class LevelLoadingScreenMixin {
             index = 1
     )
     private WorldGenerationProgressTracker replaceChunkMap(WorldGenerationProgressTracker progress) {
-        if (!SeedQueue.isOnWall()) return progress;
-        Optional<SeedQueuePreview> seedQueuePreview = getAsSeedQueuePreview();
+        Optional<SeedQueuePreview> seedQueuePreview = this.getAsSeedQueuePreview();
         if (!seedQueuePreview.isPresent() || seedQueuePreview.get().getSeedQueueEntry().isLocked()) return progress;
         return ((SQWorldGenerationProgressTracker) progress).seedQueue$getFrozenCopy().orElse(progress);
     }
