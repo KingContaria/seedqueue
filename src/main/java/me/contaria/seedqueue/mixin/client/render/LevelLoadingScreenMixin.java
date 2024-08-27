@@ -97,6 +97,7 @@ public abstract class LevelLoadingScreenMixin {
             index = 1
     )
     private WorldGenerationProgressTracker replaceChunkMap(WorldGenerationProgressTracker progress) {
+        if (!SeedQueue.isOnWall()) return progress;
         return ((SQWorldGenerationProgressTracker) progress).seedQueue$getFrozenCopy().orElse(progress);
     }
 }
