@@ -20,11 +20,13 @@ import java.util.Optional;
 
 @Mixin(WorldGenerationProgressTracker.class)
 public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGenerationProgressTracker {
-    @Shadow @Final
+    @Shadow
+    @Final
     private Long2ObjectOpenHashMap<ChunkStatus> chunkStatuses;
     @Shadow
     private ChunkPos spawnPos;
-    @Shadow @Final
+    @Shadow
+    @Final
     private int radius;
 
     @Unique
