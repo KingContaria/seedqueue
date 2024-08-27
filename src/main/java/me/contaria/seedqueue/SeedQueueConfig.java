@@ -118,7 +118,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean reduceLevelList = true;
 
     @Config.Category("misc")
-    @Config.Numbers.Whole.Bounds(min=-1, max = 500)
+    @Config.Numbers.Whole.Bounds(min = -1, max = 500, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
     public long chunkMapFreezing = -1;
 
     @Config.Category("advanced")
