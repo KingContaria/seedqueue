@@ -54,8 +54,7 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
             method = "setChunkStatus",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/server/WorldGenerationProgressLogger;setChunkStatus(Lnet/minecraft/util/math/ChunkPos;Lnet/minecraft/world/chunk/ChunkStatus;)V",
-                    shift = At.Shift.BEFORE
+                    target = "Lnet/minecraft/server/WorldGenerationProgressLogger;setChunkStatus(Lnet/minecraft/util/math/ChunkPos;Lnet/minecraft/world/chunk/ChunkStatus;)V"
             )
     )
     private void onSetChunkStatus(ChunkPos pos, ChunkStatus status, CallbackInfo ci) {
