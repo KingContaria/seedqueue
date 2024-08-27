@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueConfig;
 import me.contaria.seedqueue.gui.wall.SeedQueuePreview;
-import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressTracker;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.LevelLoadingScreen;
 import net.minecraft.client.util.math.MatrixStack;
@@ -86,18 +85,5 @@ public abstract class LevelLoadingScreenMixin {
     )
     private static int transparentSeedQueueChunkMap_sodium(int color, @Share("colorModifier") LocalIntRef colorModifier) {
         return color & colorModifier.get();
-    }
-
-    @ModifyArg(
-            method = "render",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/screen/LevelLoadingScreen;drawChunkMap(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/gui/WorldGenerationProgressTracker;IIII)V"
-            ),
-            index = 1
-    )
-    private WorldGenerationProgressTracker replaceChunkMap(WorldGenerationProgressTracker progress) {
-        if (!SeedQueue.isOnWall()) return progress;
-        return ((SQWorldGenerationProgressTracker) progress).seedQueue$getFrozenCopy().orElse(progress);
     }
 }
