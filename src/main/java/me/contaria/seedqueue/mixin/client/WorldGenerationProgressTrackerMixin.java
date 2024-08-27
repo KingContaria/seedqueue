@@ -37,7 +37,7 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
             method = "<init>",
             at = @At("TAIL")
     )
-    private void markFreezeTimeStart(int radius, CallbackInfo ci) {
+    private void markFreezeTimeStart(CallbackInfo ci) {
         long chunkMapFreezingTime = SeedQueue.config.chunkMapFreezing;
         if (chunkMapFreezingTime != -1 && this.freezeTime == -1) {
             this.makeFrozenCopyAfter(chunkMapFreezingTime);
@@ -51,7 +51,7 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
                     target = "Lnet/minecraft/server/WorldGenerationProgressLogger;setChunkStatus(Lnet/minecraft/util/math/ChunkPos;Lnet/minecraft/world/chunk/ChunkStatus;)V"
             )
     )
-    private void onSetChunkStatus(ChunkPos pos, ChunkStatus status, CallbackInfo ci) {
+    private void onSetChunkStatus(CallbackInfo ci) {
         if (this.frozenCopy == null && this.isPastFreezingTime()) {
             this.makeFrozenCopy();
         }
