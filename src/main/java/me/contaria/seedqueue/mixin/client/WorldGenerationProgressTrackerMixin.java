@@ -33,7 +33,7 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     private long freezeTime = -1;
     @Unique
     @Nullable
-    WorldGenerationProgressTracker frozenCopy = null;
+    private WorldGenerationProgressTracker frozenCopy = null;
 
     @Inject(
             method = "<init>",
