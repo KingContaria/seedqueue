@@ -36,9 +36,6 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     @Nullable
     WorldGenerationProgressTracker frozenCopy = null;
 
-    @Unique
-    private int progressOverride = -1; // Overrides the returned progress percentage if equal to anything other than -1
-
     @Inject(
             method = "<init>",
             at = @At("TAIL")
@@ -63,17 +60,6 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
         }
     }
 
-    @Inject(
-            method = "getProgressPercentage",
-            at = @At("HEAD"),
-            cancellable = true
-    )
-    private void replaceProgressPercentage(CallbackInfoReturnable<Integer> cir) {
-        if (this.progressOverride != -1) {
-            cir.setReturnValue(this.progressOverride);
-        }
-    }
-
     @Unique
     private void makeFrozenCopy() {
         WorldGenerationProgressTracker frozenCopy = new WorldGenerationProgressTracker(this.radius - ChunkStatus.getMaxTargetGenerationRadius()); // This will trigger a makeFrozenCopyAfter inside the frozen copy itself which could lead to further recursion, but as long as setChunkStatus isn't called, this will never be an issue.
@@ -95,7 +81,6 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     public void setAsFrozenCopy(Long2ObjectOpenHashMap<ChunkStatus> chunkStatuses, ChunkPos spawnPos, int progressPercentage) {
         this.chunkStatuses.putAll(chunkStatuses);
         this.spawnPos = spawnPos;
-        this.progressOverride = progressPercentage;
     }
 
     @Override
