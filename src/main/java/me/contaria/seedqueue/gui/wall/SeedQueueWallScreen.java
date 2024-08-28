@@ -82,6 +82,7 @@ public class SeedQueueWallScreen extends Screen {
     protected int benchmarkedSeeds;
     protected int benchmarkGoal;
     protected long benchmarkFinish;
+    protected boolean showFinishedBenchmarkResults;
 
     public SeedQueueWallScreen(Screen createWorldScreen) {
         super(LiteralText.EMPTY);
@@ -648,6 +649,8 @@ public class SeedQueueWallScreen extends Screen {
         if (playSound) {
             this.playSound(SeedQueueSounds.RESET_INSTANCE);
         }
+        this.showFinishedBenchmarkResults = false;
+
         SeedQueueProfiler.pop();
         return true;
     }
@@ -777,6 +780,7 @@ public class SeedQueueWallScreen extends Screen {
         this.benchmarkFinish = System.currentTimeMillis();
         SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds.", this.benchmarkedSeeds, Math.round((this.benchmarkFinish - this.benchmarkStart) / 10.0) / 100.0);
         this.playSound(SeedQueueSounds.FINISH_BENCHMARK);
+        this.showFinishedBenchmarkResults = true;
 
         // any worlds named Benchmark Reset #xxx are cleared after benchmark finishes
         this.clearSeedQueueForBenchmark();
@@ -871,4 +875,9 @@ public class SeedQueueWallScreen extends Screen {
         return ((WorldRendererAccessor) worldRenderer).seedQueue$getWorld();
     }
 
+    @Override
+    public void removed() {
+        assert this.client != null;
+        this.client.getToastManager().clear();
+    }
 }
