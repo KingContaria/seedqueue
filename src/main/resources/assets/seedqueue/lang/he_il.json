@@ -1,6 +1,5 @@
 {
-  "seedqueue.menu.clearing": "מנקה... ",
-
+  "seedqueue.menu.clearing": "מנקה עולמות SeedQueue... ",
   "seedqueue.menu.crash.title": "SeedQueue קרס ",
   "seedqueue.menu.crash.description":  "  קרס עם %s, תבדוק בקונסולה ליותר מידע ",
 
