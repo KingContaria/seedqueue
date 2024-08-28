@@ -44,5 +44,13 @@
   "finish_benchmark": {
     "sounds": [
     ]
+  },
+  "open_wall": {
+    "sounds": [
+    ]
+  },
+  "bypass_wall": {
+    "sounds": [
+    ]
   }
 }

@@ -4,6 +4,7 @@ import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
+import me.contaria.seedqueue.sounds.SeedQueueSounds;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.gui.screen.Screen;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,11 +33,13 @@ public abstract class AtumMixin {
                 Optional<SeedQueueEntry> nextSeedQueueEntry = SeedQueue.getEntryMatching(entry -> entry.isReady() && entry.isLocked());
                 if (nextSeedQueueEntry.isPresent()) {
                     SeedQueue.selectedEntry = nextSeedQueueEntry.get();
+                    SeedQueueSounds.play(SeedQueueSounds.BYPASS_WALL);
                     return screen;
                 }
             }
             ModCompat.standardsettings$reset();
             ModCompat.stateoutput$setWallState();
+            SeedQueueSounds.play(SeedQueueSounds.OPEN_WALL);
             return new SeedQueueWallScreen(screen);
         }
         return screen;
