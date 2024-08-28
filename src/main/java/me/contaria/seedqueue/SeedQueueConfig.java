@@ -107,7 +107,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("performance")
     @Config.Numbers.Whole.Bounds(min = -1, max = 30)
-    public int backgroundPreviews = -1; // auto
+    public int preparingPreviews = -1; // auto
 
     @Config.Category("performance")
     public boolean freezeLockedPreviews = false;
