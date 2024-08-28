@@ -88,7 +88,7 @@ public class SeedQueueWallScreen extends Screen {
         super(LiteralText.EMPTY);
         this.createWorldScreen = createWorldScreen;
         this.debugHud = SeedQueue.config.showDebugMenu ? new DebugHud(MinecraftClient.getInstance()) : null;
-        this.preparingPreviews = new ArrayList<>(SeedQueue.config.backgroundPreviews);
+        this.preparingPreviews = new ArrayList<>();
         this.lastSettingsCache = this.settingsCache = SeedQueueSettingsCache.create();
     }
 
@@ -375,7 +375,7 @@ public class SeedQueueWallScreen extends Screen {
 
     private void updatePreparingPreviews() {
         int urgent = (int) Arrays.stream(this.mainPreviews).filter(Objects::isNull).count() - Math.min(this.blockedMainPositions.size(), this.preparingPreviews.size());
-        int capacity = SeedQueue.config.backgroundPreviews + urgent;
+        int capacity = getBackgroundPreviews() + urgent;
         if (this.preparingPreviews.size() < capacity) {
             int budget = Math.max(1, urgent);
 
@@ -396,6 +396,16 @@ public class SeedQueueWallScreen extends Screen {
         } else {
             clearWorldRenderer(getClearableWorldRenderer());
         }
+    }
+
+    private int getBackgroundPreviews() {
+        if (SeedQueue.config.preparingPreviews == -1) {
+            int mainGroupSize = this.layout.main.size();
+            int preparingGroupSize = Layout.Group.totalSize(this.layout.preparing);
+
+            return Math.min(Math.max(mainGroupSize, preparingGroupSize), SeedQueue.config.maxCapacity - mainGroupSize);
+        }
+        return SeedQueue.config.preparingPreviews;
     }
 
     private List<SeedQueueEntry> getAvailableSeedQueueEntries() {
