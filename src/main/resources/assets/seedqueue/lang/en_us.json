@@ -36,6 +36,8 @@
   "seedqueue.key.resetRow": "Reset Row",
   "seedqueue.key.resetColumn": "Reset Column",
   "seedqueue.key.playNextLock": "Play Next Lock",
+  "seedqueue.key.scheduleJoin": "Schedule Instance",
+  "seedqueue.key.scheduleAll": "Schedule All",
   "seedqueue.key.startBenchmark": "Start Benchmark",
   "seedqueue.key.cancelBenchmark": "Stop Benchmark",
 
@@ -57,6 +59,8 @@
   "speedrunapi.config.seedqueue.option.maxWorldGenerationPercentage": "Max World Generation %",
   "speedrunapi.config.seedqueue.option.maxWorldGenerationPercentage.description": "Stops generating a seed at the set percentage unless it is locked.\nNote that it will still wait for WorldPreview to be configured before stopping generation.",
   "speedrunapi.config.seedqueue.option.maxWorldGenerationPercentage.value": "%s%%",
+  "speedrunapi.config.seedqueue.option.resumeOnFilledQueue": "Resume On Filled Queue",
+  "speedrunapi.config.seedqueue.option.resumeOnFilledQueue.description": "Whether to resume generating seeds after the queue is filled.\nThis overrides the Max World Generation % option after the queue capacity is filled.",
   "speedrunapi.config.seedqueue.option.chunkMapVisibility": "SeedQueue Chunkmaps",
   "speedrunapi.config.seedqueue.option.chunkMapVisibility.description": "Renders an overlay with all the chunkmaps of currently generating seeds.",
   "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.TRUE": "Show",

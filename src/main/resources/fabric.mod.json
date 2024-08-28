@@ -46,6 +46,9 @@
 		"setspawnmod": "<4.0.0",
 		"fast_reset": "<2.0",
 		"state-output": "<1.2",
-		"speedrunigt": "<15.0"
+		"speedrunigt": "<15.0",
+		"sodium": [ "v1", "v2", "<2.0.1" ],
+		"sodiummac": [ "v2", "v3" ],
+		"sleepbackground": "<4.0"
 	}
 }

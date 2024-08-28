@@ -64,9 +64,6 @@ import java.util.function.Function;
 public abstract class MinecraftClientMixin {
 
     @Shadow
-    @Nullable
-    private IntegratedServer server;
-    @Shadow
     @Final
     private AtomicReference<WorldGenerationProgressTracker> worldGenProgressTracker;
     @Shadow
@@ -229,21 +226,13 @@ public abstract class MinecraftClientMixin {
             )
     )
     private void saveWorldGenerationProgressTracker(AtomicReference<?> instance, Object tracker, Operation<Void> original) {
-        Optional<SeedQueueEntry> entry;
-        Thread currentThread = Thread.currentThread();
-        // in a loop to avoid the probably never happening race condition
-        // where this is called before MinecraftClient#server has been set
-        do {
-            // if the server is set that means we are not in queue and should proceed as normal
-            if (this.server != null && currentThread == this.server.getThread()) {
-                original.call(instance, tracker);
-                return;
-            }
-            entry = SeedQueue.getEntry(currentThread);
-        } while (!entry.isPresent());
-
-        ((SQWorldGenerationProgressLogger) ((WorldGenerationProgressTrackerAccessor) tracker).getProgressLogger()).seedQueue$mute();
-        entry.get().setWorldGenerationProgressTracker((WorldGenerationProgressTracker) tracker);
+        Optional<SeedQueueEntry> entry = SeedQueue.getThreadLocalEntry();
+        if (entry.isPresent()) {
+            ((SQWorldGenerationProgressLogger) ((WorldGenerationProgressTrackerAccessor) tracker).getProgressLogger()).seedQueue$mute();
+            entry.get().setWorldGenerationProgressTracker((WorldGenerationProgressTracker) tracker);
+            return;
+        }
+        original.call(instance, tracker);
     }
 
     @Inject(
@@ -600,8 +589,10 @@ public abstract class MinecraftClientMixin {
     )
     private void finishRenderingWall(CallbackInfo ci) {
         if (this.currentScreen instanceof SeedQueueWallScreen) {
-            ((SeedQueueWallScreen) this.currentScreen).populateResetCooldowns();
-            ((SeedQueueWallScreen) this.currentScreen).tickBenchmark();
+            SeedQueueWallScreen wall = (SeedQueueWallScreen) this.currentScreen;
+            wall.joinScheduledInstance();
+            wall.populateResetCooldowns();
+            wall.tickBenchmark();
         }
     }
 

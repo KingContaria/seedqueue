@@ -20,7 +20,6 @@
     "client.WorldGenerationProgressLoggerMixin",
     "client.debug.DebugHudMixin",
     "client.levellist.LevelStorageMixin",
-    "client.patch.GLDebugMixin",
     "client.profiling.WorldRendererMixin",
     "client.render.LevelLoadingScreenMixin",
     "client.render.MinecraftClientMixin",
