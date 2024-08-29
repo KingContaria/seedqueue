@@ -1,10 +1,11 @@
 {
-  "seedqueue.menu.clearing": "מנקה עולמות SeedQueue... ",
+  "seedqueue.menu.clearing": "מנקה... ",
+
   "seedqueue.menu.crash.title": "SeedQueue קרס ",
   "seedqueue.menu.crash.description":  "  קרס עם %s, תבדוק בקונסולה ליותר מידע ",
 
   "seedqueue.menu.benchmark.title": "בוחן מהירות איפוסים",
-  "seedqueue.menu.benchmark.result": "%s איפוסים ב-%ss (%s איפוסים לשנייה)",
+  "seedqueue.menu.benchmark.result": "%s איפוסים ב-%ss \n (%s איפוסים לשנייה)",
 
   "seedqueue.menu.config.useWall.notAvailable": "§c§ לא נגיש",
   "seedqueue.menu.config.useWall.notAvailable.tooltip": ":לשימוש בקיר צריך להוריד את המודים הבאים",
@@ -83,14 +84,14 @@
   "speedrunapi.config.seedqueue.option.previewFPS.description": "הגבלה.\nבלתי צפוי כאשר FPS של הקיר מוגדר ללא\nבגלל זה, ההגדרה הזאת יכולה לעבוד באופן\nזה יחסי למהירות שקיר האיפוס באמת מעבד.\n המקסימום FPS שהצגת העולם יכולה להשתמש,",
   "speedrunapi.config.seedqueue.option.previewFPS.value": "%s fps",
   "speedrunapi.config.seedqueue.option.previewFPS.value.255": "ללא גבול",
-  "speedrunapi.config.seedqueue.option.backgroundPreviews": "רקע תצוגה מקדימה",
-  "speedrunapi.config.seedqueue.option.backgroundPreviews.description": "יותר כאשר נטען עולם בקיר.\nמתחילים לעבד, המאפשר למעבר חלק\nבונה תצוגה מקדימה ברקע לפני שהם",
+  "speedrunapi.config.seedqueue.option.preparingPreviews": "רקע תצוגה מקדימה",
+  "speedrunapi.config.seedqueue.option.preparingPreviews.description": "יותר כאשר נטען עולם בקיר.\nמתחילים לעבד, המאפשר למעבר חלק\nבונה תצוגה מקדימה ברקע לפני שהם",
   "speedrunapi.config.seedqueue.option.freezeLockedPreviews": "קפא תצוגות נעולות",
   "speedrunapi.config.seedqueue.option.freezeLockedPreviews.description": "צ'נקים ותצוגתם לא תתחדש.\nאם מופעל, תצוגות נעולות לא יתענו עוד",
   "speedrunapi.config.seedqueue.option.keyBindings": "מקשי פעולה",
   "speedrunapi.config.seedqueue.option.showAdvancedSettings": "הראה הגדרות למתקדמים",
   "speedrunapi.config.seedqueue.option.seedQueueThreadPriority": "שרשרת עדיפות SeedQueue",
-  "speedrunapi.config.seedqueue.option.seedQueueThreadPriority.description": "הSeedQueue שמיצר עולמות ליצור.\nקובע את עדיפות השרשרת בשביל שרשרת ",
+  "speedrunapi.config.seedqueue.option.seedQueueThreadPriority.description": "הSeedQueue שמיצר עולמות ליצור.\nקובע את עדיפות השרשרת בשביל שרשרת",
   "speedrunapi.config.seedqueue.option.serverThreadPriority": " שרשרת עדיפויות שרת",
   "speedrunapi.config.seedqueue.option.serverThreadPriority.description": "שבתהליך יצירה ברקע.\nקובע את עדיפות השרשרת בשביל עולמות",
   "speedrunapi.config.seedqueue.option.backgroundExecutorThreads": "שרשראות עובדים ברקע",
@@ -117,5 +118,10 @@
   "speedrunapi.config.seedqueue.option.showDebugMenu": "הראה טבלת Debug",
   "speedrunapi.config.seedqueue.option.showDebugMenu.description": "עם האפשרות הזאת פעילה יפסלc§!\nתשתמש בזה רק ל-debugging, כל ספידראןc§\nמסך הקיר.\nמציג גרף FPS ו-profiler  בחלק העליון של",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "מספר האיפוסים בבדיקת מהירות",
-  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "כפתור ה \"תפסיק בדיקת מהירות\" \nולעצור את הבדיקה לפני סיומה בעזרת\n\"תתחיל בדיקת מהירות\" \nאפשר להתחיל בדיקה עם כפתור ה\nמספר האיפסים שיעשו בבדיקת מהירות."
+  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "כפתור ה \"תפסיק בדיקת מהירות\" \nולעצור את הבדיקה לפני סיומה בעזרת\n\"תתחיל בדיקת מהירות\" \nאפשר להתחיל בדיקה עם כפתור ה\nמספר האיפסים שיעשו בבדיקת מהירות.",
+  "speedrunapi.config.seedqueue.option.preparingPreviews.value.-1": "אוטומטי",
+  "speedrunapi.config.seedqueue.option.resumeOnFilledQueue": "המשך כאשר התור מולא",
+  "speedrunapi.config.seedqueue.option.resumeOnFilledQueue.description": "שהתמלא התור.\n המקסימום אחוז טעינה של עולמות, אחרי\n אפשרות זו עוקפת את אפשרות\n שהתמלא התור.\n האם להמשיך ליצור עולמות אחרי.",
+  "seedqueue.key.scheduleJoin": "תזמן עולם אחד",
+  "seedqueue.key.scheduleAll": "תזמון הכל"
 }
