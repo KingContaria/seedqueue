@@ -18,6 +18,7 @@
     "client.CreateWorldScreenMixin",
     "client.MinecraftClientMixin",
     "client.WorldGenerationProgressLoggerMixin",
+    "client.WorldGenerationProgressTrackerMixin",
     "client.debug.DebugHudMixin",
     "client.levellist.LevelStorageMixin",
     "client.profiling.WorldRendererMixin",
