@@ -12,6 +12,14 @@
 			}
 		}
 	],
+	"contributors": [
+		"tildejustin",
+		"Crystal",
+		"tesselslate",
+		"sathya",
+		"nealxm",
+		"DuncanRuns"
+	],
 	"contact": {
 		"sources": "https://github.com/KingContaria/seedqueue",
 		"issues": "https://github.com/KingContaria/seedqueue/issues"
