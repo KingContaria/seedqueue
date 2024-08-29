@@ -123,5 +123,10 @@
   "speedrunapi.config.seedqueue.option.resumeOnFilledQueue": "המשך כאשר התור מולא",
   "speedrunapi.config.seedqueue.option.resumeOnFilledQueue.description": "שהתמלא התור.\n המקסימום אחוז טעינה של עולמות, אחרי\n אפשרות זו עוקפת את אפשרות\n שהתמלא התור.\n האם להמשיך ליצור עולמות אחרי.",
   "seedqueue.key.scheduleJoin": "תזמן עולם אחד",
-  "seedqueue.key.scheduleAll": "תזמון הכל"
+  "seedqueue.key.scheduleAll": "תזמון הכל",
+  "speedrunapi.config.seedqueue.option.chunkMapFreezing": "קפיאת מפות עולם",
+  "speedrunapi.config.seedqueue.option.chunkMapFreezing.description": "נעולות.\nרק מופעל על העולמות שבקיר שלא\nווילג'ים.\nשימושי בשביל אסטרטגית האיפוס\nאלפיות שניה.\nמקפיא את מפת העולם אחרי כמות",
+  "speedrunapi.config.seedqueue.option.chunkMapFreezing.value": "%sms",
+  "speedrunapi.config.seedqueue.option.chunkMapFreezing.value.-1": "חבוי"
+
 }
