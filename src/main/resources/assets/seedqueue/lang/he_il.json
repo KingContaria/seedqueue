@@ -5,7 +5,7 @@
   "seedqueue.menu.crash.description":  "  קרס עם %s, תבדוק בקונסולה ליותר מידע ",
 
   "seedqueue.menu.benchmark.title": "בוחן מהירות איפוסים",
-  "seedqueue.menu.benchmark.result": "%s איפוסים ב-%ss (%s איפוסים לשנייה)",
+  "seedqueue.menu.benchmark.result": "%s איפוסים ב-%ss (%s א'"'לש)"
 
   "seedqueue.menu.config.useWall.notAvailable": "§c§ לא נגיש",
   "seedqueue.menu.config.useWall.notAvailable.tooltip": ":לשימוש בקיר צריך להוריד את המודים הבאים",
