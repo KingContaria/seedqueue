@@ -24,9 +24,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.render.BufferBuilderStorage;
 import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.client.sound.SoundInstance;
-import net.minecraft.client.sound.SoundManager;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
@@ -62,6 +59,9 @@ public class SeedQueueWallScreen extends Screen {
 
     private final Set<Integer> blockedMainPositions = new HashSet<>();
 
+    private final Set<SeedQueueEntry> scheduledEntries = new HashSet<>();
+    private boolean playedScheduledEnterWarning;
+
     private List<LockTexture> lockTextures;
     @Nullable
     private AnimatedTexture background;
@@ -73,7 +73,7 @@ public class SeedQueueWallScreen extends Screen {
     private int ticks;
 
     protected int frame;
-    private int nextSoundTick;
+    private int nextResetSoundTick;
 
     @Nullable
     private Layout.Pos currentPos;
@@ -82,12 +82,13 @@ public class SeedQueueWallScreen extends Screen {
     protected int benchmarkedSeeds;
     protected int benchmarkGoal;
     protected long benchmarkFinish;
+    protected boolean showFinishedBenchmarkResults;
 
     public SeedQueueWallScreen(Screen createWorldScreen) {
         super(LiteralText.EMPTY);
         this.createWorldScreen = createWorldScreen;
         this.debugHud = SeedQueue.config.showDebugMenu ? new DebugHud(MinecraftClient.getInstance()) : null;
-        this.preparingPreviews = new ArrayList<>(SeedQueue.config.backgroundPreviews);
+        this.preparingPreviews = new ArrayList<>();
         this.lastSettingsCache = this.settingsCache = SeedQueueSettingsCache.create();
     }
 
@@ -154,14 +155,14 @@ public class SeedQueueWallScreen extends Screen {
             SeedQueueProfiler.pop();
         }
 
+        SeedQueueProfiler.swap("reset");
+        this.resetViewport();
+        this.loadPreviewSettings(this.settingsCache, 0);
+
         if (this.overlay != null) {
             SeedQueueProfiler.swap("overlay");
             this.drawAnimatedTexture(this.overlay, matrices, 0, 0, this.width, this.height);
         }
-
-        SeedQueueProfiler.swap("reset");
-        this.resetViewport();
-        this.loadPreviewSettings(this.settingsCache, 0);
 
         if (this.debugHud != null) {
             SeedQueueProfiler.swap("fps_graph");
@@ -245,19 +246,14 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private boolean playSound(SoundEvent sound) {
-        assert this.client != null;
-        SoundInstance soundInstance = PositionedSoundInstance.master(sound, 1.0f);
-        soundInstance.getSoundSet(this.client.getSoundManager());
-        if (soundInstance.getSound().equals(SoundManager.MISSING_SOUND)) {
-            return false;
+        // spread out reset sounds over multiple ticks
+        if (sound == SeedQueueSounds.RESET_INSTANCE) {
+            if (this.nextResetSoundTick >= this.ticks) {
+                return SeedQueueSounds.play(sound, ++this.nextResetSoundTick - this.ticks);
+            }
+            this.nextResetSoundTick = this.ticks;
         }
-        if (this.nextSoundTick < this.ticks) {
-            this.client.getSoundManager().play(soundInstance);
-            this.nextSoundTick = this.ticks;
-        } else {
-            this.client.getSoundManager().play(soundInstance, ++this.nextSoundTick - this.ticks);
-        }
-        return true;
+        return SeedQueueSounds.play(sound);
     }
 
     private void setViewport(Layout.Pos pos) {
@@ -300,8 +296,13 @@ public class SeedQueueWallScreen extends Screen {
 
     private void updatePreviews() {
         this.updateLockedPreviews();
-        this.updateMainPreviews();
         this.updatePreparingPreviews();
+        this.updateMainPreviews();
+    }
+
+    private void addLockedPreview(SeedQueuePreview preview) {
+        Objects.requireNonNull(this.lockedPreviews).add(preview);
+        preview.getSeedQueueEntry().mainPosition = -1;
     }
 
     private void updateLockedPreviews() {
@@ -310,13 +311,13 @@ public class SeedQueueWallScreen extends Screen {
         }
         for (SeedQueueEntry entry : this.getAvailableSeedQueueEntries()) {
             if (entry.isLocked()) {
-                this.lockedPreviews.add(new SeedQueuePreview(this, entry));
+                this.addLockedPreview(new SeedQueuePreview(this, entry));
             }
         }
         for (int i = 0; i < this.mainPreviews.length; i++) {
             SeedQueuePreview instance = this.mainPreviews[i];
             if (instance != null && instance.getSeedQueueEntry().isLocked()) {
-                this.lockedPreviews.add(instance);
+                this.addLockedPreview(instance);
                 this.mainPreviews[i] = null;
                 if (!this.layout.replaceLockedInstances) {
                     this.blockedMainPositions.add(i);
@@ -325,13 +326,35 @@ public class SeedQueueWallScreen extends Screen {
         }
         for (SeedQueuePreview instance : this.preparingPreviews) {
             if (instance.getSeedQueueEntry().isLocked()) {
-                this.lockedPreviews.add(instance);
+                this.addLockedPreview(instance);
             }
         }
         this.preparingPreviews.removeAll(this.lockedPreviews);
     }
 
     private void updateMainPreviews() {
+        int preparingCount = this.preparingPreviews.size();
+        for (int i = 0; i < preparingCount; i++) {
+            SeedQueuePreview preview = this.preparingPreviews.get(0);
+            int position = preview.getSeedQueueEntry().mainPosition;
+
+            if (position == -1) {
+                break;
+            }
+
+            if (position >= this.mainPreviews.length) {
+                preview.getSeedQueueEntry().mainPosition = -1;
+                continue;
+            }
+
+            if (this.mainPreviews[position] != null) {
+                SeedQueue.LOGGER.warn("Main preview {} already populated", position);
+            } else {
+                this.mainPreviews[position] = preview;
+                this.preparingPreviews.remove(0);
+            }
+        }
+
         this.preparingPreviews.sort(Comparator.comparing(SeedQueuePreview::isPreviewReady, Comparator.reverseOrder()));
         for (int i = 0; i < this.mainPreviews.length && !this.preparingPreviews.isEmpty(); i++) {
             if (SeedQueue.config.waitForPreviewSetup && !this.preparingPreviews.get(0).isPreviewReady()) {
@@ -339,16 +362,32 @@ public class SeedQueueWallScreen extends Screen {
             }
             if (this.mainPreviews[i] == null && !this.blockedMainPositions.contains(i)) {
                 this.mainPreviews[i] = this.preparingPreviews.remove(0);
+                this.mainPreviews[i].resetCooldown();
+
+                if (this.mainPreviews[i].getSeedQueueEntry().mainPosition != -1) {
+                    SeedQueue.LOGGER.warn("Main preview {} already assigned a position", i);
+                } else {
+                    this.mainPreviews[i].getSeedQueueEntry().mainPosition = i;
+                }
             }
         }
     }
 
     private void updatePreparingPreviews() {
         int urgent = (int) Arrays.stream(this.mainPreviews).filter(Objects::isNull).count() - Math.min(this.blockedMainPositions.size(), this.preparingPreviews.size());
-        int capacity = SeedQueue.config.backgroundPreviews + urgent;
+        int capacity = getBackgroundPreviews() + urgent;
         if (this.preparingPreviews.size() < capacity) {
             int budget = Math.max(1, urgent);
-            for (SeedQueueEntry entry : this.getAvailableSeedQueueEntries()) {
+
+            // see SeedQueueWallScreen#updateMainPreviews
+            // Previews which have previously been in the main group will have a position assigned
+            // to them. They must be sorted to appear first in SeedQueueWallScreen#preparingPreviews
+            // so that they can be restored to the correct location before any other previews take
+            // their place.
+            List<SeedQueueEntry> entries = this.getAvailableSeedQueueEntries();
+            entries.sort(Comparator.comparing(entry -> entry.mainPosition, Comparator.reverseOrder()));
+
+            for (SeedQueueEntry entry : entries) {
                 this.preparingPreviews.add(new SeedQueuePreview(this, entry));
                 if (--budget <= 0) {
                     break;
@@ -357,6 +396,16 @@ public class SeedQueueWallScreen extends Screen {
         } else {
             clearWorldRenderer(getClearableWorldRenderer());
         }
+    }
+
+    private int getBackgroundPreviews() {
+        if (SeedQueue.config.preparingPreviews == -1) {
+            int mainGroupSize = this.layout.main.size();
+            int preparingGroupSize = Layout.Group.totalSize(this.layout.preparing);
+
+            return Math.min(Math.max(mainGroupSize, preparingGroupSize), SeedQueue.config.maxCapacity - mainGroupSize);
+        }
+        return SeedQueue.config.preparingPreviews;
     }
 
     private List<SeedQueueEntry> getAvailableSeedQueueEntries() {
@@ -417,6 +466,9 @@ public class SeedQueueWallScreen extends Screen {
         if (SeedQueueKeyBindings.playNextLock.matchesMouse(button)) {
             this.playNextLock();
         }
+        if (SeedQueueKeyBindings.scheduleAll.matchesMouse(button)) {
+            this.scheduleAll();
+        }
 
         SeedQueuePreview instance = this.getInstance(mouseX, mouseY);
         if (instance == null) {
@@ -434,6 +486,9 @@ public class SeedQueueWallScreen extends Screen {
         }
         if (SeedQueueKeyBindings.focusReset.matchesMouse(button)) {
             this.focusReset(instance);
+        }
+        if (SeedQueueKeyBindings.scheduleJoin.matchesMouse(button)) {
+            this.scheduleJoin(instance);
         }
         return true;
     }
@@ -453,7 +508,7 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         if (keyCode == GLFW.GLFW_KEY_ESCAPE && Screen.hasShiftDown()) {
-            ModCompat.standardsettings$onWorldJoin();
+            ModCompat.standardsettings$loadCache();
             Atum.stopRunning();
             this.client.openScreen(new TitleScreen());
             return true;
@@ -472,14 +527,17 @@ public class SeedQueueWallScreen extends Screen {
         if (SeedQueueKeyBindings.resetAll.matchesKey(keyCode, scanCode)) {
             this.resetAllInstances();
         }
-        if (SeedQueueKeyBindings.playNextLock.matchesKey(keyCode, scanCode)) {
-            this.playNextLock();
-        }
         if (SeedQueueKeyBindings.resetColumn.matchesKey(keyCode, scanCode)) {
             this.resetColumn(mouseX);
         }
         if (SeedQueueKeyBindings.resetRow.matchesKey(keyCode, scanCode)) {
             this.resetRow(mouseY);
+        }
+        if (SeedQueueKeyBindings.playNextLock.matchesKey(keyCode, scanCode)) {
+            this.playNextLock();
+        }
+        if (SeedQueueKeyBindings.scheduleAll.matchesKey(keyCode, scanCode)) {
+            this.scheduleAll();
         }
 
         SeedQueuePreview instance = this.getInstance(mouseX, mouseY);
@@ -505,6 +563,9 @@ public class SeedQueueWallScreen extends Screen {
         }
         if (SeedQueueKeyBindings.focusReset.matchesKey(keyCode, scanCode)) {
             this.focusReset(instance);
+        }
+        if (SeedQueueKeyBindings.scheduleJoin.matchesKey(keyCode, scanCode)) {
+            this.scheduleJoin(instance);
         }
         return true;
     }
@@ -560,19 +621,21 @@ public class SeedQueueWallScreen extends Screen {
 
     private void playInstance(SeedQueuePreview instance) {
         assert this.client != null;
-        if (!instance.hasPreviewRendered() || !this.canPlayInstance(instance.getSeedQueueEntry()) || !this.removePreview(instance)) {
-            return;
+        if (instance.hasPreviewRendered() && this.canPlayInstance(instance.getSeedQueueEntry()) && this.removePreview(instance)) {
+            this.playEntry(instance.getSeedQueueEntry());
         }
-        this.playSound(SeedQueueSounds.PLAY_INSTANCE);
-        SeedQueue.comingFromWall = true;
-        SeedQueue.selectedEntry = instance.getSeedQueueEntry();
-        this.client.openScreen(this.createWorldScreen);
     }
 
     private void playInstance(SeedQueueEntry entry) {
+        if (this.canPlayInstance(entry)) {
+            this.removePreview(this.getPreview(entry));
+            this.playEntry(entry);
+        }
+    }
+
+    private void playEntry(SeedQueueEntry entry) {
         assert this.client != null;
         this.playSound(SeedQueueSounds.PLAY_INSTANCE);
-        SeedQueue.comingFromWall = true;
         SeedQueue.selectedEntry = entry;
         this.client.openScreen(this.createWorldScreen);
     }
@@ -602,9 +665,13 @@ public class SeedQueueWallScreen extends Screen {
         SeedQueueProfiler.push("reset_instance");
         SeedQueue.discard(instance.getSeedQueueEntry());
 
+        this.scheduledEntries.remove(instance.getSeedQueueEntry());
+
         if (playSound) {
             this.playSound(SeedQueueSounds.RESET_INSTANCE);
         }
+        this.showFinishedBenchmarkResults = false;
+
         SeedQueueProfiler.pop();
         return true;
     }
@@ -678,12 +745,59 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void playNextLock() {
-        SeedQueue.getEntryMatching(entry -> entry.isLocked() && entry.isReady()).ifPresent(entry -> {
-            if (this.canPlayInstance(entry)) {
-                this.removePreview(this.getPreview(entry));
-                this.playInstance(entry);
+        SeedQueue.getEntryMatching(entry -> entry.isLocked() && entry.isReady()).ifPresent(this::playInstance);
+    }
+
+    private void scheduleAll() {
+        this.playSound(SeedQueueSounds.SCHEDULE_ALL);
+        for (SeedQueueEntry entry : SeedQueue.getEntries()) {
+            if (!entry.isLocked()) {
+                continue;
             }
-        });
+            this.scheduleJoin(entry);
+            if (entry.isLoaded()) {
+                break;
+            }
+        }
+    }
+
+    private void scheduleJoin(SeedQueuePreview instance) {
+        if (instance.hasPreviewRendered()) {
+            this.lockInstance(instance);
+            if (this.scheduleJoin(instance.getSeedQueueEntry())) {
+                this.playSound(SeedQueueSounds.SCHEDULE_JOIN);
+            }
+        }
+    }
+
+    private boolean scheduleJoin(SeedQueueEntry entry) {
+        if (!entry.isLocked()) {
+            SeedQueue.LOGGER.warn("Tried to schedule join but entry isn't locked!");
+            return false;
+        }
+        if (this.canPlayInstance(entry)) {
+            this.playInstance(entry);
+            return false;
+        }
+        return this.scheduledEntries.add(entry);
+    }
+
+    public void joinScheduledInstance() {
+        // catch the case were someone resets a scheduled entry after it has played the warning sound
+        this.playedScheduledEnterWarning &= !this.scheduledEntries.isEmpty();
+
+        for (SeedQueueEntry entry : this.scheduledEntries) {
+            // 95% world gen percentage should be made configurable in the future
+            // not sure how, maybe through .mcmeta
+            if (!this.playedScheduledEnterWarning && entry.getWorldGenerationProgressTracker() != null && entry.getWorldGenerationProgressTracker().getProgressPercentage() >= 95) {
+                this.playSound(SeedQueueSounds.SCHEDULED_JOIN_WARNING);
+                this.playedScheduledEnterWarning = true;
+            }
+            if (entry.isReady()) {
+                this.playInstance(entry);
+                break;
+            }
+        }
     }
 
     @Override
@@ -734,6 +848,7 @@ public class SeedQueueWallScreen extends Screen {
         this.benchmarkFinish = System.currentTimeMillis();
         SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds.", this.benchmarkedSeeds, Math.round((this.benchmarkFinish - this.benchmarkStart) / 10.0) / 100.0);
         this.playSound(SeedQueueSounds.FINISH_BENCHMARK);
+        this.showFinishedBenchmarkResults = true;
 
         // any worlds named Benchmark Reset #xxx are cleared after benchmark finishes
         this.clearSeedQueueForBenchmark();
@@ -828,4 +943,9 @@ public class SeedQueueWallScreen extends Screen {
         return ((WorldRendererAccessor) worldRenderer).seedQueue$getWorld();
     }
 
+    @Override
+    public void removed() {
+        assert this.client != null;
+        this.client.getToastManager().clear();
+    }
 }

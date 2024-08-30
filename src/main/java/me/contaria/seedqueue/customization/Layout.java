@@ -105,6 +105,14 @@ public class Layout {
             return this.positions.length;
         }
 
+        public static int totalSize(Group[] groups) {
+            int sum = 0;
+            for (Group group : groups) {
+                sum += group.size();
+            }
+            return sum;
+        }
+
         private static Group grid(int rows, int columns, int x, int y, int width, int height, int padding, boolean cosmetic, boolean instance_background) {
             Pos[] positions = new Pos[rows * columns];
             int columnWidth = (width - padding * (columns - 1)) / columns;

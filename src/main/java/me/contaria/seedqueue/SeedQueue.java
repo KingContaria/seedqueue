@@ -1,6 +1,7 @@
 package me.contaria.seedqueue;
 
 import com.google.gson.JsonParseException;
+import com.sun.management.OperatingSystemMXBean;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
@@ -10,6 +11,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.Version;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.SaveLevelScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.server.MinecraftServer;
@@ -18,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Predicate;
@@ -36,14 +39,17 @@ public class SeedQueue implements ClientModInitializer {
     private static final Queue<SeedQueueEntry> SEED_QUEUE = new LinkedBlockingQueue<>();
     private static SeedQueueThread thread;
 
+    public static final ThreadLocal<SeedQueueEntry> LOCAL_ENTRY = new ThreadLocal<>();
     public static SeedQueueEntry currentEntry;
     public static SeedQueueEntry selectedEntry;
-
-    public static boolean comingFromWall;
 
     @Override
     public void onInitializeClient() {
         SeedQueueSounds.init();
+
+        if (Boolean.parseBoolean(System.getProperty("seedqueue.logSystemInfo", "true"))) {
+            logSystemInformation();
+        }
 
         if (config.useWatchdog) {
             Thread watchDog = new Thread(() -> {
@@ -69,6 +75,23 @@ public class SeedQueue implements ClientModInitializer {
             watchDog.setName("SeedQueue WatchDog");
             watchDog.start();
         }
+    }
+
+    private static void logSystemInformation() {
+        // see GLX#_init
+        oshi.hardware.Processor[] processors = new oshi.SystemInfo().getHardware().getProcessors();
+        String cpuInfo = String.format("%dx %s", processors.length, processors[0]).replaceAll("\\s+", " ");
+
+        LOGGER.info("System Information (Logged by SeedQueue):");
+        LOGGER.info("Operating System: {}", System.getProperty("os.name"));
+        LOGGER.info("OS Version: {}", System.getProperty("os.version"));
+        LOGGER.info("CPU: {}", cpuInfo);
+        LOGGER.info("Java Version: {}", System.getProperty("java.version"));
+        LOGGER.info("JVM Arguments: {}", String.join(" ", ManagementFactory.getRuntimeMXBean().getInputArguments()));
+        LOGGER.info("Total Physical Memory (MB): {}", ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class).getTotalPhysicalMemorySize() / (1024 * 1024)); // Logs the total RAM on the system
+        LOGGER.info("Max Memory (MB): {}", Runtime.getRuntime().maxMemory() / (1024 * 1024));
+        LOGGER.info("Total Processors: {}", ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors()); // Logs the total number of processors (not affected by affinity)
+        LOGGER.info("Available Processors: {}", Runtime.getRuntime().availableProcessors()); // Logs the available number of processors (affected by affinity)
     }
 
     /**
@@ -151,8 +174,40 @@ public class SeedQueue implements ClientModInitializer {
      */
     public static boolean shouldGenerate() {
         synchronized (LOCK) {
-            return getGeneratingCount() < getMaxGeneratingCount() && SEED_QUEUE.size() < config.maxCapacity;
+            return getGeneratingCount() < getMaxGeneratingCount() && !isFull();
         }
+    }
+
+    /**
+     * @return If the queue is filled to capacity.
+     * @see SeedQueueConfig#maxCapacity
+     */
+    public static boolean isFull() {
+        return SEED_QUEUE.size() >= config.maxCapacity;
+    }
+
+    /**
+     * @return If all {@link SeedQueueEntry} have reached the {@link SeedQueueConfig#maxWorldGenerationPercentage}.
+     */
+    public static boolean allMaxWorldGenerationReached() {
+        for (SeedQueueEntry entry: SEED_QUEUE) {
+            if (!entry.isMaxWorldGenerationReached() && !entry.isLocked()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @return If all currently generating {@link SeedQueueEntry} are not locked.
+     */
+    public static boolean noLockedRemaining() {
+        for (SeedQueueEntry entry: SEED_QUEUE) {
+            if (entry.isLocked() && !entry.isReady()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -163,6 +218,19 @@ public class SeedQueue implements ClientModInitializer {
             return getGeneratingCount() < getMaxGeneratingCount();
         }
     }
+
+    /**
+     * @return If the {@link SeedQueueThread} should unpause a {@link SeedQueueEntry} that was previously scheduled to pause
+     * (after the queue is filled).
+     * @see SeedQueue#isFull()
+     * @see SeedQueue#allMaxWorldGenerationReached()
+     */
+    public static boolean shouldResumeAfterQueueFull() {
+       synchronized (LOCK) {
+           return config.resumeOnFilledQueue && isFull() && allMaxWorldGenerationReached();
+       }
+    }
+
 
     /**
      * @return If the {@link SeedQueueThread} should actively schedule a {@link SeedQueueEntry} to be paused.
@@ -190,14 +258,18 @@ public class SeedQueue implements ClientModInitializer {
      * @see SeedQueueConfig#shouldUseWall
      */
     private static long getGeneratingCount(boolean treatScheduledAsPaused) {
-        long count = SEED_QUEUE.stream().filter(entry -> !((treatScheduledAsPaused && entry.isScheduledToPause()) || entry.isPaused())).count();
+        long count = 0;
+        for (SeedQueueEntry entry: SEED_QUEUE) {
+            if (!(entry.isPaused() || (treatScheduledAsPaused && entry.isScheduledToPause()))) {
+                count ++;
+            }
+        }
 
         // add 1 when not using wall and the main world is currently generating
         MinecraftServer currentServer = MinecraftClient.getInstance().getServer();
         if (!SeedQueue.config.shouldUseWall() && (currentServer == null || !currentServer.isLoading())) {
             count++;
         }
-
         return count;
     }
 
@@ -341,19 +413,10 @@ public class SeedQueue implements ClientModInitializer {
     }
 
     /**
-     * @return The {@link SeedQueueEntry} corresponding to the given server thread.
+     * @return The {@link SeedQueueEntry} corresponding to the calling server thread. Returns {@link Optional#empty()} if called before the server has created it's {@link WorldGenerationProgressTracker} because that's when the field is set!
      */
-    public static Optional<SeedQueueEntry> getEntry(Thread serverThread) {
-        MinecraftServer server = MinecraftClient.getInstance().getServer();
-        if (server != null && server.getThread() == serverThread) {
-            return Optional.empty();
-        }
-        for (SeedQueueEntry entry : SEED_QUEUE) {
-            if (serverThread == entry.getServer().getThread()) {
-                return Optional.of(entry);
-            }
-        }
-        return Optional.empty();
+    public static Optional<SeedQueueEntry> getThreadLocalEntry() {
+        return Optional.ofNullable(LOCAL_ENTRY.get());
     }
 
     /**

@@ -18,6 +18,7 @@ import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
+import me.contaria.seedqueue.interfaces.SQSoundManager;
 import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressLogger;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
 import me.contaria.seedqueue.mixin.accessor.PlayerEntityAccessor;
@@ -27,6 +28,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.render.entity.PlayerModelPart;
+import net.minecraft.client.sound.MusicTracker;
 import net.minecraft.client.sound.SoundManager;
 import net.minecraft.resource.DataPackSettings;
 import net.minecraft.resource.ResourceManager;
@@ -61,9 +63,6 @@ import java.util.function.Function;
 @Mixin(value = MinecraftClient.class, priority = 500)
 public abstract class MinecraftClientMixin {
 
-    @Shadow
-    @Nullable
-    private IntegratedServer server;
     @Shadow
     @Final
     private AtomicReference<WorldGenerationProgressTracker> worldGenProgressTracker;
@@ -227,21 +226,13 @@ public abstract class MinecraftClientMixin {
             )
     )
     private void saveWorldGenerationProgressTracker(AtomicReference<?> instance, Object tracker, Operation<Void> original) {
-        Optional<SeedQueueEntry> entry;
-        Thread currentThread = Thread.currentThread();
-        // in a loop to avoid the probably never happening race condition
-        // where this is called before MinecraftClient#server has been set
-        do {
-            // if the server is set that means we are not in queue and should proceed as normal
-            if (this.server != null && currentThread == this.server.getThread()) {
-                original.call(instance, tracker);
-                return;
-            }
-            entry = SeedQueue.getEntry(currentThread);
-        } while (!entry.isPresent());
-
-        ((SQWorldGenerationProgressLogger) ((WorldGenerationProgressTrackerAccessor) tracker).getProgressLogger()).seedQueue$mute();
-        entry.get().setWorldGenerationProgressTracker((WorldGenerationProgressTracker) tracker);
+        Optional<SeedQueueEntry> entry = SeedQueue.getThreadLocalEntry();
+        if (entry.isPresent()) {
+            ((SQWorldGenerationProgressLogger) ((WorldGenerationProgressTrackerAccessor) tracker).getProgressLogger()).seedQueue$mute();
+            entry.get().setWorldGenerationProgressTracker((WorldGenerationProgressTracker) tracker);
+            return;
+        }
+        original.call(instance, tracker);
     }
 
     @Inject(
@@ -406,7 +397,8 @@ public abstract class MinecraftClientMixin {
             method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/client/MinecraftClient;openScreen(Lnet/minecraft/client/gui/screen/Screen;)V"
+                    target = "Lnet/minecraft/client/MinecraftClient;openScreen(Lnet/minecraft/client/gui/screen/Screen;)V",
+                    ordinal = 0
             ),
             slice = @Slice(
                     from = @At(
@@ -597,31 +589,37 @@ public abstract class MinecraftClientMixin {
     )
     private void finishRenderingWall(CallbackInfo ci) {
         if (this.currentScreen instanceof SeedQueueWallScreen) {
-            ((SeedQueueWallScreen) this.currentScreen).populateResetCooldowns();
-            ((SeedQueueWallScreen) this.currentScreen).tickBenchmark();
+            SeedQueueWallScreen wall = (SeedQueueWallScreen) this.currentScreen;
+            wall.joinScheduledInstance();
+            wall.populateResetCooldowns();
+            wall.tickBenchmark();
         }
     }
 
-    // don't clear sounds when coming from the wall screen
-    // ingame sounds of previous worlds will still be reset before joining wall,
-    // this just allows wall sounds to keep playing
     @WrapWithCondition(
+            method = "tick",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/client/sound/MusicTracker;tick()V"
+            )
+    )
+    private boolean doNotPlayMusicOnWall(MusicTracker musicTracker) {
+        return !SeedQueue.isOnWall();
+    }
+
+    @WrapOperation(
             method = "reset",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/sound/SoundManager;stopAll()V"
             )
     )
-    private boolean keepSoundsComingFromWall(SoundManager manager) {
-        return !SeedQueue.comingFromWall;
-    }
-
-    @Inject(
-            method = "joinWorld",
-            at = @At("RETURN")
-    )
-    private void resetComingFromWall(CallbackInfo ci) {
-        SeedQueue.comingFromWall = false;
+    private void keepSeedQueueSounds(SoundManager soundManager, Operation<Void> original) {
+        if (SeedQueue.isActive()) {
+            ((SQSoundManager) soundManager).seedQueue$stopAllExceptSeedQueueSounds();
+            return;
+        }
+        original.call(soundManager);
     }
 
     @ModifyReturnValue(
@@ -649,6 +647,10 @@ public abstract class MinecraftClientMixin {
             at = @At("HEAD")
     )
     private static void shutdownQueueOnCrash(CallbackInfo ci) {
-        SeedQueue.stop();
+        // don't try to stop SeedQueue if Minecraft crashes before the client is initialized
+        // if Minecraft crashes in MinecraftClient#<init>, MinecraftClient#thread can be null
+        if (MinecraftClient.getInstance() == null || !MinecraftClient.getInstance().isOnThread()) {
+            SeedQueue.stop();
+        }
     }
 }
