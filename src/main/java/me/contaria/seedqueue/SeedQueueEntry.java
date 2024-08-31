@@ -8,11 +8,15 @@ import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
 import me.contaria.seedqueue.compat.WorldPreviewFrameBuffer;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
+import me.contaria.seedqueue.interfaces.SQProgressLogger;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
+import me.contaria.seedqueue.mixin.accessor.WorldGenerationProgressTrackerAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.WorldGenerationProgressLogger;
 import net.minecraft.util.UserCache;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.level.storage.LevelStorage;
 import org.jetbrains.annotations.Nullable;
 
@@ -388,5 +392,16 @@ public class SeedQueueEntry {
             this.unpause();
             SeedQueueProfiler.pop();
         }
+    }
+
+    public int getProgressPercentage() {
+        // doubtful this will happen, but the method is @Nullable
+        if (this.getWorldGenerationProgressTracker() == null) {
+            return 0;
+        }
+
+        WorldGenerationProgressLogger progressLogger = ((WorldGenerationProgressTrackerAccessor) this.getWorldGenerationProgressTracker()).getProgressLogger();
+        ChunkPos spawnPos = ((WorldGenerationProgressTrackerAccessor) this.getWorldGenerationProgressTracker()).getSpawnPos();
+        return ((SQProgressLogger) progressLogger).seedqueue$getProgressPercentage(spawnPos);
     }
 }
