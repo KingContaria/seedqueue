@@ -70,13 +70,6 @@ public abstract class MinecraftClientMixin {
     @Nullable
     public Screen currentScreen;
 
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void LogSystemInformation(CallbackInfo ci) {
-        if (Boolean.parseBoolean(System.getProperty("seedqueue.logSystemInfo", "true"))) {
-            SeedQueue.logSystemInformation();
-        }
-    }
-
     @Inject(
             method = "createWorld",
             at = @At("TAIL")
@@ -541,6 +534,15 @@ public abstract class MinecraftClientMixin {
     )
     private boolean fastQuit(IntegratedServer server, Operation<Boolean> original) {
         return original.call(server) || (SeedQueue.isActive() && !ModCompat.fastReset$shouldSave(server));
+    }
+
+    @Inject(method = "<init>",
+            at = @At("TAIL")
+    )
+    private void logSystemInformation(CallbackInfo ci) {
+        if (Boolean.parseBoolean(System.getProperty("seedqueue.logSystemInfo", "true"))) {
+            SeedQueue.logSystemInformation();
+        }
     }
 
     @Inject(
