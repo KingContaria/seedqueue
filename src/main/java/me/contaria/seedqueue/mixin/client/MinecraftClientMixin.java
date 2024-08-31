@@ -537,6 +537,16 @@ public abstract class MinecraftClientMixin {
     }
 
     @Inject(
+            method = "<init>",
+            at = @At("TAIL")
+    )
+    private void logSystemInformation(CallbackInfo ci) {
+        if (Boolean.parseBoolean(System.getProperty("seedqueue.logSystemInfo", "true"))) {
+            SeedQueue.logSystemInformation();
+        }
+    }
+
+    @Inject(
             method = "run",
             at = @At(
                     value = "INVOKE",
