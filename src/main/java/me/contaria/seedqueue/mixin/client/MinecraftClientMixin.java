@@ -536,7 +536,8 @@ public abstract class MinecraftClientMixin {
         return original.call(server) || (SeedQueue.isActive() && !ModCompat.fastReset$shouldSave(server));
     }
 
-    @Inject(method = "<init>",
+    @Inject(
+            method = "<init>",
             at = @At("TAIL")
     )
     private void logSystemInformation(CallbackInfo ci) {
