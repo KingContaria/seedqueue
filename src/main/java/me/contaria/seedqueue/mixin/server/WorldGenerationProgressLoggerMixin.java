@@ -3,6 +3,7 @@ package me.contaria.seedqueue.mixin.server;
 import me.contaria.seedqueue.interfaces.SQProgressLogger;
 import net.minecraft.server.WorldGenerationProgressLogger;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.chunk.ChunkStatus;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -31,8 +32,10 @@ public abstract class WorldGenerationProgressLoggerMixin implements SQProgressLo
         int count = 1;
         int level = 0;
         boolean end = false;
+
         while (!end) {
             level++;
+
             for (int x = -level; x <= level; ++x) {
                 if (Math.abs(x) == level) {
                     for (int z = -level; z <= level; ++z) {
@@ -47,10 +50,8 @@ public abstract class WorldGenerationProgressLoggerMixin implements SQProgressLo
                 }
             }
         }
-        // kinda unsure where this constant came from
-        // return (int) ((double) count / 241 * 100);
-        return count * 100 / this.totalCount;
 
+        return MathHelper.clamp(count * 100 / this.totalCount, 0, 100);
     }
 
     @Unique
