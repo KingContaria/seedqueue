@@ -25,6 +25,7 @@ import me.contaria.seedqueue.mixin.accessor.PlayerEntityAccessor;
 import me.contaria.seedqueue.mixin.accessor.WorldGenerationProgressTrackerAccessor;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.RunArgs;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.render.entity.PlayerModelPart;
@@ -69,6 +70,13 @@ public abstract class MinecraftClientMixin {
     @Shadow
     @Nullable
     public Screen currentScreen;
+
+    @Inject(method = "<init>", at = @At("TAIL"))
+    private void LogSystemInformation(CallbackInfo ci) {
+        if (Boolean.parseBoolean(System.getProperty("seedqueue.logSystemInfo", "true"))) {
+            SeedQueue.logSystemInformation();
+        }
+    }
 
     @Inject(
             method = "createWorld",

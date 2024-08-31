@@ -18,6 +18,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.TranslatableText;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.lwjgl.opengl.GL11;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -47,10 +48,6 @@ public class SeedQueue implements ClientModInitializer {
     public void onInitializeClient() {
         SeedQueueSounds.init();
 
-        if (Boolean.parseBoolean(System.getProperty("seedqueue.logSystemInfo", "true"))) {
-            logSystemInformation();
-        }
-
         if (config.useWatchdog) {
             Thread watchDog = new Thread(() -> {
                 try {
@@ -77,15 +74,19 @@ public class SeedQueue implements ClientModInitializer {
         }
     }
 
-    private static void logSystemInformation() {
+    public static void logSystemInformation() {
         // see GLX#_init
         oshi.hardware.Processor[] processors = new oshi.SystemInfo().getHardware().getProcessors();
         String cpuInfo = String.format("%dx %s", processors.length, processors[0]).replaceAll("\\s+", " ");
+
+        // see GlDebugInfo#getRenderer
+        String gpuInfo = GL11.glGetString(GL11.GL_RENDERER);
 
         LOGGER.info("System Information (Logged by SeedQueue):");
         LOGGER.info("Operating System: {}", System.getProperty("os.name"));
         LOGGER.info("OS Version: {}", System.getProperty("os.version"));
         LOGGER.info("CPU: {}", cpuInfo);
+        LOGGER.info("GPU: {}", gpuInfo);
         LOGGER.info("Java Version: {}", System.getProperty("java.version"));
         LOGGER.info("JVM Arguments: {}", String.join(" ", ManagementFactory.getRuntimeMXBean().getInputArguments()));
         LOGGER.info("Total Physical Memory (MB): {}", ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class).getTotalPhysicalMemorySize() / (1024 * 1024)); // Logs the total RAM on the system
