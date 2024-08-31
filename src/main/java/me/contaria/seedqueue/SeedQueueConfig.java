@@ -28,6 +28,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Config class based on SpeedrunAPI, initialized on prelaunch.
@@ -61,6 +62,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Category("queue")
     @Config.Numbers.Whole.Bounds(max = 100)
     public int maxWorldGenerationPercentage = 100;
+
+    @Config.Category("queue")
+    public boolean resumeOnFilledQueue = false;
 
     @Config.Category("chunkmap")
     public ChunkMapVisibility chunkMapVisibility = ChunkMapVisibility.TRUE;
@@ -105,8 +109,8 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public int previewFPS = 15;
 
     @Config.Category("performance")
-    @Config.Numbers.Whole.Bounds(min = 0, max = 30)
-    public int backgroundPreviews = 0;
+    @Config.Numbers.Whole.Bounds(min = -1, max = 30)
+    public int preparingPreviews = -1; // auto
 
     @Config.Category("performance")
     public boolean freezeLockedPreviews = false;
@@ -116,6 +120,10 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("performance")
     public boolean reduceLevelList = true;
+
+    @Config.Category("misc")
+    @Config.Numbers.Whole.Bounds(min = -1, max = 500, enforce = Config.Numbers.EnforceBounds.MIN_ONLY)
+    public long chunkMapFreezing = -1;
 
     @Config.Category("advanced")
     public boolean showAdvancedSettings = false;
@@ -173,6 +181,8 @@ public class SeedQueueConfig implements SpeedrunConfig {
             SeedQueueKeyBindings.resetColumn,
             SeedQueueKeyBindings.resetRow,
             SeedQueueKeyBindings.playNextLock,
+            SeedQueueKeyBindings.scheduleJoin,
+            SeedQueueKeyBindings.scheduleAll,
             SeedQueueKeyBindings.startBenchmark,
             SeedQueueKeyBindings.cancelBenchmark
     };

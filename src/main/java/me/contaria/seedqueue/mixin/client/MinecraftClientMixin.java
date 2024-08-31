@@ -18,6 +18,7 @@ import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
+import me.contaria.seedqueue.interfaces.SQSoundManager;
 import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressLogger;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
 import me.contaria.seedqueue.mixin.accessor.PlayerEntityAccessor;
@@ -536,6 +537,16 @@ public abstract class MinecraftClientMixin {
     }
 
     @Inject(
+            method = "<init>",
+            at = @At("TAIL")
+    )
+    private void logSystemInformation(CallbackInfo ci) {
+        if (Boolean.parseBoolean(System.getProperty("seedqueue.logSystemInfo", "true"))) {
+            SeedQueue.logSystemInformation();
+        }
+    }
+
+    @Inject(
             method = "run",
             at = @At(
                     value = "INVOKE",
@@ -588,8 +599,10 @@ public abstract class MinecraftClientMixin {
     )
     private void finishRenderingWall(CallbackInfo ci) {
         if (this.currentScreen instanceof SeedQueueWallScreen) {
-            ((SeedQueueWallScreen) this.currentScreen).populateResetCooldowns();
-            ((SeedQueueWallScreen) this.currentScreen).tickBenchmark();
+            SeedQueueWallScreen wall = (SeedQueueWallScreen) this.currentScreen;
+            wall.joinScheduledInstance();
+            wall.populateResetCooldowns();
+            wall.tickBenchmark();
         }
     }
 
@@ -604,26 +617,19 @@ public abstract class MinecraftClientMixin {
         return !SeedQueue.isOnWall();
     }
 
-    // don't clear sounds when coming from the wall screen
-    // ingame sounds of previous worlds will still be reset before joining wall,
-    // this just allows wall sounds to keep playing
-    @WrapWithCondition(
+    @WrapOperation(
             method = "reset",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/sound/SoundManager;stopAll()V"
             )
     )
-    private boolean keepSoundsComingFromWall(SoundManager manager) {
-        return !SeedQueue.comingFromWall;
-    }
-
-    @Inject(
-            method = "joinWorld",
-            at = @At("RETURN")
-    )
-    private void resetComingFromWall(CallbackInfo ci) {
-        SeedQueue.comingFromWall = false;
+    private void keepSeedQueueSounds(SoundManager soundManager, Operation<Void> original) {
+        if (SeedQueue.isActive()) {
+            ((SQSoundManager) soundManager).seedQueue$stopAllExceptSeedQueueSounds();
+            return;
+        }
+        original.call(soundManager);
     }
 
     @ModifyReturnValue(
