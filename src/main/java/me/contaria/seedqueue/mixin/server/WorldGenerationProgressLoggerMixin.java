@@ -5,7 +5,11 @@ import net.minecraft.server.WorldGenerationProgressLogger;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.chunk.ChunkStatus;
-import org.spongepowered.asm.mixin.*;
+import org.objectweb.asm.Opcodes;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -21,11 +25,9 @@ public abstract class WorldGenerationProgressLoggerMixin implements SQProgressLo
     @Unique
     private final HashMap<Long, Boolean> map = new HashMap<>(this.totalCount);
 
-    @Inject(method = "setChunkStatus", at = @At("TAIL"))
+    @Inject(method = "setChunkStatus", at = @At(value = "FIELD", target = "Lnet/minecraft/server/WorldGenerationProgressLogger;generatedCount:I", opcode = Opcodes.PUTFIELD))
     private void addToMap(ChunkPos pos, ChunkStatus status, CallbackInfo ci) {
-        if (status == ChunkStatus.FULL) {
-            map.put(pos.toLong(), true);
-        }
+        map.put(pos.toLong(), true);
     }
 
     public int seedqueue$getProgressPercentage(ChunkPos center) {
@@ -56,6 +58,6 @@ public abstract class WorldGenerationProgressLoggerMixin implements SQProgressLo
 
     @Unique
     private boolean getChunk(int x, int z) {
-        return map.containsKey(new ChunkPos(x, z).toLong());
+        return map.containsKey(ChunkPos.toLong(x, z));
     }
 }
