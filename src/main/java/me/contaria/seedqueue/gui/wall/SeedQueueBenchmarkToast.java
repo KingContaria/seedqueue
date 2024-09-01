@@ -12,7 +12,6 @@ public class SeedQueueBenchmarkToast implements Toast {
 
     private boolean finished;
     private boolean fadeOut;
-    private long fadeOutStart;
 
     public SeedQueueBenchmarkToast(SeedQueueWallScreen wall) {
         this.wall = wall;
@@ -27,8 +26,7 @@ public class SeedQueueBenchmarkToast implements Toast {
 
         this.finished |= !this.wall.isBenchmarking();
 
-        if (this.finished && !this.fadeOut && manager.getGame().isWindowFocused()) {
-            this.fadeOutStart = startTime;
+        if (this.finished && !this.fadeOut && !this.wall.showFinishedBenchmarkResults) {
             this.fadeOut = true;
         }
 
@@ -36,6 +34,6 @@ public class SeedQueueBenchmarkToast implements Toast {
         double rps = Math.round(this.wall.benchmarkedSeeds / (time / 10000.0)) / 10.0;
         manager.getGame().textRenderer.draw(matrices, new TranslatableText("seedqueue.menu.benchmark.result", this.wall.benchmarkedSeeds, Math.round(time / 1000.0), rps), 7.0f, 18.0f, -1);
 
-        return (this.fadeOut && startTime - this.fadeOutStart > 5000) ? Visibility.HIDE : Visibility.SHOW;
+        return this.fadeOut ? Visibility.HIDE : Visibility.SHOW;
     }
 }

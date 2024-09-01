@@ -102,6 +102,17 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
     }
 
     @Inject(
+            method = "loadWorld",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/server/WorldGenerationProgressListenerFactory;create(I)Lnet/minecraft/server/WorldGenerationProgressListener;"
+            )
+    )
+    private void setThreadLocalSeedQueueEntry(CallbackInfo ci) {
+        this.seedQueue$getEntry().ifPresent(SeedQueue.LOCAL_ENTRY::set);
+    }
+
+    @Inject(
             method = "setupSpawn",
             at = @At(
                     value = "INVOKE",
@@ -183,9 +194,18 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
         if (!entry.hasWorldPreview()) {
             return false;
         }
-        if (!entry.isLocked() && SeedQueue.config.maxWorldGenerationPercentage < 100) {
+        if (entry.isLocked()) {
+            return false;
+        }
+        if (SeedQueue.config.resumeOnFilledQueue && entry.isMaxWorldGenerationReached() && SeedQueue.isFull() ) {
+            return false;
+        }
+        if (SeedQueue.config.maxWorldGenerationPercentage < 100) {
             WorldGenerationProgressTracker tracker = entry.getWorldGenerationProgressTracker();
-            return tracker != null && tracker.getProgressPercentage() >= SeedQueue.config.maxWorldGenerationPercentage;
+            if (tracker != null && tracker.getProgressPercentage() >= SeedQueue.config.maxWorldGenerationPercentage) {
+                entry.setMaxWorldGenerationReached();
+                return true;
+            }
         }
         return false;
     }
