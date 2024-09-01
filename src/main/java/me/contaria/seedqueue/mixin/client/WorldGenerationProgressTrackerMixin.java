@@ -35,7 +35,10 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     @Shadow
     public abstract @Nullable ChunkStatus getChunkStatus(int x, int z);
 
-    @Shadow @Final private int centerSize;
+    @Shadow
+    @Final
+    private int centerSize;
+
     @Unique
     private long freezeTime = -1;
 
