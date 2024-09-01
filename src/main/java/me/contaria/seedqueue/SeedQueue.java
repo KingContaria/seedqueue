@@ -109,7 +109,6 @@ public class SeedQueue implements ClientModInitializer {
             LOGGER.info("Use Wall Screen: {}", config.useWall);
             LOGGER.info("Rows: {}", config.rows);
             LOGGER.info("Columns: {}", config.columns);
-            LOGGER.info("Simulated Window Size: {}", config.simulatedWindowSize);
             LOGGER.info("Reset Cooldown: {}", config.resetCooldown);
             LOGGER.info("Wait for Preview Setup: {}", config.waitForPreviewSetup);
             LOGGER.info("Bypass Wall Screen: {}", config.bypassWall);
