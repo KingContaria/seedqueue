@@ -50,7 +50,6 @@
     "compat.worldpreview.render.WorldRendererMixin",
     "server.IntegratedServerMixin",
     "server.MinecraftServerMixin",
-    "server.WorldGenerationProgressLoggerMixin",
     "server.parity.EntityMixin",
     "server.synchronization.BiomeMixin",
     "server.synchronization.DirectionTransformationMixin",

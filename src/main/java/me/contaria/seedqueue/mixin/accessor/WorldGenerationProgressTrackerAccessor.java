@@ -2,7 +2,6 @@ package me.contaria.seedqueue.mixin.accessor;
 
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.server.WorldGenerationProgressLogger;
-import net.minecraft.util.math.ChunkPos;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -10,7 +9,4 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface WorldGenerationProgressTrackerAccessor {
     @Accessor
     WorldGenerationProgressLogger getProgressLogger();
-
-    @Accessor
-    ChunkPos getSpawnPos();
 }
