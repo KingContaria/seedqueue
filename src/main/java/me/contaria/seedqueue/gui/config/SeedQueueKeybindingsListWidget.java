@@ -121,7 +121,7 @@ public class SeedQueueKeybindingsListWidget extends ElementListWidget<SeedQueueK
             float titleY = y + entryHeight / 2.0f - textRenderer.fontHeight / 2.0f;
             textRenderer.draw(matrices, this.title, titleX, titleY, 0xFFFFFF);
 
-            x += 100;
+            x += 110;
             for (Element e : this.children()) {
                 AbstractPressableButtonWidget button = (AbstractPressableButtonWidget) e;
                 button.x = x;
