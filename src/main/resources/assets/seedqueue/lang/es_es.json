@@ -43,6 +43,7 @@
   "speedrunapi.config.seedqueue.category.chunkmap": "Ajustes de Chunkmap",
   "speedrunapi.config.seedqueue.category.wall": "Ajustes de la Ventana de la Wall",
   "speedrunapi.config.seedqueue.category.performance": "Ajustes de Rendimiento",
+  "speedrunapi.config.seedqueue.category.misc": "Ajustes Misceláneos",
   "speedrunapi.config.seedqueue.category.advanced": "Ajustes Avanzados",
   "speedrunapi.config.seedqueue.category.threading": "Ajustes de Hilos (Afinidades)",
   "speedrunapi.config.seedqueue.category.experimental": "Ajustes Experimentales",
@@ -64,6 +65,10 @@
   "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.FALSE": "Ocultar",
   "speedrunapi.config.seedqueue.option.chunkMapScale": "Escala del Chunkmap",
   "speedrunapi.config.seedqueue.option.chunkMapScale.description": "§6La escala del Chunkmap se verá afectada por el tamaño de tu GUI!",
+  "speedrunapi.config.seedqueue.option.chunkMapFreezing": "Congelamiento del Chunkmap",
+  "speedrunapi.config.seedqueue.option.chunkMapFreezing.description": "Congela el chunkmap dependiendo de la cantidad de milisegundos introducida. Útil para la estrategia de "Village Resetting" (Resetear hasta encontrar una villa). Solo aplica a los mundos que no esten Bloqueados.",
+  "speedrunapi.config.seedqueue.option.chunkMapFreezing.value": "%sms",
+  "speedrunapi.config.seedqueue.option.chunkMapFreezing.value.-1": "OFF",
   "speedrunapi.config.seedqueue.option.useWall": "Usar ventana de la Wall",
   "speedrunapi.config.seedqueue.option.useWall.description": "Enseña una ventana con la Wall donde puedes ver las semillas que estás generando y selecionarlas para unirte al mundo de una o resetearla.",
   "speedrunapi.config.seedqueue.option.rows": "Filas",
@@ -124,4 +129,5 @@
   "speedrunapi.config.seedqueue.option.showDebugMenu.description": "Renderiza un gráfico de FPS y un Profiler encima de la ventana de la Wall.\n§cUsa esto solo para depuración ya que cualquier run usada con esta opción no será validada!",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "Resets en Prueba de Rapidez",
   "speedrunapi.config.seedqueue.option.benchmarkResets.description": "La cantidad de resets que quieres hacer al activar la prueba de rendimiento.\nPuedes empezar una prueba usando la tecla \"In Test Rapidez\" y cancelarlo antes de que llegue al número de resets usando la tecla \"Fin Test Rapidez\"."
+
 }
