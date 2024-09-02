@@ -1,5 +1,6 @@
 package me.contaria.seedqueue.debug;
 
+import com.sun.management.OperatingSystemMXBean;
 import me.contaria.seedqueue.SeedQueue;
 import org.lwjgl.opengl.GL11;
 
@@ -36,9 +37,9 @@ public class SeedQueueSystemInfo {
         return String.join(" ", ManagementFactory.getRuntimeMXBean().getInputArguments());
     }
 
-    private static String getTotalPhysicalMemory() {
+    private static long getTotalPhysicalMemory() {
         // Logs the total RAM on the system
-        return String.join(" ", ManagementFactory.getRuntimeMXBean().getInputArguments());
+        return ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class).getTotalPhysicalMemorySize() / (1024 * 1024);
     }
 
     private static long getMaxAllocatedMemory() {
