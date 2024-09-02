@@ -3,7 +3,7 @@ package me.contaria.seedqueue.gui.wall;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
-import me.contaria.seedqueue.SeedQueueProfiler;
+import me.contaria.seedqueue.debug.SeedQueueProfiler;
 import me.contaria.seedqueue.SeedQueueThread;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.SeedQueueSettingsCache;

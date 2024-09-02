@@ -3,6 +3,7 @@ package me.contaria.seedqueue;
 import com.google.gson.JsonParseException;
 import com.sun.management.OperatingSystemMXBean;
 import me.contaria.seedqueue.compat.ModCompat;
+import me.contaria.seedqueue.debug.SeedQueueSystemInfo;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
@@ -71,65 +72,6 @@ public class SeedQueue implements ClientModInitializer {
             watchDog.setPriority(3);
             watchDog.setName("SeedQueue WatchDog");
             watchDog.start();
-        }
-    }
-
-    public static void logSystemInformation() {
-        // see GLX#_init
-        oshi.hardware.Processor[] processors = new oshi.SystemInfo().getHardware().getProcessors();
-        String cpuInfo = String.format("%dx %s", processors.length, processors[0]).replaceAll("\\s+", " ");
-
-        // see GlDebugInfo#getRenderer
-        String gpuInfo = GL11.glGetString(GL11.GL_RENDERER);
-
-        LOGGER.info("System Information (Logged by SeedQueue):");
-        LOGGER.info("Operating System: {}", System.getProperty("os.name"));
-        LOGGER.info("OS Version: {}", System.getProperty("os.version"));
-        LOGGER.info("CPU: {}", cpuInfo);
-        LOGGER.info("GPU: {}", gpuInfo);
-        LOGGER.info("Java Version: {}", System.getProperty("java.version"));
-        LOGGER.info("JVM Arguments: {}", String.join(" ", ManagementFactory.getRuntimeMXBean().getInputArguments()));
-        LOGGER.info("Total Physical Memory (MB): {}", ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class).getTotalPhysicalMemorySize() / (1024 * 1024)); // Logs the total RAM on the system
-        LOGGER.info("Max Memory (MB): {}", Runtime.getRuntime().maxMemory() / (1024 * 1024));
-        LOGGER.info("Total Processors: {}", ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors()); // Logs the total number of processors (not affected by affinity)
-        LOGGER.info("Available Processors: {}", Runtime.getRuntime().availableProcessors()); // Logs the available number of processors (affected by affinity)
-    }
-
-    private static void logConfigSettings() {
-        if (Boolean.parseBoolean(System.getProperty("seedqueue.logSeedQueueSettings", "true"))) {
-            LOGGER.info("SeedQueue Config Settings:");
-            LOGGER.info("Max Queued Seeds: {}", config.maxCapacity);
-            LOGGER.info("Max Generating Seeds: {}", config.maxConcurrently);
-            LOGGER.info("Max Generating Seeds (wall): {}", config.maxConcurrently_onWall);
-            LOGGER.info("Max World Generation %: {}", config.maxWorldGenerationPercentage);
-            LOGGER.info("Resume On Filled Queue: {}", config.resumeOnFilledQueue);
-            LOGGER.info("SeedQueue Chunkmaps: {}", config.chunkMapVisibility);
-            LOGGER.info("Chunkmap Scale: {}", config.chunkMapScale);
-            LOGGER.info("Chunkmap Freezing: {}", config.chunkMapFreezing);
-            LOGGER.info("Use Wall Screen: {}", config.useWall);
-            LOGGER.info("Rows: {}", config.rows);
-            LOGGER.info("Columns: {}", config.columns);
-            LOGGER.info("Reset Cooldown: {}", config.resetCooldown);
-            LOGGER.info("Wait for Preview Setup: {}", config.waitForPreviewSetup);
-            LOGGER.info("Bypass Wall Screen: {}", config.bypassWall);
-            LOGGER.info("Wall FPS: {}", config.wallFPS);
-            LOGGER.info("Preview FPS: {}", config.previewFPS);
-            LOGGER.info("Background Previews: {}", config.preparingPreviews);
-            LOGGER.info("Freeze Locked Previews: {}", config.freezeLockedPreviews);
-            LOGGER.info("Show Advanced Settings: {}", config.showAdvancedSettings);
-            LOGGER.info("SeedQueue Thread Priority: {}", config.seedQueueThreadPriority);
-            LOGGER.info("Server Thread Priority: {}", config.serverThreadPriority);
-            LOGGER.info("Background Worker Threads: {}", config.backgroundExecutorThreads);
-            LOGGER.info("Background Worker Priority: {}", config.backgroundExecutorThreadPriority);
-            LOGGER.info("Wall Worker Threads: {}", config.wallExecutorThreads);
-            LOGGER.info("Wall Worker Priority: {}", config.wallExecutorThreadPriority);
-            LOGGER.info("Sodium Update Threads: {}", config.getChunkUpdateThreads());
-            LOGGER.info("Sodium Update Priority: {}", config.chunkUpdateThreadPriority);
-            LOGGER.info("Smooth Chunk Building: {}", config.reduceSchedulingBudget);
-            LOGGER.info("Reduce World List: {}", config.reduceLevelList);
-            LOGGER.info("Watchdog: {}", config.useWatchdog);
-            LOGGER.info("Show Debug Menu: {}", config.showDebugMenu);
-            LOGGER.info("Benchmark Resets: {}", config.benchmarkResets);
         }
     }
 
@@ -349,7 +291,7 @@ public class SeedQueue implements ClientModInitializer {
                 return;
             }
 
-            logConfigSettings();
+            SeedQueueSystemInfo.logConfigSettings();
 
             LOGGER.info("Starting SeedQueue...");
             thread = new SeedQueueThread();

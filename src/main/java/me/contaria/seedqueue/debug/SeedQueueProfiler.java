@@ -1,5 +1,7 @@
-package me.contaria.seedqueue;
+package me.contaria.seedqueue.debug;
 
+import me.contaria.seedqueue.SeedQueue;
+import me.contaria.seedqueue.SeedQueueConfig;
 import net.minecraft.client.MinecraftClient;
 
 /**

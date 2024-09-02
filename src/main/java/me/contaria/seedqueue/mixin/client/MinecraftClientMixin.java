@@ -16,6 +16,7 @@ import me.contaria.seedqueue.SeedQueueException;
 import me.contaria.seedqueue.SeedQueueExecutorWrapper;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
+import me.contaria.seedqueue.debug.SeedQueueSystemInfo;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
 import me.contaria.seedqueue.interfaces.SQSoundManager;
@@ -542,7 +543,7 @@ public abstract class MinecraftClientMixin {
     )
     private void logSystemInformation(CallbackInfo ci) {
         if (Boolean.parseBoolean(System.getProperty("seedqueue.logSystemInfo", "true"))) {
-            SeedQueue.logSystemInformation();
+            SeedQueueSystemInfo.logSystemInformation();
         }
     }
 

@@ -7,6 +7,7 @@ import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
 import me.contaria.seedqueue.compat.WorldPreviewFrameBuffer;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
+import me.contaria.seedqueue.debug.SeedQueueProfiler;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
 import net.minecraft.client.MinecraftClient;

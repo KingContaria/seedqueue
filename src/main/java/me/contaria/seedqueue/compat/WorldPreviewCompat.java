@@ -1,7 +1,7 @@
 package me.contaria.seedqueue.compat;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import me.contaria.seedqueue.SeedQueueProfiler;
+import me.contaria.seedqueue.debug.SeedQueueProfiler;
 import me.contaria.seedqueue.interfaces.worldpreview.SQWorldRenderer;
 import me.contaria.seedqueue.mixin.accessor.CameraAccessor;
 import me.voidxwalker.worldpreview.WorldPreview;
