@@ -11,3 +11,10 @@ If you are new and want to get started with SeedQueue watch this [tutorial](http
 You can learn more about the config settings for SeedQueue and get guidance for customization of your Wall Screen on the [SeedQueue Wiki](https://github.com/KingContaria/seedqueue/wiki).
 ## Discord Server
 If you are looking forward to getting in touch with the SeedQueue Community, join the SeedQueue discord server by clicking [here](https://discord.gg/9P6PJkHCdU).
+
+## Acknowledgements
+
+<img src="https://www.yourkit.com/images/yklogo.png"></img>
+
+I use the [YourKit Java Profiler](https://www.yourkit.com/java/profiler/) for profiling when developing SeedQueue.
+Thanks to YourKit for providing a free license to their product.

@@ -26,30 +26,30 @@ dependencies {
 	implementation(annotationProcessor "com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.1.1")
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/atum-rewrite
-	modImplementation ("com.github.KingContaria:atum-rewrite:9e90ab79ea") {
+	modImplementation ("com.github.KingContaria:atum-rewrite:v2.2") {
 		transitive = false
 	}
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/mcsr-worldpreview-1.16.1
-	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:53a9b675a1") {
+	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:v6.1.0") {
 		transitive = false
 	}
 
 	// check for the latest versions at https://jitpack.io/#Minecraft-Java-Edition-Speedrunning/sodium
-	modCompileOnly "com.github.Minecraft-Java-Edition-Speedrunning:sodium:7e4905f134"
+	modCompileOnly "com.github.Minecraft-Java-Edition-Speedrunning:sodium:b8785cddfa"
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/fastreset
-	modCompileOnly ("com.github.KingContaria:fastreset:2959243b00") {
+	modCompileOnly ("com.github.KingContaria:fastreset:82fe8eb3b2") {
 		transitive = false
 	}
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/standardsettings
-	modCompileOnly ("com.github.KingContaria:standardsettings:ebd61b0163") {
+	modCompileOnly ("com.github.KingContaria:standardsettings:v2.2") {
 		transitive = false
 	}
 
 	// check for latest versions at https://jitpack.io/#dev.tildejustin/state-output
-	modCompileOnly "dev.tildejustin.state-output:state-output-common:89c99480fe"
+	modCompileOnly "dev.tildejustin.state-output:state-output-common:v1.2.0"
 }
 
 processResources {
