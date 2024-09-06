@@ -1,7 +1,6 @@
 package me.contaria.seedqueue;
 
 import com.google.gson.JsonParseException;
-import com.sun.management.OperatingSystemMXBean;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.debug.SeedQueueSystemInfo;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
@@ -19,10 +18,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.TranslatableText;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.lwjgl.opengl.GL11;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Predicate;
