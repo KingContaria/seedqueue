@@ -3,24 +3,25 @@ package me.contaria.seedqueue.debug;
 import com.google.gson.JsonObject;
 import com.sun.management.OperatingSystemMXBean;
 import me.contaria.seedqueue.SeedQueue;
-import me.contaria.seedqueue.SeedQueueConfig;
 import org.lwjgl.opengl.GL11;
 
 import java.lang.management.ManagementFactory;
 
 public class SeedQueueSystemInfo {
     public static void logSystemInformation() {
-        SeedQueue.LOGGER.info("System Information (Logged by SeedQueue):");
-        SeedQueue.LOGGER.info("Operating System: {}", System.getProperty("os.name"));
-        SeedQueue.LOGGER.info("OS Version: {}", System.getProperty("os.version"));
-        SeedQueue.LOGGER.info("CPU: {}", getCpuInfo());
-        SeedQueue.LOGGER.info("GPU: {}", getGpuInfo());
-        SeedQueue.LOGGER.info("Java Version: {}", System.getProperty("java.version"));
-        SeedQueue.LOGGER.info("JVM Arguments: {}", getJavaArguments());
-        SeedQueue.LOGGER.info("Total Physical Memory (MB): {}", getTotalPhysicalMemory());
-        SeedQueue.LOGGER.info("Max Memory (MB): {}", getMaxAllocatedMemory());
-        SeedQueue.LOGGER.info("Total Processors: {}", getTotalPhysicalProcessors());
-        SeedQueue.LOGGER.info("Available Processors: {}", getAvailableProcessors());
+        if (Boolean.parseBoolean(System.getProperty("seedqueue.logSystemInfo", "true"))) {
+            SeedQueue.LOGGER.info("System Information (Logged by SeedQueue):");
+            SeedQueue.LOGGER.info("Operating System: {}", System.getProperty("os.name"));
+            SeedQueue.LOGGER.info("OS Version: {}", System.getProperty("os.version"));
+            SeedQueue.LOGGER.info("CPU: {}", getCpuInfo());
+            SeedQueue.LOGGER.info("GPU: {}", getGpuInfo());
+            SeedQueue.LOGGER.info("Java Version: {}", System.getProperty("java.version"));
+            SeedQueue.LOGGER.info("JVM Arguments: {}", getJavaArguments());
+            SeedQueue.LOGGER.info("Total Physical Memory (MB): {}", getTotalPhysicalMemory());
+            SeedQueue.LOGGER.info("Max Memory (MB): {}", getMaxAllocatedMemory());
+            SeedQueue.LOGGER.info("Total Processors: {}", getTotalPhysicalProcessors());
+            SeedQueue.LOGGER.info("Available Processors: {}", getAvailableProcessors());
+        }
     }
 
     private static String getCpuInfo() {
@@ -63,7 +64,7 @@ public class SeedQueueSystemInfo {
 
     public static void logConfigSettings() {
         if (Boolean.parseBoolean(System.getProperty("seedqueue.logConfigSettings", "true"))) {
-            JsonObject json = SeedQueueConfig.container.toJson();
+            JsonObject json = SeedQueue.config.container.toJson();
             String configSettings = json.toString();
 
             SeedQueue.LOGGER.info("SeedQueue Config settings: {}", configSettings);

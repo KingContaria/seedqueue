@@ -276,6 +276,10 @@ public class SeedQueue implements ClientModInitializer {
                 throw new IllegalStateException("Tried to start SeedQueue but a queue is already active!");
             }
 
+            if (!shouldStart()) {
+                return;
+            }
+
             LOGGER.info("Reloading SeedQueue Config...");
             try {
                 SeedQueue.config.reload();
@@ -283,11 +287,6 @@ public class SeedQueue implements ClientModInitializer {
                 LOGGER.error("Failed to reload SeedQueue Config!", e);
             }
             SeedQueue.config.simulatedWindowSize.init();
-
-            if (!shouldStart()) {
-                return;
-            }
-
             SeedQueueSystemInfo.logConfigSettings();
 
             LOGGER.info("Starting SeedQueue...");

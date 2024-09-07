@@ -45,7 +45,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
     private static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
 
     @Config.Ignored
-    public static SpeedrunConfigContainer<?> container;
+    public SpeedrunConfigContainer<?> container;
 
     @Config.Category("queue")
     @Config.Numbers.Whole.Bounds(min = 0, max = 30)

@@ -542,9 +542,7 @@ public abstract class MinecraftClientMixin {
             at = @At("TAIL")
     )
     private void logSystemInformation(CallbackInfo ci) {
-        if (Boolean.parseBoolean(System.getProperty("seedqueue.logSystemInfo", "true"))) {
             SeedQueueSystemInfo.logSystemInformation();
-        }
     }
 
     @Inject(
