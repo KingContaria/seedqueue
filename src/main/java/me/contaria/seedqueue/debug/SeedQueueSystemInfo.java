@@ -46,7 +46,7 @@ public class SeedQueueSystemInfo {
     }
 
     private static long getMaxAllocatedMemory() {
-        // Logs the total RAM on the system
+        // Logs the max RAM the JVM will try to use
         return Runtime.getRuntime().maxMemory() / (1024 * 1024);
     }
 
