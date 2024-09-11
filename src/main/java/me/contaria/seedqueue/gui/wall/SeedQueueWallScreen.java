@@ -180,11 +180,13 @@ public class SeedQueueWallScreen extends Screen {
             SeedQueueProfiler.push("set_viewport");
             this.setViewport(pos);
             if (instance == null || (SeedQueue.config.waitForPreviewSetup && !instance.isPreviewReady())) {
-                SeedQueueProfiler.swap("instance_background");
-                if (!SeedQueue.config.waitForPreviewSetup && this.layout.main == group) {
-                    this.renderBackground(matrices);
-                } else if (group.instance_background && this.instanceBackground != null) {
-                    this.drawAnimatedTexture(this.instanceBackground, matrices, 0, 0, this.width, this.height);
+                if (group.instance_background) {
+                    SeedQueueProfiler.swap("instance_background");
+                    if (!SeedQueue.config.waitForPreviewSetup && this.layout.main == group) {
+                        this.renderBackground(matrices);
+                    } else if (this.instanceBackground != null) {
+                        this.drawAnimatedTexture(this.instanceBackground, matrices, 0, 0, this.width, this.height);
+                    }
                 }
                 if (instance != null) {
                     SeedQueueProfiler.swap("build_chunks");
