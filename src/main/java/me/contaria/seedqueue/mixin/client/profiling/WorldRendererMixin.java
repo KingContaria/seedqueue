@@ -1,6 +1,6 @@
 package me.contaria.seedqueue.mixin.client.profiling;
 
-import me.contaria.seedqueue.SeedQueueProfiler;
+import me.contaria.seedqueue.debug.SeedQueueProfiler;
 import net.minecraft.client.render.WorldRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

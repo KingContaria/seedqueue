@@ -1,6 +1,6 @@
 package me.contaria.seedqueue.mixin.compat.sodium.profiling;
 
-import me.contaria.seedqueue.SeedQueueProfiler;
+import me.contaria.seedqueue.debug.SeedQueueProfiler;
 import me.jellysquid.mods.sodium.client.render.chunk.ChunkRenderManager;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
