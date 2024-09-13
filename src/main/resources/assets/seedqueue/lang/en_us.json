@@ -125,7 +125,7 @@
   "speedrunapi.config.seedqueue.option.reduceLevelList": "Reduce World List",
   "speedrunapi.config.seedqueue.option.reduceLevelList.description": "Hides worlds that have been reset on the Wall Screen or during preview from the world list to avoid lag.",
   "speedrunapi.config.seedqueue.option.useWatchdog": "Watchdog",
-  "speedrunapi.config.seedqueue.option.useWatchdog.description": "Launches an extra thread that prints out the main threads stacktrace every 10 seconds to diagnose freezing issues.\n§cTo update this option restart the game.",
+  "speedrunapi.config.seedqueue.option.useWatchdog.description": "Launches an extra thread that prints out the main threads stacktrace every 10 seconds to diagnose freezing issues.",
   "speedrunapi.config.seedqueue.option.showDebugMenu": "Show Debug Menu",
   "speedrunapi.config.seedqueue.option.showDebugMenu.description": "Renders an FPS Graph and a Profiler on top of the Wall Screen.\n§cUse this only for debugging, any runs played with this option enabled will be invalidated!",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "Benchmark Resets",

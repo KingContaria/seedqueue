@@ -125,7 +125,7 @@
   "speedrunapi.config.seedqueue.option.reduceLevelList": "Redukovat seznam světů",
   "speedrunapi.config.seedqueue.option.reduceLevelList.description": "Světy které byly resetovány na wall obrazovce nebo během náhledu budou skryty ze seznamu světů, aby se předešlo lagu.",
   "speedrunapi.config.seedqueue.option.useWatchdog": "Hlídací pes",
-  "speedrunapi.config.seedqueue.option.useWatchdog.description": "Spustí další vlákno, které každých 10 sekund kontroluje hlavní vlákna stacktrace pro diagnostiku problémů se zmrazením.\n§cPro aktualizaci této možnosti restartuj hru.",
+  "speedrunapi.config.seedqueue.option.useWatchdog.description": "Spustí další vlákno, které každých 10 sekund kontroluje hlavní vlákna stacktrace pro diagnostiku problémů se zmrazením.",
   "speedrunapi.config.seedqueue.option.showDebugMenu": "Zobrazit debug menu",
   "speedrunapi.config.seedqueue.option.showDebugMenu.description": "Vykreslí FPS graf a profiler na wall obrazovce.\n§cTohle používej pouze pro debugging, jakékoliv runy s touto možností budou neplatné!",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "Benchmark resety",

@@ -124,7 +124,7 @@
   "speedrunapi.config.seedqueue.option.reduceLevelList": "מפחית רשימת עולמות",
   "speedrunapi.config.seedqueue.option.reduceLevelList.description": "ההצגה של רשימת העולמות להימנה מלאג\nמחביא עולמות שאיפסו או על מסך הקיר או בזמן",
   "speedrunapi.config.seedqueue.option.useWatchdog": "מפעיל אבחונים",
-  "speedrunapi.config.seedqueue.option.useWatchdog.description": "את המשחקc§.\nכדי לעדכן את האפשרות הזאת, תתחיל מחדשc§\nבעיות קיפאון.\nהשרשראות העיקריות כל 10 שניות כדי לאבחן\nמתחיל שרשרת נוספת שמדפיסה את דיווח",
+  "speedrunapi.config.seedqueue.option.useWatchdog.description": "בעיות קיפאון.\nהשרשראות העיקריות כל 10 שניות כדי לאבחן\nמתחיל שרשרת נוספת שמדפיסה את דיווח",
   "speedrunapi.config.seedqueue.option.showDebugMenu": "הראה טבלת Debug",
   "speedrunapi.config.seedqueue.option.showDebugMenu.description": "עם האפשרות הזאת פעילה יפסלc§!\nתשתמש בזה רק ל-debugging, כל ספידראןc§\nמסך הקיר.\nמציג גרף FPS ו-profiler  בחלק העליון של",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "מספר האיפוסים בבדיקת מהירות",

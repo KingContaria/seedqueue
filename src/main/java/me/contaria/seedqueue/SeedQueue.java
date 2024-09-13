@@ -3,6 +3,7 @@ package me.contaria.seedqueue;
 import com.google.gson.JsonParseException;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.debug.SeedQueueSystemInfo;
+import me.contaria.seedqueue.debug.SeedQueueWatchdog;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
@@ -45,31 +46,6 @@ public class SeedQueue implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         SeedQueueSounds.init();
-
-        if (config.useWatchdog) {
-            Thread watchDog = new Thread(() -> {
-                try {
-                    while (true) {
-                        Thread mainThread = MinecraftClient.getInstance() != null ? ((MinecraftClientAccessor) MinecraftClient.getInstance()).seedQueue$getThread() : null;
-                        if (mainThread != null) {
-                            LOGGER.info("WATCHDOG | Main: {}", Arrays.toString(mainThread.getStackTrace()));
-                        }
-                        Thread sqThread = thread;
-                        if (sqThread != null) {
-                            LOGGER.info("WATCHDOG | SeedQueue: {}", Arrays.toString(sqThread.getStackTrace()));
-                        }
-                        //noinspection BusyWait
-                        Thread.sleep(10000);
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            watchDog.setDaemon(true);
-            watchDog.setPriority(3);
-            watchDog.setName("SeedQueue WatchDog");
-            watchDog.start();
-        }
     }
 
     /**
@@ -292,6 +268,8 @@ public class SeedQueue implements ClientModInitializer {
             LOGGER.info("Starting SeedQueue...");
             thread = new SeedQueueThread();
             thread.start();
+
+            SeedQueueWatchdog.start();
         }
     }
 
@@ -324,6 +302,8 @@ public class SeedQueue implements ClientModInitializer {
             throw new RuntimeException("Failed to stop SeedQueue Thread!", e);
         }
         thread = null;
+
+        SeedQueueWatchdog.stop();
 
         clear();
     }
@@ -413,6 +393,13 @@ public class SeedQueue implements ClientModInitializer {
      */
     public static List<SeedQueueEntry> getEntries() {
         return new ArrayList<>(SEED_QUEUE);
+    }
+
+    /**
+     * @return The currently active {@link SeedQueueThread}.
+     */
+    public static SeedQueueThread getThread() {
+        return thread;
     }
 
     /**

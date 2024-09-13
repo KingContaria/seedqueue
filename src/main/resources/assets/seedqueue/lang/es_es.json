@@ -129,7 +129,7 @@
   "speedrunapi.config.seedqueue.option.reduceLevelList": "Reducir Lista de Mundos",
   "speedrunapi.config.seedqueue.option.reduceLevelList.description": "Oculta mundos que han sido reseteados en la ventana de la Wall o durante la preview de la lista de mundos para evitar lag.",
   "speedrunapi.config.seedqueue.option.useWatchdog": "Vísor de Errores",
-  "speedrunapi.config.seedqueue.option.useWatchdog.description": "Crea un hilo extra que escribe el stacktrace de los hilos principales cada 10 segundos para diagnosticar problemas de congelamiento en SeedQueue.\n§cPara cambiar esta opción reinicia el juego al seleccionarla.",
+  "speedrunapi.config.seedqueue.option.useWatchdog.description": "Crea un hilo extra que escribe el stacktrace de los hilos principales cada 10 segundos para diagnosticar problemas de congelamiento en SeedQueue.",
   "speedrunapi.config.seedqueue.option.showDebugMenu": "Mostrar Menú de Depuración",
   "speedrunapi.config.seedqueue.option.showDebugMenu.description": "Renderiza un gráfico de FPS y un Profiler encima de la ventana de la Wall.\n§cUsa esto solo para depuración ya que cualquier run usada con esta opción no será validada!",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "Resets en Prueba de Rapidez",
