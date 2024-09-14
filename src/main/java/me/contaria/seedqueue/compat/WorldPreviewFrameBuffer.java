@@ -1,6 +1,7 @@
 package me.contaria.seedqueue.compat;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import me.contaria.seedqueue.SeedQueue;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.render.BufferBuilder;
@@ -8,20 +9,34 @@ import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormats;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Wrapper for Minecrafts {@link Framebuffer} storing a previews last drawn image.
  * <p>
  * Stores {@link WorldPreviewFrameBuffer#lastRenderData} as to only redraw the preview if it has changed.
  */
 public class WorldPreviewFrameBuffer {
+    private static final List<Framebuffer> FRAMEBUFFER_POOL = new ArrayList<>();
+
     private final Framebuffer framebuffer;
 
     // stores a string unique to the current state of world rendering when writing to the framebuffer
     @Nullable
     private String lastRenderData;
 
-    public WorldPreviewFrameBuffer(int width, int height) {
-        this.framebuffer = new Framebuffer(width, height, true, MinecraftClient.IS_SYSTEM_MAC);
+    public WorldPreviewFrameBuffer() {
+        if (FRAMEBUFFER_POOL.isEmpty()) {
+            this.framebuffer = new Framebuffer(
+                    SeedQueue.config.simulatedWindowSize.width(),
+                    SeedQueue.config.simulatedWindowSize.height(),
+                    true,
+                    MinecraftClient.IS_SYSTEM_MAC
+            );
+        } else {
+            this.framebuffer = FRAMEBUFFER_POOL.remove(0);
+        }
     }
 
     /**
@@ -82,7 +97,14 @@ public class WorldPreviewFrameBuffer {
         RenderSystem.colorMask(true, true, true, true);
     }
 
-    public void delete() {
-        this.framebuffer.delete();
+    public void discard() {
+        FRAMEBUFFER_POOL.add(this.framebuffer);
+    }
+
+    static void clearFramebufferPool() {
+        for (Framebuffer framebuffer : FRAMEBUFFER_POOL) {
+            framebuffer.delete();
+        }
+        FRAMEBUFFER_POOL.clear();
     }
 }

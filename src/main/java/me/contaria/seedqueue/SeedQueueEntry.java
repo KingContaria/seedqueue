@@ -122,7 +122,7 @@ public class SeedQueueEntry {
         }
         if (create && this.frameBuffer == null) {
             SeedQueueProfiler.push("create_framebuffer");
-            this.frameBuffer = new WorldPreviewFrameBuffer(SeedQueue.config.simulatedWindowSize.width(), SeedQueue.config.simulatedWindowSize.height());
+            this.frameBuffer = new WorldPreviewFrameBuffer();
             SeedQueueProfiler.pop();
         }
         return this.frameBuffer;
@@ -135,14 +135,14 @@ public class SeedQueueEntry {
     /**
      * Deletes and removes this entry's framebuffer.
      *
-     * @see WorldPreviewFrameBuffer#delete
+     * @see WorldPreviewFrameBuffer#discard
      */
     public void discardFrameBuffer() {
         if (!MinecraftClient.getInstance().isOnThread()) {
             throw new RuntimeException("Tried to discard WorldPreviewFrameBuffer off-thread!");
         }
         if (this.frameBuffer != null) {
-            this.frameBuffer.delete();
+            this.frameBuffer.discard();
             this.frameBuffer = null;
         }
     }

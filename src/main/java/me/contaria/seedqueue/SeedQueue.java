@@ -335,6 +335,7 @@ public class SeedQueue implements ClientModInitializer {
 
         SeedQueueExecutorWrapper.shutdownExecutors();
         SeedQueueWallScreen.clearWorldRenderers();
+        ModCompat.worldpreview$clearFramebufferPool();
         ModCompat.sodium$clearShaderCache();
         ModCompat.sodium$clearBuildBufferPool();
         System.gc();
