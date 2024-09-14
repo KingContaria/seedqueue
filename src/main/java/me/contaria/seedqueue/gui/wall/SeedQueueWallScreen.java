@@ -649,6 +649,9 @@ public class SeedQueueWallScreen extends Screen {
 
     private void lockInstance(SeedQueuePreview instance) {
         if (instance.hasPreviewRendered() && instance.getSeedQueueEntry().lock()) {
+            if (this.lockedPreviews != null && this.removePreview(instance)) {
+                this.addLockedPreview(instance);
+            }
             if (SeedQueue.config.freezeLockedPreviews) {
                 // clearing WorldPreviewProperties frees the previews WorldRenderer, allowing resources to be cleared
                 // it also means the amount of WorldRenderers does not exceed Rows * Columns + Background Previews
