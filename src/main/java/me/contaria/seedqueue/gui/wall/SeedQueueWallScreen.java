@@ -214,16 +214,22 @@ public class SeedQueueWallScreen extends Screen {
         assert this.client != null;
         this.setOrtho(this.client.getWindow().getFramebufferWidth(), this.client.getWindow().getFramebufferHeight());
         this.client.getTextureManager().bindTexture(lock.getId());
+
+        double scaledX = pos.x + lock.posX;
+        double scaledY = pos.y + lock.posY;
+        double scaledWidth = lock.specifiedWidth;
+        double scaledHeight = lock.specifiedHeight;
+
         DrawableHelper.drawTexture(
                 matrices,
-                pos.x,
-                pos.y,
+                (int) scaledX,
+                (int) scaledY,
                 0.0f,
                 lock.getFrameIndex(this.ticks) * pos.height,
-                (int) Math.min(pos.width, pos.height * lock.getAspectRatio()),
-                pos.height,
-                (int) (pos.height * lock.getAspectRatio()),
-                pos.height * lock.getIndividualFrameCount()
+                (int) Math.min(scaledWidth, scaledHeight * lock.getAspectRatio()),
+                (int) scaledHeight,
+                (int) (scaledHeight * lock.getAspectRatio()),
+                (int) (scaledHeight * lock.getIndividualFrameCount())
         );
         this.resetOrtho();
     }
