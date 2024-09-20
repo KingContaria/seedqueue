@@ -18,16 +18,18 @@ public class Layout {
     public final Group locked;
     public final Group[] preparing;
     public final boolean replaceLockedInstances;
+    public final String mainFillOrder;
 
     private Layout(@NotNull Group main) {
-        this(main, null, new Group[0], true);
+        this(main, null, new Group[0], true, "forward");
     }
 
-    private Layout(@NotNull Group main, @Nullable Group locked, Group[] preparing, boolean replaceLockedInstances) {
+    private Layout(@NotNull Group main, @Nullable Group locked, Group[] preparing, boolean replaceLockedInstances, String mainFillOrder) {
         this.main = main;
         this.locked = locked;
         this.preparing = preparing;
         this.replaceLockedInstances = replaceLockedInstances;
+        this.mainFillOrder = mainFillOrder;
 
         if (this.main.cosmetic) {
             throw new IllegalArgumentException("Main Group may not be cosmetic!");
@@ -67,8 +69,8 @@ public class Layout {
                 Group.fromJson(jsonObject.getAsJsonObject("main"), SeedQueue.config.rows, SeedQueue.config.columns),
                 jsonObject.has("locked") ? Group.fromJson(jsonObject.getAsJsonObject("locked")) : null,
                 jsonObject.has("preparing") ? Group.fromJson(jsonObject.getAsJsonArray("preparing")) : new Group[0],
-                jsonObject.has("replaceLockedInstances") && jsonObject.get("replaceLockedInstances").getAsBoolean()
-        );
+                jsonObject.has("replaceLockedInstances") && jsonObject.get("replaceLockedInstances").getAsBoolean(),
+                jsonObject.get("mainFillOrder").getAsString());
     }
 
     public static Layout createLayout() {

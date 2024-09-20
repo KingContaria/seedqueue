@@ -362,14 +362,33 @@ public class SeedQueueWallScreen extends Screen {
             if (SeedQueue.config.waitForPreviewSetup && !this.preparingPreviews.get(0).isPreviewReady()) {
                 break;
             }
-            if (this.mainPreviews[i] == null && !this.blockedMainPositions.contains(i)) {
-                this.mainPreviews[i] = this.preparingPreviews.remove(0);
-                this.mainPreviews[i].resetCooldown();
 
-                if (this.mainPreviews[i].getSeedQueueEntry().mainPosition != -1) {
-                    SeedQueue.LOGGER.warn("Main preview {} already assigned a position", i);
+            int pos = i;
+            SeedQueuePreview[] populated_previews = Arrays.stream(this.mainPreviews).filter(Objects::nonNull).toArray(SeedQueuePreview[]::new);
+
+            if (Objects.equals(this.layout.mainFillOrder, "backward")) {
+                pos = this.mainPreviews.length - i - 1;
+            } else if (Objects.equals(this.layout.mainFillOrder, "random") && this.mainPreviews.length > populated_previews.length) {
+                Random r = new Random();
+                // choose a new random position while excluding previously filled positions
+                int rnd = r.nextInt(this.mainPreviews.length - populated_previews.length);
+                for (SeedQueuePreview preview : populated_previews) {
+                    if (rnd < preview.getSeedQueueEntry().mainPosition) {
+                        break;
+                    }
+                    rnd++;
+                }
+                pos = rnd;
+            }
+
+            if (this.mainPreviews[pos] == null && !this.blockedMainPositions.contains(pos)) {
+                this.mainPreviews[pos] = this.preparingPreviews.remove(0);
+                this.mainPreviews[pos].resetCooldown();
+
+                if (this.mainPreviews[pos].getSeedQueueEntry().mainPosition != -1) {
+                    SeedQueue.LOGGER.warn("Main preview {} already assigned a position", pos);
                 } else {
-                    this.mainPreviews[i].getSeedQueueEntry().mainPosition = i;
+                    this.mainPreviews[pos].getSeedQueueEntry().mainPosition = pos;
                 }
             }
         }
