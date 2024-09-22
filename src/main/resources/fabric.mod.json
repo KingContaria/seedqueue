@@ -44,10 +44,10 @@
 		"fabricloader": ">=0.16.0",
 		"minecraft": "1.16.1",
 		"speedrunapi": "*",
-		"atum": ">=2.0"
+		"atum": ">=2.3"
 	},
 	"breaks": {
-		"worldpreview": "<6.0.0",
+		"worldpreview": "<6.2.0",
 		"antiresourcereload": "<5.0.0",
 		"chunkcacher": "<1.4.0",
 		"standardsettings": "<2.0",

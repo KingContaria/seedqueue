@@ -6,6 +6,7 @@ import me.contaria.seedqueue.compat.WorldPreviewCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.customization.LockTexture;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
+import me.voidxwalker.autoreset.interfaces.ISeedStringHolder;
 import me.voidxwalker.worldpreview.WorldPreview;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
@@ -89,6 +90,8 @@ public class SeedQueuePreview extends LevelLoadingScreen {
                 }
             }
         }
+
+        ((ISeedStringHolder) this).atum$setSeedString(((ISeedStringHolder) this.seedQueueEntry.getServer().getSaveProperties().getGeneratorOptions()).atum$getSeedString());
     }
 
     @Override
