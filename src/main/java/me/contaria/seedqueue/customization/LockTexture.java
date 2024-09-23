@@ -3,17 +3,15 @@ package me.contaria.seedqueue.customization;
 import me.contaria.seedqueue.SeedQueue;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.NativeImage;
-import net.minecraft.util.Identifier;
 import net.minecraft.resource.Resource;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import net.minecraft.util.Identifier;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
 public class LockTexture extends AnimatedTexture {
+
     private final int width;
     private final int height;
     public double posX;
@@ -35,27 +33,18 @@ public class LockTexture extends AnimatedTexture {
             Identifier metadataId = new Identifier(id.getNamespace(), id.getPath().replace(".png", ".json"));
             try {
                 Resource metadataResource = MinecraftClient.getInstance().getResourceManager().getResource(metadataId);
-                JsonObject metadata = parseMetadata(metadataResource);
-                if (metadata != null && metadata.has("position")) {
-                    JsonObject position = metadata.getAsJsonObject("position");
-                    this.posX = position.has("x") ? position.get("x").getAsDouble() : this.posX;
-                    this.posY = position.has("y") ? position.get("y").getAsDouble() : this.posY;
-                    this.specifiedWidth = position.has("width") ? position.get("width").getAsDouble() : this.specifiedWidth;
-                    this.specifiedHeight = position.has("height") ? position.get("height").getAsDouble() : this.specifiedHeight;
+                LockPosition position = metadataResource.getMetadata(LockMetaDataReader.class.newInstance());
+                if (position != null) {
+                    this.posX = position.getX();
+                    this.posY = position.getY();
+                    this.specifiedWidth = position.getWidth();
+                    this.specifiedHeight = position.getHeight();
                 }
             } catch (IOException e) {
                 SeedQueue.LOGGER.warn("Metadata file not found for {}: Using default values.", id);
+            } catch (InstantiationException | IllegalAccessException e) {
+                throw new RuntimeException(e);
             }
-        }
-    }
-
-    private JsonObject parseMetadata(Resource resource) {
-        try (InputStream inputStream = resource.getInputStream();
-             InputStreamReader reader = new InputStreamReader(inputStream)) {
-            return new JsonParser().parse(reader).getAsJsonObject();
-        } catch (IOException e) {
-            SeedQueue.LOGGER.warn("Failed to read metadata for {}", resource.getId(), e);
-            return null;
         }
     }
 
