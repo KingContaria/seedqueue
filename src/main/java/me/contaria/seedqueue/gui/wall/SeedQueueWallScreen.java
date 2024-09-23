@@ -794,7 +794,7 @@ public class SeedQueueWallScreen extends Screen {
         for (SeedQueueEntry entry : this.scheduledEntries) {
             // 95% world gen percentage should be made configurable in the future
             // not sure how, maybe through .mcmeta
-            if (!this.playedScheduledEnterWarning && entry.getWorldGenerationProgressTracker() != null && entry.getWorldGenerationProgressTracker().getProgressPercentage() >= 95) {
+            if (!this.playedScheduledEnterWarning && entry.getProgressPercentage() >= 95) {
                 this.playSound(SeedQueueSounds.SCHEDULED_JOIN_WARNING);
                 this.playedScheduledEnterWarning = true;
             }

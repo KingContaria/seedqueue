@@ -9,6 +9,7 @@ import me.contaria.seedqueue.compat.WorldPreviewFrameBuffer;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.debug.SeedQueueProfiler;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
+import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressTracker;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
@@ -389,5 +390,15 @@ public class SeedQueueEntry {
             this.unpause();
             SeedQueueProfiler.pop();
         }
+    }
+
+    public int getProgressPercentage() {
+        // doubtful this will happen, but the method is @Nullable
+        WorldGenerationProgressTracker tracker = this.getWorldGenerationProgressTracker();
+        if (tracker == null) {
+            return 0;
+        }
+
+        return ((SQWorldGenerationProgressTracker) tracker).seedQueue$getProgressPercentage();
     }
 }
