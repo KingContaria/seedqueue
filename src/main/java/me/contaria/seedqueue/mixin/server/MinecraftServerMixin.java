@@ -199,11 +199,9 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
         if (SeedQueue.config.resumeOnFilledQueue && entry.isMaxWorldGenerationReached() && SeedQueue.isFull() ) {
             return false;
         }
-        if (SeedQueue.config.maxWorldGenerationPercentage < 100) {
-            if (entry.getProgressPercentage() >= SeedQueue.config.maxWorldGenerationPercentage) {
-                entry.setMaxWorldGenerationReached();
-                return true;
-            }
+        if (SeedQueue.config.maxWorldGenerationPercentage < 100 && entry.getProgressPercentage() >= SeedQueue.config.maxWorldGenerationPercentage) {
+            entry.setMaxWorldGenerationReached();
+            return true;
         }
         return false;
     }

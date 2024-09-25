@@ -392,13 +392,14 @@ public class SeedQueueEntry {
         }
     }
 
+    /**
+     * @return The world generation progress percentage for this entry based on an improved calculation in {@link SQWorldGenerationProgressTracker}.
+     */
     public int getProgressPercentage() {
-        // doubtful this will happen, but the method is @Nullable
-        WorldGenerationProgressTracker tracker = this.getWorldGenerationProgressTracker();
-        if (tracker == null) {
+        // doubtful this will happen, but the field is @Nullable
+        if (this.worldGenerationProgressTracker == null) {
             return 0;
         }
-
-        return ((SQWorldGenerationProgressTracker) tracker).seedQueue$getProgressPercentage();
+        return ((SQWorldGenerationProgressTracker) this.worldGenerationProgressTracker).seedQueue$getProgressPercentage();
     }
 }

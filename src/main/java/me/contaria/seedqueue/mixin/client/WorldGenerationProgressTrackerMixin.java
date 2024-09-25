@@ -47,7 +47,9 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     private WorldGenerationProgressTracker frozenCopy;
 
     @Unique
-    private int totalCount;
+    private volatile int progressLevel;
+    @Unique
+    private volatile int progressPercentage;
 
     @Inject(
             method = "<init>",
@@ -58,7 +60,6 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
         if (chunkMapFreezingTime != -1 && this.freezeTime == -1) {
             this.makeFrozenCopyAfter(chunkMapFreezingTime);
         }
-        this.totalCount = this.centerSize * this.centerSize;
     }
 
     @Inject(
@@ -71,6 +72,25 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     private void onSetChunkStatus(CallbackInfo ci) {
         if (this.frozenCopy == null && this.isPastFreezingTime()) {
             this.makeFrozenCopy();
+        }
+    }
+
+    @Inject(
+            method = "start(Lnet/minecraft/util/math/ChunkPos;)V",
+            at = @At("TAIL")
+    )
+    private void recalculateProgressCount(CallbackInfo ci) {
+        this.progressLevel = 0;
+        this.calculateProgressCount();
+    }
+
+    @Inject(
+            method = "setChunkStatus",
+            at = @At("TAIL")
+    )
+    private void recalculateProgressCount(ChunkPos pos, ChunkStatus status, CallbackInfo ci) {
+        if (status == ChunkStatus.FULL) {
+            this.calculateProgressCount();
         }
     }
 
@@ -102,12 +122,14 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
         return Optional.ofNullable(this.frozenCopy);
     }
 
-    public int seedQueue$getProgressPercentage() {
-        int count = 1;
-        int level = 0;
+    @Unique
+    private void calculateProgressCount() {
+        // load cached level to avoid checking levels we already know are full
+        int level = this.progressLevel;
+        int count = (level * 2 - 1) * (level * 2 - 1);
         boolean end = false;
 
-        while (!end) {
+        for (; level < this.radius; level++) {
             // travel left to right on the x-axis
             // when on the right and leftmost bounds of the current level,
             // check all the y values of that ring,
@@ -124,7 +146,6 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
             // - + + + -
             // - - - - -
 
-            level++;
             // adding radius as WorldGenerationProgressTracker#getChunkStatus subtracts it
             int leftX = -level + this.radius;
             int rightX = level + this.radius;
@@ -141,8 +162,18 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
                     }
                 }
             }
+
+            if (end) {
+                break;
+            }
         }
 
-        return MathHelper.clamp(count * 100 / this.totalCount, 0, 100);
+        this.progressLevel = level;
+        this.progressPercentage = MathHelper.clamp(count * 100 / (this.centerSize * this.centerSize), 0, 100);
+    }
+
+    @Override
+    public int seedQueue$getProgressPercentage() {
+        return this.progressPercentage;
     }
 }
