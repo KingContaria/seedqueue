@@ -402,4 +402,11 @@ public class SeedQueueEntry {
         }
         return ((SQWorldGenerationProgressTracker) this.worldGenerationProgressTracker).seedQueue$getProgressPercentage();
     }
+
+    public int getPriority() {
+        if (this.loaded || this.discarded || this.locked || !this.hasWorldPreview()) {
+            return 100;
+        }
+        return 100 - this.getProgressPercentage();
+    }
 }

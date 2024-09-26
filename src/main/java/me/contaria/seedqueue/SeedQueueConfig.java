@@ -160,6 +160,8 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Numbers.Whole.Bounds(min = Thread.MIN_PRIORITY, max = Thread.NORM_PRIORITY)
     public int chunkUpdateThreadPriority = 3;
 
+    public boolean usePriorityExecutors = true;
+
     @Config.Category("debug")
     public boolean showDebugMenu = false;
 

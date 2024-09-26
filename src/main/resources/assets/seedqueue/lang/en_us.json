@@ -123,6 +123,7 @@
   "speedrunapi.config.seedqueue.option.chunkUpdateThreads.value.0": "Auto",
   "speedrunapi.config.seedqueue.option.chunkUpdateThreadPriority": "Sodium Update Priority",
   "speedrunapi.config.seedqueue.option.chunkUpdateThreadPriority.description": "Sets the thread priority for Sodium Chunk Update Threads on the Wall Screen.",
+  "speedrunapi.config.seedqueue.option.usePriorityExecutors": "Use Priority Executors",
   "speedrunapi.config.seedqueue.option.reduceSchedulingBudget": "Smooth Chunk Building",
   "speedrunapi.config.seedqueue.option.reduceSchedulingBudget.description": "Reduces the amount of Sodium chunk rebuilds scheduled per frame. This improves framerate stability at the cost of slower chunk loads.",
   "speedrunapi.config.seedqueue.option.reduceLevelList": "Reduce World List",

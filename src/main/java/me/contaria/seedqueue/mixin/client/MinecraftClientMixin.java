@@ -13,7 +13,7 @@ import com.mojang.datafixers.util.Function4;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.SeedQueueException;
-import me.contaria.seedqueue.SeedQueueExecutorWrapper;
+import me.contaria.seedqueue.executors.SeedQueueExecutorWrapper;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.debug.SeedQueueSystemInfo;
