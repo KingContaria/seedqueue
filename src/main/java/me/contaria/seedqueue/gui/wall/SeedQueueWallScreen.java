@@ -30,6 +30,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -649,8 +650,14 @@ public class SeedQueueWallScreen extends Screen {
 
     private void lockInstance(SeedQueuePreview instance) {
         if (instance.hasPreviewRendered() && instance.getSeedQueueEntry().lock()) {
-            if (this.lockedPreviews != null && this.removePreview(instance)) {
-                this.addLockedPreview(instance);
+            if (this.lockedPreviews != null) {
+                int index;
+                if (!this.layout.replaceLockedInstances && (index = ArrayUtils.indexOf(this.mainPreviews, instance)) != -1) {
+                    this.blockedMainPositions.add(index);
+                }
+                if (this.removePreview(instance)) {
+                    this.addLockedPreview(instance);
+                }
             }
             if (SeedQueue.config.freezeLockedPreviews) {
                 // clearing WorldPreviewProperties frees the previews WorldRenderer, allowing resources to be cleared
