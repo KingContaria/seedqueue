@@ -55,7 +55,11 @@ public class Layout {
     private static int getAsInt(JsonObject jsonObject, String name, int windowSize) {
         JsonPrimitive jsonPrimitive = jsonObject.getAsJsonPrimitive(name);
         if (jsonPrimitive.isNumber() && jsonPrimitive.toString().contains(".")) {
-            return (int) (windowSize * jsonPrimitive.getAsDouble());
+            // Double precision can lead to inaccurate multiplications here.
+            // BigDecimal would solve some cases (where the layout is perfectly divisible) but it is much
+            // simpler to just make the decision to round(), which both fixes perfect situations, and also
+            // may lead to more accurate layout representations in general.
+            return Math.round(windowSize * jsonPrimitive.getAsDouble());
         }
         return jsonPrimitive.getAsInt();
     }
