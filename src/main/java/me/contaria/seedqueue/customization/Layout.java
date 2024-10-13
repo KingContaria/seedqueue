@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 
 public class Layout {
@@ -55,11 +56,8 @@ public class Layout {
     private static int getAsInt(JsonObject jsonObject, String name, int windowSize) {
         JsonPrimitive jsonPrimitive = jsonObject.getAsJsonPrimitive(name);
         if (jsonPrimitive.isNumber() && jsonPrimitive.toString().contains(".")) {
-            // Double precision can lead to inaccurate multiplications here.
-            // BigDecimal would solve some cases (where the layout is perfectly divisible) but it is much
-            // simpler to just make the decision to round(), which both fixes perfect situations, and also
-            // may lead to more accurate layout representations in general.
-            return Math.round(windowSize * jsonPrimitive.getAsDouble());
+            // Using BigDecimal here fixes some potential floating point issues.
+            return BigDecimal.valueOf(windowSize).multiply(new BigDecimal(jsonPrimitive.toString())).intValue();
         }
         return jsonPrimitive.getAsInt();
     }
