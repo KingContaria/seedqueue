@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 
 public class Layout {
@@ -55,7 +56,8 @@ public class Layout {
     private static int getAsInt(JsonObject jsonObject, String name, int windowSize) {
         JsonPrimitive jsonPrimitive = jsonObject.getAsJsonPrimitive(name);
         if (jsonPrimitive.isNumber() && jsonPrimitive.toString().contains(".")) {
-            return (int) (windowSize * jsonPrimitive.getAsDouble());
+            // Using BigDecimal here fixes some potential floating point issues.
+            return BigDecimal.valueOf(windowSize).multiply(jsonPrimitive.getAsBigDecimal()).intValue();
         }
         return jsonPrimitive.getAsInt();
     }
