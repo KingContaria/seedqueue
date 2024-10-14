@@ -57,7 +57,7 @@ public class Layout {
         JsonPrimitive jsonPrimitive = jsonObject.getAsJsonPrimitive(name);
         if (jsonPrimitive.isNumber() && jsonPrimitive.toString().contains(".")) {
             // Using BigDecimal here fixes some potential floating point issues.
-            return BigDecimal.valueOf(windowSize).multiply(new BigDecimal(jsonPrimitive.toString())).intValue();
+            return BigDecimal.valueOf(windowSize).multiply(jsonPrimitive.getAsBigDecimal()).intValue();
         }
         return jsonPrimitive.getAsInt();
     }
