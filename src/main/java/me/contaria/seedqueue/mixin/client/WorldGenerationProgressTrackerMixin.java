@@ -6,6 +6,7 @@ import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressTracker;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.chunk.ChunkStatus;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -23,17 +24,32 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     @Shadow
     @Final
     private Long2ObjectOpenHashMap<ChunkStatus> chunkStatuses;
+
     @Shadow
     private ChunkPos spawnPos;
+
     @Shadow
     @Final
     private int radius;
 
+    @Shadow
+    public abstract @Nullable ChunkStatus getChunkStatus(int x, int z);
+
+    @Shadow
+    @Final
+    private int centerSize;
+
     @Unique
     private long freezeTime = -1;
+
     @Unique
     @Nullable
     private WorldGenerationProgressTracker frozenCopy;
+
+    @Unique
+    private volatile int progressLevel;
+    @Unique
+    private volatile int progressPercentage;
 
     @Inject(
             method = "<init>",
@@ -56,6 +72,25 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     private void onSetChunkStatus(CallbackInfo ci) {
         if (this.frozenCopy == null && this.isPastFreezingTime()) {
             this.makeFrozenCopy();
+        }
+    }
+
+    @Inject(
+            method = "start(Lnet/minecraft/util/math/ChunkPos;)V",
+            at = @At("TAIL")
+    )
+    private void recalculateProgressCount(CallbackInfo ci) {
+        this.progressLevel = 0;
+        this.calculateProgressCount();
+    }
+
+    @Inject(
+            method = "setChunkStatus",
+            at = @At("TAIL")
+    )
+    private void recalculateProgressCount(ChunkPos pos, ChunkStatus status, CallbackInfo ci) {
+        if (status == ChunkStatus.FULL) {
+            this.calculateProgressCount();
         }
     }
 
@@ -85,5 +120,60 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     @Override
     public Optional<WorldGenerationProgressTracker> seedQueue$getFrozenCopy() {
         return Optional.ofNullable(this.frozenCopy);
+    }
+
+    @Unique
+    private void calculateProgressCount() {
+        // load cached level to avoid checking levels we already know are full
+        int level = this.progressLevel;
+        int count = (level * 2 - 1) * (level * 2 - 1);
+        boolean end = false;
+
+        for (; level < this.radius; level++) {
+            // travel left to right on the x-axis
+            // when on the right and leftmost bounds of the current level,
+            // check all the y values of that ring,
+            // otherwise, just check the top and bottom of the ring.
+            // if any chunks are missing in the ring,
+            // no future rings are searched but the current ring is completed.
+            //
+            //
+            // ↑ then ->
+            //
+            // - - - - -
+            // - + + + -
+            // - + = + -
+            // - + + + -
+            // - - - - -
+
+            // adding radius as WorldGenerationProgressTracker#getChunkStatus subtracts it
+            int leftX = -level + this.radius;
+            int rightX = level + this.radius;
+            int bottomZ = -level + this.radius;
+            int topZ = level + this.radius;
+
+            for (int x = leftX; x <= rightX; ++x) {
+                boolean onBounds = x == leftX || x == rightX;
+                for (int z = bottomZ; z <= topZ; z += onBounds ? 1 : level * 2) {
+                    if (this.getChunkStatus(x, z) == ChunkStatus.FULL) {
+                        count++;
+                    } else {
+                        end = true;
+                    }
+                }
+            }
+
+            if (end) {
+                break;
+            }
+        }
+
+        this.progressLevel = level;
+        this.progressPercentage = MathHelper.clamp(count * 100 / (this.centerSize * this.centerSize), 0, 100);
+    }
+
+    @Override
+    public int seedQueue$getProgressPercentage() {
+        return this.progressPercentage;
     }
 }

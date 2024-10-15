@@ -2,13 +2,16 @@ package me.contaria.seedqueue.customization;
 
 import com.google.gson.*;
 import me.contaria.seedqueue.SeedQueue;
+import me.contaria.seedqueue.gui.SeedQueueCrashToast;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 
 public class Layout {
@@ -55,7 +58,8 @@ public class Layout {
     private static int getAsInt(JsonObject jsonObject, String name, int windowSize) {
         JsonPrimitive jsonPrimitive = jsonObject.getAsJsonPrimitive(name);
         if (jsonPrimitive.isNumber() && jsonPrimitive.toString().contains(".")) {
-            return (int) (windowSize * jsonPrimitive.getAsDouble());
+            // Using BigDecimal here fixes some potential floating point issues.
+            return BigDecimal.valueOf(windowSize).multiply(jsonPrimitive.getAsBigDecimal()).intValue();
         }
         return jsonPrimitive.getAsInt();
     }
@@ -80,6 +84,7 @@ public class Layout {
                 return Layout.fromJson(new JsonParser().parse(reader).getAsJsonObject());
             } catch (Exception e) {
                 SeedQueue.LOGGER.warn("Failed to parse custom wall layout!", e);
+                MinecraftClient.getInstance().getToastManager().add(new SeedQueueCrashToast(new TranslatableText("seedqueue.menu.layout_exception.title"), new TranslatableText("seedqueue.menu.layout_exception.description", e.getClass().getSimpleName())));
             }
         }
         return Layout.grid(SeedQueue.config.rows, SeedQueue.config.columns, client.getWindow().getFramebufferWidth(), client.getWindow().getFramebufferHeight());
