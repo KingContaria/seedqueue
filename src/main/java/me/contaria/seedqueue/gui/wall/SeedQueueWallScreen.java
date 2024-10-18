@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class SeedQueueWallScreen extends Screen {
     private static final Set<WorldRenderer> WORLD_RENDERERS = new HashSet<>();
@@ -359,37 +360,27 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         this.preparingPreviews.sort(Comparator.comparing(SeedQueuePreview::isPreviewReady, Comparator.reverseOrder()));
-        for (int i = 0; i < this.mainPreviews.length && !this.preparingPreviews.isEmpty(); i++) {
-            if (SeedQueue.config.waitForPreviewSetup && !this.preparingPreviews.get(0).isPreviewReady()) {
+
+        ArrayList<Integer> previewsOrder = IntStream.range(0, this.mainPreviews.length).collect(ArrayList::new, List::add, List::addAll);
+        if (this.layout.mainFillOrder == Layout.MainFillOrder.RANDOM) {
+            Collections.shuffle(previewsOrder);
+        } else if (this.layout.mainFillOrder == Layout.MainFillOrder.BACKWARD) {
+            Collections.reverse(previewsOrder);
+        }
+
+        for (Integer i : previewsOrder) {
+            if (this.preparingPreviews.isEmpty() || SeedQueue.config.waitForPreviewSetup && !this.preparingPreviews.get(0).isPreviewReady()) {
                 break;
             }
 
-            int pos = i;
-            SeedQueuePreview[] populated_previews = Arrays.stream(this.mainPreviews).filter(Objects::nonNull).toArray(SeedQueuePreview[]::new);
+            if (this.mainPreviews[i] == null && !this.blockedMainPositions.contains(i)) {
+                this.mainPreviews[i] = this.preparingPreviews.remove(0);
+                this.mainPreviews[i].resetCooldown();
 
-            if (Objects.equals(this.layout.mainFillOrder, "backward")) {
-                pos = this.mainPreviews.length - i - 1;
-            } else if (Objects.equals(this.layout.mainFillOrder, "random") && this.mainPreviews.length > populated_previews.length) {
-                Random r = new Random();
-                // choose a new random position while excluding previously filled positions
-                int rnd = r.nextInt(this.mainPreviews.length - populated_previews.length);
-                for (SeedQueuePreview preview : populated_previews) {
-                    if (rnd < preview.getSeedQueueEntry().mainPosition) {
-                        break;
-                    }
-                    rnd++;
-                }
-                pos = rnd;
-            }
-
-            if (this.mainPreviews[pos] == null && !this.blockedMainPositions.contains(pos)) {
-                this.mainPreviews[pos] = this.preparingPreviews.remove(0);
-                this.mainPreviews[pos].resetCooldown();
-
-                if (this.mainPreviews[pos].getSeedQueueEntry().mainPosition != -1) {
-                    SeedQueue.LOGGER.warn("Main preview {} already assigned a position", pos);
+                if (this.mainPreviews[i].getSeedQueueEntry().mainPosition != -1) {
+                    SeedQueue.LOGGER.warn("Main preview {} already assigned a position", i);
                 } else {
-                    this.mainPreviews[pos].getSeedQueueEntry().mainPosition = pos;
+                    this.mainPreviews[i].getSeedQueueEntry().mainPosition = i;
                 }
             }
         }

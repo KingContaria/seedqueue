@@ -21,13 +21,13 @@ public class Layout {
     public final Group locked;
     public final Group[] preparing;
     public final boolean replaceLockedInstances;
-    public final String mainFillOrder;
+    public MainFillOrder mainFillOrder;
 
     private Layout(@NotNull Group main) {
-        this(main, null, new Group[0], true, "forward");
+        this(main, null, new Group[0], true, MainFillOrder.FORWARD);
     }
 
-    private Layout(@NotNull Group main, @Nullable Group locked, Group[] preparing, boolean replaceLockedInstances, String mainFillOrder) {
+    private Layout(@NotNull Group main, @Nullable Group locked, Group[] preparing, boolean replaceLockedInstances, MainFillOrder mainFillOrder) {
         this.main = main;
         this.locked = locked;
         this.preparing = preparing;
@@ -74,7 +74,7 @@ public class Layout {
                 jsonObject.has("locked") ? Group.fromJson(jsonObject.getAsJsonObject("locked")) : null,
                 jsonObject.has("preparing") ? Group.fromJson(jsonObject.getAsJsonArray("preparing")) : new Group[0],
                 jsonObject.has("replaceLockedInstances") && jsonObject.get("replaceLockedInstances").getAsBoolean(),
-                jsonObject.get("mainFillOrder").getAsString());
+                jsonObject.has("mainFillOrder") ? MainFillOrder.valueOf(jsonObject.get("mainFillOrder").getAsString().toUpperCase()) : MainFillOrder.FORWARD);
     }
 
     public static Layout createLayout() {
@@ -193,5 +193,11 @@ public class Layout {
                     getHeight(jsonObject)
             );
         }
+    }
+
+    public enum MainFillOrder {
+        FORWARD,
+        BACKWARD,
+        RANDOM
     }
 }
