@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class SeedQueueWallScreen extends Screen {
     private static final Set<WorldRenderer> WORLD_RENDERERS = new HashSet<>();
@@ -359,10 +360,19 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         this.preparingPreviews.sort(Comparator.comparing(SeedQueuePreview::isPreviewReady, Comparator.reverseOrder()));
-        for (int i = 0; i < this.mainPreviews.length && !this.preparingPreviews.isEmpty(); i++) {
-            if (SeedQueue.config.waitForPreviewSetup && !this.preparingPreviews.get(0).isPreviewReady()) {
+
+        ArrayList<Integer> previewsOrder = IntStream.range(0, this.mainPreviews.length).collect(ArrayList::new, List::add, List::addAll);
+        if (this.layout.mainFillOrder == Layout.MainFillOrder.RANDOM) {
+            Collections.shuffle(previewsOrder);
+        } else if (this.layout.mainFillOrder == Layout.MainFillOrder.BACKWARD) {
+            Collections.reverse(previewsOrder);
+        }
+
+        for (Integer i : previewsOrder) {
+            if (this.preparingPreviews.isEmpty() || SeedQueue.config.waitForPreviewSetup && !this.preparingPreviews.get(0).isPreviewReady()) {
                 break;
             }
+
             if (this.mainPreviews[i] == null && !this.blockedMainPositions.contains(i)) {
                 this.mainPreviews[i] = this.preparingPreviews.remove(0);
                 this.mainPreviews[i].resetCooldown();
