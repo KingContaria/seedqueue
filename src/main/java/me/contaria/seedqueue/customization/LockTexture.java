@@ -12,8 +12,8 @@ import java.util.List;
 
 public class LockTexture extends AnimatedTexture {
 
-    private final int width;
-    private final int height;
+    public final int width;
+    public final int height;
     public double posX;
     public double posY;
     public double specifiedWidth;
@@ -30,10 +30,10 @@ public class LockTexture extends AnimatedTexture {
             this.specifiedWidth = this.width;
             this.specifiedHeight = this.height;
 
-            Identifier metadataId = new Identifier(id.getNamespace(), id.getPath().replace(".png", ".json"));
+            Identifier metadataId = new Identifier(id.getNamespace(), id.getPath() + ".mcmeta");
             try {
                 Resource metadataResource = MinecraftClient.getInstance().getResourceManager().getResource(metadataId);
-                LockPosition position = metadataResource.getMetadata(LockMetaDataReader.class.newInstance());
+                LockPosition position = metadataResource.getMetadata(new LockMetaDataReader());
                 if (position != null) {
                     this.posX = position.getX();
                     this.posY = position.getY();
@@ -41,9 +41,7 @@ public class LockTexture extends AnimatedTexture {
                     this.specifiedHeight = position.getHeight();
                 }
             } catch (IOException e) {
-                SeedQueue.LOGGER.warn("Metadata file not found for {}: Using default values.", id);
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new RuntimeException(e);
+                SeedQueue.LOGGER.warn("Metadata file not found for {}.", id);
             }
         }
     }

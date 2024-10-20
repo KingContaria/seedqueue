@@ -8,23 +8,23 @@ public class LockMetaDataReader implements ResourceMetadataReader<LockPosition> 
 
     @Override
     public String getKey() {
-        // Key that should be used in the metadata
-        return "position";
+        return "seedqueue$position";
     }
 
     @Override
     public LockPosition fromJson(JsonObject json) {
-        double x = JsonHelper.getDouble(json, "x", 0.0);
-        double y = JsonHelper.getDouble(json, "y", 0.0);
-        double width = JsonHelper.getDouble(json, "width", 0.0);
-        double height = JsonHelper.getDouble(json, "height", 0.0);
+        double x = getDouble(json, "x");
+        double y = getDouble(json, "y");
+        double width = getDouble(json, "width");
+        double height = getDouble(json, "height");
         return new LockPosition(x, y, width, height);
     }
 
-    public static class JsonHelper {
-        public static double getDouble(JsonObject object, String key, double fallback) {
-            JsonElement element = object.get(key);
-            return element != null && !element.isJsonNull() ? element.getAsDouble() : fallback;
+    private double getDouble(JsonObject object, String key) {
+        JsonElement element = object.get(key);
+        if (element == null || element.isJsonNull()) {
+            throw new IllegalArgumentException("Missing required key: " + key);
         }
+        return element.getAsDouble();
     }
 }
