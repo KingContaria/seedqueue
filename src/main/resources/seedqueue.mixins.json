@@ -41,7 +41,7 @@
     "compat.sodium.profiling.MultidrawChunkRenderBackendMixin",
     "compat.sodium.profiling.SodiumWorldRendererMixin",
     "compat.standardsettings.MinecraftClientMixin",
-    "compat.worldpreview.ServerChunkManagerMixin",
+    "compat.worldpreview.ThreadedAnvilChunkStorageMixin",
     "compat.worldpreview.WorldPreviewMixin",
     "compat.worldpreview.render.ClientWorldMixin",
     "compat.worldpreview.render.InGameHudMixin",

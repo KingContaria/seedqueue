@@ -26,12 +26,12 @@ dependencies {
 	implementation(annotationProcessor "com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.1.1")
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/atum-rewrite
-	modImplementation ("com.github.KingContaria:atum-rewrite:v2.2") {
+	modImplementation ("com.github.KingContaria:atum-rewrite:75ad5523cb") {
 		transitive = false
 	}
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/mcsr-worldpreview-1.16.1
-	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:v6.1.0") {
+	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:6c1253a841") {
 		transitive = false
 	}
 

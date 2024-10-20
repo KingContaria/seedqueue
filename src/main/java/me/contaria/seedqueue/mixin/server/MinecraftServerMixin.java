@@ -8,7 +8,6 @@ import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.SeedQueueExecutorWrapper;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
 import me.contaria.seedqueue.mixin.accessor.EntityAccessor;
-import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.ServerTask;
@@ -200,12 +199,9 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
         if (SeedQueue.config.resumeOnFilledQueue && entry.isMaxWorldGenerationReached() && SeedQueue.isFull() ) {
             return false;
         }
-        if (SeedQueue.config.maxWorldGenerationPercentage < 100) {
-            WorldGenerationProgressTracker tracker = entry.getWorldGenerationProgressTracker();
-            if (tracker != null && tracker.getProgressPercentage() >= SeedQueue.config.maxWorldGenerationPercentage) {
-                entry.setMaxWorldGenerationReached();
-                return true;
-            }
+        if (SeedQueue.config.maxWorldGenerationPercentage < 100 && entry.getProgressPercentage() >= SeedQueue.config.maxWorldGenerationPercentage) {
+            entry.setMaxWorldGenerationReached();
+            return true;
         }
         return false;
     }

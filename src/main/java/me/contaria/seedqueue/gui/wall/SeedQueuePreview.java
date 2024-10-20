@@ -6,6 +6,7 @@ import me.contaria.seedqueue.compat.WorldPreviewCompat;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.customization.LockTexture;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
+import me.voidxwalker.autoreset.interfaces.ISeedStringHolder;
 import me.voidxwalker.worldpreview.WorldPreview;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
@@ -19,7 +20,6 @@ import org.jetbrains.annotations.Nullable;
 import org.mcsr.speedrunapi.config.SpeedrunConfigAPI;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 public class SeedQueuePreview extends LevelLoadingScreen {
     public final SeedQueueWallScreen wall;
@@ -90,6 +90,8 @@ public class SeedQueuePreview extends LevelLoadingScreen {
                 }
             }
         }
+
+        ((ISeedStringHolder) this).atum$setSeedString(((ISeedStringHolder) this.seedQueueEntry.getServer().getSaveProperties().getGeneratorOptions()).atum$getSeedString());
     }
 
     @Override
@@ -148,9 +150,9 @@ public class SeedQueuePreview extends LevelLoadingScreen {
 
     public void printDebug() {
         if (this.worldRenderer != null) {
-            SeedQueue.LOGGER.info("SeedQueue-DEBUG | Instance: {}, Seed: {}, World Gen %: {}, Chunks: {} ({}), locked: {}, paused: {}, ready: {}", this.seedQueueEntry.getSession().getDirectoryName(), this.seedQueueEntry.getServer().getSaveProperties().getGeneratorOptions().getSeed(), Objects.requireNonNull(this.seedQueueEntry.getWorldGenerationProgressTracker()).getProgressPercentage(), this.worldRenderer.getChunksDebugString(), this.worldRenderer.isTerrainRenderComplete(), this.seedQueueEntry.isLocked(), this.seedQueueEntry.isPaused(), this.seedQueueEntry.isReady());
+            SeedQueue.LOGGER.info("SeedQueue-DEBUG | Instance: {}, Seed: {}, World Gen %: {}, Chunks: {} ({}), locked: {}, paused: {}, ready: {}", this.seedQueueEntry.getSession().getDirectoryName(), this.seedQueueEntry.getServer().getSaveProperties().getGeneratorOptions().getSeed(), this.seedQueueEntry.getProgressPercentage(), this.worldRenderer.getChunksDebugString(), this.worldRenderer.isTerrainRenderComplete(), this.seedQueueEntry.isLocked(), this.seedQueueEntry.isPaused(), this.seedQueueEntry.isReady());
         } else {
-            SeedQueue.LOGGER.info("SeedQueue-DEBUG | Instance: {}, Seed: {}, World Gen %: {}", this.seedQueueEntry.getSession().getDirectoryName(), this.seedQueueEntry.getServer().getSaveProperties().getGeneratorOptions().getSeed(), Objects.requireNonNull(this.seedQueueEntry.getWorldGenerationProgressTracker()).getProgressPercentage());
+            SeedQueue.LOGGER.info("SeedQueue-DEBUG | Instance: {}, Seed: {}, World Gen %: {}", this.seedQueueEntry.getSession().getDirectoryName(), this.seedQueueEntry.getServer().getSaveProperties().getGeneratorOptions().getSeed(), this.seedQueueEntry.getProgressPercentage());
         }
     }
 
@@ -165,16 +167,7 @@ public class SeedQueuePreview extends LevelLoadingScreen {
         if (this.worldPreviewProperties == null || this.worldRenderer == null) {
             return false;
         }
-        if (((WorldRendererAccessor) this.worldRenderer).seedQueue$getCompletedChunkCount() > 0) {
-            return true;
-        }
-        // this checks for instances that are ready to be loaded but do not have any chunks built, to avoid keeping them invisible forever we have to flush them through the system
-        // this should not happen anymore but to avoid disaster I will leave it in with a log message
-        if (this.seedQueueEntry.isPaused() && this.worldRenderer.isTerrainRenderComplete() && this.worldPreviewProperties.getPacketQueue().isEmpty()) {
-            SeedQueue.LOGGER.warn("\"{}\" failed to build any chunks on the wall screen!", this.seedQueueEntry.getSession().getDirectoryName());
-            return true;
-        }
-        return false;
+        return ((WorldRendererAccessor) this.worldRenderer).seedQueue$getCompletedChunkCount() > 0;
     }
 
     public boolean hasPreviewRendered() {

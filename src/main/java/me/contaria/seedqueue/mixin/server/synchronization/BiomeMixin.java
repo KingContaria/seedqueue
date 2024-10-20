@@ -1,17 +1,12 @@
 package me.contaria.seedqueue.mixin.server.synchronization;
 
-import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.BlockState;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.surfacebuilder.ConfiguredSurfaceBuilder;
 import net.minecraft.world.gen.surfacebuilder.SurfaceBuilder;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -48,16 +43,20 @@ public abstract class BiomeMixin {
         }
     }
 
-    @WrapMethod(
-            method = "buildSurface"
-    )
-    private void synchronizeBuildSurface(Random random, Chunk chunk, int x, int z, int worldHeight, double noise, BlockState defaultBlock, BlockState defaultFluid, int seaLevel, long seed, Operation<Void> original) {
+    /**
+     * @author contaria
+     * @reason Synchronize calls if necessary, WrapMethod is not used because it causes a lot of Object arrays to be allocated in hot code.
+     */
+    @Overwrite
+    public void buildSurface(Random random, Chunk chunk, int x, int z, int worldHeight, double noise, BlockState defaultBlock, BlockState defaultFluid, int seaLevel, long seed) {
         if (this.synchronizedAccess) {
             synchronized (this.surfaceBuilder.surfaceBuilder) {
-                original.call(random, chunk, x, z, worldHeight, noise, defaultBlock, defaultFluid, seaLevel, seed);
+                this.surfaceBuilder.initSeed(seed);
+                this.surfaceBuilder.generate(random, chunk, (Biome) (Object) this, x, z, worldHeight, noise, defaultBlock, defaultFluid, seaLevel, seed);
             }
         } else {
-            original.call(random, chunk, x, z, worldHeight, noise, defaultBlock, defaultFluid, seaLevel, seed);
+            this.surfaceBuilder.initSeed(seed);
+            this.surfaceBuilder.generate(random, chunk, (Biome) (Object) this, x, z, worldHeight, noise, defaultBlock, defaultFluid, seaLevel, seed);
         }
     }
 }
