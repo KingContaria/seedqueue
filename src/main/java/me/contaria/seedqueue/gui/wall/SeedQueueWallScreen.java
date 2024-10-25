@@ -1,5 +1,6 @@
 package me.contaria.seedqueue.gui.wall;
 
+import com.google.common.io.Files;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
@@ -34,7 +35,11 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
+import java.io.File;
+import java.nio.charset.Charset;
 import java.util.*;
+import java.nio.file.Path;
+import java.util.stream.IntStream;
 
 public class SeedQueueWallScreen extends Screen {
     private static final Set<WorldRenderer> WORLD_RENDERERS = new HashSet<>();
@@ -165,6 +170,14 @@ public class SeedQueueWallScreen extends Screen {
             this.drawAnimatedTexture(this.overlay, matrices, 0, 0, this.width, this.height);
         }
 
+        if (true) {
+            try {
+                textRenderer.draw(matrices, new LiteralText(Files.readFirstLine(new File("C:\\Users\\Jude\\IdeaProjects\\seedqueue\\run\\config\\mcsr\\atum\\rsg-attempts.txt"), Charset.defaultCharset())), (float) 0, (float) 0, 0xffffff);
+            } catch (Exception e) {
+                SeedQueue.LOGGER.warn("yeah dat shit broke with some error {} idgaf", e);
+            }
+        }
+
         if (this.debugHud != null) {
             SeedQueueProfiler.swap("fps_graph");
             ((DebugHudAccessor) this.debugHud).seedQueue$drawMetricsData(matrices, this.client.getMetricsData(), 0, this.width / 2, true);
@@ -246,6 +259,10 @@ public class SeedQueueWallScreen extends Screen {
                 height * texture.getIndividualFrameCount()
         );
         RenderSystem.disableBlend();
+    }
+
+    private void renderText(Path path) {
+
     }
 
     private boolean playSound(SoundEvent sound) {
