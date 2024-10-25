@@ -1,6 +1,8 @@
 package me.contaria.seedqueue.gui.wall;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.debug.SeedQueueProfiler;
@@ -361,7 +363,7 @@ public class SeedQueueWallScreen extends Screen {
 
         this.preparingPreviews.sort(Comparator.comparing(SeedQueuePreview::isPreviewReady, Comparator.reverseOrder()));
 
-        ArrayList<Integer> previewsOrder = IntStream.range(0, this.mainPreviews.length).collect(ArrayList::new, List::add, List::addAll);
+        IntArrayList previewsOrder = IntStream.range(0, this.mainPreviews.length).collect(IntArrayList::new, IntList::add, IntList::addAll);
         if (this.layout.mainFillOrder == Layout.MainFillOrder.RANDOM) {
             Collections.shuffle(previewsOrder);
         } else if (this.layout.mainFillOrder == Layout.MainFillOrder.BACKWARD) {

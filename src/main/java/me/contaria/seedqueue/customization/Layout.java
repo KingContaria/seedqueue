@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 public class Layout {
     @NotNull
@@ -74,7 +75,7 @@ public class Layout {
                 jsonObject.has("locked") ? Group.fromJson(jsonObject.getAsJsonObject("locked")) : null,
                 jsonObject.has("preparing") ? Group.fromJson(jsonObject.getAsJsonArray("preparing")) : new Group[0],
                 jsonObject.has("replaceLockedInstances") && jsonObject.get("replaceLockedInstances").getAsBoolean(),
-                jsonObject.has("mainFillOrder") ? MainFillOrder.valueOf(jsonObject.get("mainFillOrder").getAsString().toUpperCase()) : MainFillOrder.FORWARD);
+                jsonObject.has("mainFillOrder") ? MainFillOrder.valueOf(jsonObject.get("mainFillOrder").getAsString().toUpperCase(Locale.ROOT)) : MainFillOrder.FORWARD);
     }
 
     public static Layout createLayout() {
