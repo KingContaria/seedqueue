@@ -1,6 +1,6 @@
 package me.contaria.seedqueue.gui.wall;
 
-import com.google.common.io.Files;
+import com.google.gson.*;
 import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
@@ -30,16 +30,21 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.StringRenderable;
 import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-import java.io.File;
-import java.nio.charset.Charset;
-import java.util.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.io.IOException;
 import java.nio.file.Path;
-import java.util.stream.IntStream;
+import java.util.*;
+import java.nio.file.Paths;
+import java.util.stream.Collectors;
 
 public class SeedQueueWallScreen extends Screen {
     private static final Set<WorldRenderer> WORLD_RENDERERS = new HashSet<>();
@@ -171,11 +176,11 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         if (true) {
-            try {
-                textRenderer.draw(matrices, new LiteralText(Files.readFirstLine(new File("C:\\Users\\Jude\\IdeaProjects\\seedqueue\\run\\config\\mcsr\\atum\\rsg-attempts.txt"), Charset.defaultCharset())), (float) 0, (float) 0, 0xffffff);
-            } catch (Exception e) {
-                SeedQueue.LOGGER.warn("yeah dat shit broke with some error {} idgaf", e);
-            }
+            Path path = Paths.get("C:\\Users\\Jude\\IdeaProjects\\seedqueue\\run\\config\\mcsr\\atum\\rsg-attempts.txt");
+            this.drawCustomTextFromFile(matrices, path, 0 , 0, 0xffffff);
+            path = Paths.get("C:\\Users\\Jude\\IdeaProjects\\seedqueue\\run\\options.txt");
+            this.drawCustomTextFromFile(matrices, path, 40 , 70, 0x80117a);
+//            this.drawCustomTextFromURL(matrices, "https://paceman.gg/stats/api/getSessionStats/?name=meebie&hours=999999&hoursBetween=999999", 10 , 20, 0xfe37f);
         }
 
         if (this.debugHud != null) {
@@ -261,8 +266,67 @@ public class SeedQueueWallScreen extends Screen {
         RenderSystem.disableBlend();
     }
 
-    private void renderText(Path path) {
+    private void drawCustomTextFromFile(MatrixStack matrices, Path path, float x, float y, int color) {
+        try {
+            List<StringRenderable> lines = Files.readAllLines(path).stream().map(StringRenderable::plain).collect(Collectors.toList());
+            float height = this.textRenderer.fontHeight;
+            for (StringRenderable line : lines) {
+                this.textRenderer.draw(matrices, line, x, y, color);
+                y += height;
+            }
+        } catch (IOException e) {
+            SeedQueue.LOGGER.warn("File {} failed to be read", path);
+        }
+    }
 
+    private void drawCustomTextFromURL(MatrixStack matrices, String urlString, float x, float y, int color) {
+        try {
+            URL url = new URL(urlString);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+            int responseCode = connection.getResponseCode();
+            if (responseCode != 200) {
+                SeedQueue.LOGGER.warn("Bad response: {} from {}", responseCode, urlString);
+            } else {
+                JsonObject jsonObject = getJsonObject(url);
+
+                //Get the required object from the above created object
+                String netherCount = jsonObject.getAsJsonObject("nether").getAsJsonPrimitive("count").getAsString();
+                String netherAverage = jsonObject.getAsJsonObject("nether").getAsJsonPrimitive("avg").getAsString();
+
+                this.textRenderer.draw(matrices, netherCount, x, y, color);
+                this.textRenderer.draw(matrices, netherAverage, x, y+30, color);
+            }
+
+            /* List<StringRenderable> lines = string.stream().map(StringRenderable::plain).collect(Collectors.toList());
+            float height = this.textRenderer.fontHeight;
+            for (StringRenderable line : lines) {
+                this.textRenderer.draw(matrices, line, x, y, color);
+                y += height;
+            }
+            this.textRenderer.draw(matrices, string, x, y, color); */
+        } catch (MalformedURLException e) {
+            SeedQueue.LOGGER.warn("URL {} failed to be read", urlString);
+        } catch (IOException e) {
+            SeedQueue.LOGGER.warn("Browser content at {} failed to be read", urlString);
+        }
+    }
+
+    private static JsonObject getJsonObject(URL url) throws IOException {
+        StringBuilder inline = new StringBuilder();
+        Scanner scanner = new Scanner(url.openStream());
+
+        //Write all the JSON data into a string using a scanner
+        while (scanner.hasNext()) {
+            inline.append(scanner.nextLine());
+        }
+
+        //Close the scanner
+        scanner.close();
+
+        //Using the JSON simple library parse the string into a json object
+        return new JsonParser().parse(inline.toString()).getAsJsonObject();
     }
 
     private boolean playSound(SoundEvent sound) {
