@@ -37,9 +37,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.nio.file.Files;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.*;
-import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
 public class SeedQueueWallScreen extends Screen {
@@ -162,6 +160,13 @@ public class SeedQueueWallScreen extends Screen {
             SeedQueueProfiler.pop();
         }
 
+        if (this.layout.customTextObjects != null) {
+            SeedQueueProfiler.swap("draw_text");
+            for (Layout.CustomTextObject customTextObject : this.layout.customTextObjects) {
+                this.drawCustomTextObject(matrices, Objects.requireNonNull(customTextObject));
+            }
+        }
+
         SeedQueueProfiler.swap("reset");
         this.resetViewport();
         this.loadPreviewSettings(this.settingsCache, 0);
@@ -169,13 +174,6 @@ public class SeedQueueWallScreen extends Screen {
         if (this.overlay != null) {
             SeedQueueProfiler.swap("overlay");
             this.drawAnimatedTexture(this.overlay, matrices, 0, 0, this.width, this.height);
-        }
-
-        if (true) {
-            Path path = Paths.get("C:\\Users\\Jude\\IdeaProjects\\seedqueue\\run\\config\\mcsr\\atum\\rsg-attempts.txt");
-            this.drawCustomTextFromFile(matrices, path, 0 , 0, 0xffffff);
-            path = Paths.get("C:\\Users\\Jude\\IdeaProjects\\seedqueue\\run\\options.txt");
-            this.drawCustomTextFromFile(matrices, path, 40 , 70, 0x80117a);
         }
 
         if (this.debugHud != null) {
@@ -261,16 +259,17 @@ public class SeedQueueWallScreen extends Screen {
         RenderSystem.disableBlend();
     }
 
-    private void drawCustomTextFromFile(MatrixStack matrices, Path path, float x, float y, int color) {
+    private void drawCustomTextObject(MatrixStack matrices, Layout.CustomTextObject customTextObject) {
+        assert this.client != null;
         try {
-            List<StringRenderable> lines = Files.readAllLines(path).stream().map(StringRenderable::plain).collect(Collectors.toList());
-            float height = this.textRenderer.fontHeight;
-            for (StringRenderable line : lines) {
-                this.textRenderer.draw(matrices, line, x, y, color);
-                y += height;
+            List<StringRenderable> lines = Files.readAllLines(customTextObject.path).stream().map(StringRenderable::plain).collect(Collectors.toList());
+            this.setViewport(customTextObject.pos);
+            for (int i = 0; i < lines.size(); i++) {
+                this.client.textRenderer.draw(matrices, lines.get(i), 0, customTextObject.lineSpacing * i, customTextObject.color);
             }
+            this.resetViewport();
         } catch (IOException e) {
-            SeedQueue.LOGGER.warn("File {} failed to be read", path);
+            SeedQueue.LOGGER.warn("File {} failed to be read", customTextObject.path);
         }
     }
 

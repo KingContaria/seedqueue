@@ -9,6 +9,8 @@ import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.math.BigDecimal;
@@ -21,16 +23,19 @@ public class Layout {
     public final Group locked;
     public final Group[] preparing;
     public final boolean replaceLockedInstances;
+    @Nullable
+    public final CustomTextObject[] customTextObjects;
 
     private Layout(@NotNull Group main) {
-        this(main, null, new Group[0], true);
+        this(main, null, new Group[0], true, null);
     }
 
-    private Layout(@NotNull Group main, @Nullable Group locked, Group[] preparing, boolean replaceLockedInstances) {
+    private Layout(@NotNull Group main, @Nullable Group locked, Group[] preparing, boolean replaceLockedInstances, @Nullable CustomTextObject[] customTextObjects) {
         this.main = main;
         this.locked = locked;
         this.preparing = preparing;
         this.replaceLockedInstances = replaceLockedInstances;
+        this.customTextObjects = customTextObjects;
 
         if (this.main.cosmetic) {
             throw new IllegalArgumentException("Main Group may not be cosmetic!");
@@ -62,6 +67,10 @@ public class Layout {
         return jsonPrimitive.getAsInt();
     }
 
+    private static int getColor(JsonObject jsonObject) {
+        return Integer.parseInt(jsonObject.get("color").getAsString(), 16);
+    }
+
     private static Layout grid(int rows, int columns, int width, int height) {
         return new Layout(Group.grid(rows, columns, 0, 0, width, height, 0, false, true));
     }
@@ -71,7 +80,8 @@ public class Layout {
                 Group.fromJson(jsonObject.getAsJsonObject("main"), SeedQueue.config.rows, SeedQueue.config.columns),
                 jsonObject.has("locked") ? Group.fromJson(jsonObject.getAsJsonObject("locked")) : null,
                 jsonObject.has("preparing") ? Group.fromJson(jsonObject.getAsJsonArray("preparing")) : new Group[0],
-                jsonObject.has("replaceLockedInstances") && jsonObject.get("replaceLockedInstances").getAsBoolean()
+                jsonObject.has("replaceLockedInstances") && jsonObject.get("replaceLockedInstances").getAsBoolean(),
+                jsonObject.has("customTextObjects") ? CustomTextObject.fromJson(jsonObject.getAsJsonArray("customTextObjects")) : null
         );
     }
 
@@ -189,6 +199,37 @@ public class Layout {
                     getY(jsonObject),
                     getWidth(jsonObject),
                     getHeight(jsonObject)
+            );
+        }
+    }
+
+    public static class CustomTextObject {
+        public final Pos pos;
+        public final int color;
+        public final float lineSpacing;
+        public final Path path;
+
+        CustomTextObject(Pos pos, int color, float lineSpacing, Path path) {
+            this.pos = pos;
+            this.color = color;
+            this.lineSpacing = lineSpacing;
+            this.path = path;
+        }
+
+        private static CustomTextObject[] fromJson(JsonArray jsonArray) {
+            CustomTextObject[] textObjects = new CustomTextObject[jsonArray.size()];
+            for (int i = 0; i < jsonArray.size(); i++) {
+                textObjects[i] = CustomTextObject.fromJson(jsonArray.get(i).getAsJsonObject());
+            }
+            return textObjects;
+        }
+
+        private static CustomTextObject fromJson(JsonObject jsonObject) throws JsonParseException {
+            return new CustomTextObject(
+                    Pos.fromJson(jsonObject),
+                    getColor(jsonObject),
+                    jsonObject.has("lineSpacing") ? jsonObject.get("lineSpacing").getAsFloat() : 9.0f,
+                    Paths.get(jsonObject.get("path").getAsString())
             );
         }
     }
