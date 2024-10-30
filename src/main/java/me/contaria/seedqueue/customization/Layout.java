@@ -207,12 +207,14 @@ public class Layout {
         public final Pos pos;
         public final int color;
         public final float lineSpacing;
+        public final boolean shadow;
         public final Path path;
 
-        CustomTextObject(Pos pos, int color, float lineSpacing, Path path) {
+        CustomTextObject(Pos pos, int color, float lineSpacing, boolean shadow, Path path) {
             this.pos = pos;
             this.color = color;
             this.lineSpacing = lineSpacing;
+            this.shadow = shadow;
             this.path = path;
         }
 
@@ -229,6 +231,7 @@ public class Layout {
                     Pos.fromJson(jsonObject),
                     getColor(jsonObject),
                     jsonObject.has("lineSpacing") ? jsonObject.get("lineSpacing").getAsFloat() : 9.0f,
+                    jsonObject.has("shadow") && jsonObject.get("shadow").getAsBoolean(),
                     Paths.get(jsonObject.get("path").getAsString())
             );
         }

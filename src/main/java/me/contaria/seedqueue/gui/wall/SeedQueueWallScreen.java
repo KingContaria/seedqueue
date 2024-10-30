@@ -22,8 +22,7 @@ import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.hud.DebugHud;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.client.render.BufferBuilderStorage;
-import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.render.*;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
@@ -265,7 +264,11 @@ public class SeedQueueWallScreen extends Screen {
             List<StringRenderable> lines = Files.readAllLines(customTextObject.path).stream().map(StringRenderable::plain).collect(Collectors.toList());
             this.setViewport(customTextObject.pos);
             for (int i = 0; i < lines.size(); i++) {
-                this.client.textRenderer.draw(matrices, lines.get(i), 0, customTextObject.lineSpacing * i, customTextObject.color);
+                if (customTextObject.shadow) {
+                    this.client.textRenderer.drawWithShadow(matrices, lines.get(i), 0, customTextObject.lineSpacing * i, customTextObject.color);
+                } else {
+                    this.client.textRenderer.draw(matrices, lines.get(i), 0, customTextObject.lineSpacing * i, customTextObject.color);
+                }
             }
             this.resetViewport();
         } catch (IOException e) {
