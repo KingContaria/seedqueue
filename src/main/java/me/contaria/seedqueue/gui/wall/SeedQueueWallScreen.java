@@ -22,19 +22,22 @@ import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.hud.DebugHud;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.client.render.BufferBuilderStorage;
-import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.render.*;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.StringRenderable;
 import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
+import java.nio.file.Files;
+import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SeedQueueWallScreen extends Screen {
     private static final Set<WorldRenderer> WORLD_RENDERERS = new HashSet<>();
@@ -156,6 +159,13 @@ public class SeedQueueWallScreen extends Screen {
             SeedQueueProfiler.pop();
         }
 
+        if (this.layout.customTextObjects != null) {
+            SeedQueueProfiler.swap("draw_text");
+            for (Layout.CustomTextObject customTextObject : this.layout.customTextObjects) {
+                this.drawCustomTextObject(matrices, Objects.requireNonNull(customTextObject));
+            }
+        }
+
         SeedQueueProfiler.swap("reset");
         this.resetViewport();
         this.loadPreviewSettings(this.settingsCache, 0);
@@ -246,6 +256,24 @@ public class SeedQueueWallScreen extends Screen {
                 height * texture.getIndividualFrameCount()
         );
         RenderSystem.disableBlend();
+    }
+
+    private void drawCustomTextObject(MatrixStack matrices, Layout.CustomTextObject customTextObject) {
+        assert this.client != null;
+        try {
+            List<StringRenderable> lines = Files.readAllLines(customTextObject.path).stream().map(StringRenderable::plain).collect(Collectors.toList());
+            this.setViewport(customTextObject.pos);
+            for (int i = 0; i < lines.size(); i++) {
+                if (customTextObject.shadow) {
+                    this.client.textRenderer.drawWithShadow(matrices, lines.get(i), 0, customTextObject.lineSpacing * i, customTextObject.color);
+                } else {
+                    this.client.textRenderer.draw(matrices, lines.get(i), 0, customTextObject.lineSpacing * i, customTextObject.color);
+                }
+            }
+            this.resetViewport();
+        } catch (IOException e) {
+            SeedQueue.LOGGER.warn("File {} failed to be read", customTextObject.path);
+        }
     }
 
     private boolean playSound(SoundEvent sound) {
