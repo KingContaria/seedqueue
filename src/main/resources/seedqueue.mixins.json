@@ -50,6 +50,7 @@
     "compat.worldpreview.render.WorldRendererMixin",
     "server.IntegratedServerMixin",
     "server.MinecraftServerMixin",
+    "server.optimization.ThreadedAnvilChunkStorageMixin",
     "server.parity.EntityMixin",
     "server.synchronization.BiomeMixin",
     "server.synchronization.DirectionTransformationMixin",
