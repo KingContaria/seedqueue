@@ -657,8 +657,7 @@ public abstract class MinecraftClientMixin {
     )
     private static void shutdownQueueOnCrash(CallbackInfo ci) {
         // don't try to stop SeedQueue if Minecraft crashes before the client is initialized
-        // if Minecraft crashes in MinecraftClient#<init>, MinecraftClient#thread can be null
-        if (MinecraftClient.getInstance() == null || !MinecraftClient.getInstance().isOnThread()) {
+        if (MinecraftClient.getInstance() != null && MinecraftClient.getInstance().isOnThread()) {
             SeedQueue.stop();
         }
     }
