@@ -121,7 +121,13 @@ public abstract class MinecraftClientMixin {
     )
     private YggdrasilAuthenticationService loadYggdrasilAuthenticationService(Proxy proxy, String clientToken, Operation<YggdrasilAuthenticationService> original) {
         if (!SeedQueue.inQueue() && SeedQueue.currentEntry != null) {
-            return SeedQueue.currentEntry.getYggdrasilAuthenticationService();
+            YggdrasilAuthenticationService service = SeedQueue.currentEntry.getYggdrasilAuthenticationService();
+            if (service != null) {
+                return service;
+            }
+        }
+        if (SeedQueue.inQueue() && SeedQueue.config.shouldUseWall()) {
+            return null;
         }
         return original.call(proxy, clientToken);
     }
@@ -136,7 +142,13 @@ public abstract class MinecraftClientMixin {
     )
     private MinecraftSessionService loadMinecraftSessionService(YggdrasilAuthenticationService service, Operation<MinecraftSessionService> original) {
         if (!SeedQueue.inQueue() && SeedQueue.currentEntry != null) {
-            return SeedQueue.currentEntry.getMinecraftSessionService();
+            MinecraftSessionService sessionService = SeedQueue.currentEntry.getMinecraftSessionService();
+            if (sessionService != null) {
+                return sessionService;
+            }
+        }
+        if (SeedQueue.inQueue() && service == null) {
+            return null;
         }
         return original.call(service);
     }
@@ -151,7 +163,13 @@ public abstract class MinecraftClientMixin {
     )
     private GameProfileRepository loadGameProfileRepository(YggdrasilAuthenticationService service, Operation<GameProfileRepository> original) {
         if (!SeedQueue.inQueue() && SeedQueue.currentEntry != null) {
-            return SeedQueue.currentEntry.getGameProfileRepository();
+            GameProfileRepository repository = SeedQueue.currentEntry.getGameProfileRepository();
+            if (repository != null) {
+                return repository;
+            }
+        }
+        if (SeedQueue.inQueue() && service == null) {
+            return null;
         }
         return original.call(service);
     }
@@ -170,7 +188,7 @@ public abstract class MinecraftClientMixin {
                 return userCache;
             }
         }
-        if (SeedQueue.inQueue() && SeedQueue.config.shouldUseWall()) {
+        if (SeedQueue.inQueue() && profileRepository == null) {
             // creating the UserCache is quite expensive compared to the rest of the server creation, so we do it lazily (see "loadServer")
             return null;
         }
@@ -184,10 +202,16 @@ public abstract class MinecraftClientMixin {
                     target = "Lnet/minecraft/server/MinecraftServer;startServer(Ljava/util/function/Function;)Lnet/minecraft/server/MinecraftServer;"
             )
     )
-    private MinecraftServer loadServer(Function<Thread, MinecraftServer> serverFactory, Operation<MinecraftServer> original, @Local UserCache userCache) {
+    private MinecraftServer loadServer(Function<Thread, MinecraftServer> serverFactory, Operation<MinecraftServer> original, @Local UserCache userCache, @Local MinecraftSessionService sessionService, @Local GameProfileRepository gameProfileRepo) {
         if (!SeedQueue.inQueue() && SeedQueue.currentEntry != null) {
             // see "loadUserCache"
             MinecraftServer server = SeedQueue.currentEntry.getServer();
+            if (SeedQueue.currentEntry.getMinecraftSessionService() == null) {
+                ((MinecraftServerAccessor) server).seedQueue$setSessionService(sessionService);
+            }
+            if (SeedQueue.currentEntry.getGameProfileRepository() == null) {
+                ((MinecraftServerAccessor) server).seedQueue$setGameProfileRepo(gameProfileRepo);
+            }
             if (SeedQueue.currentEntry.getUserCache() == null) {
                 ((MinecraftServerAccessor) server).seedQueue$setUserCache(userCache);
             }

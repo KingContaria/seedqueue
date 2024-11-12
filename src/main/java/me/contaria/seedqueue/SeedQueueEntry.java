@@ -26,10 +26,15 @@ public class SeedQueueEntry {
 
     private final LevelStorage.Session session;
     private final MinecraftClient.IntegratedResourceManager resourceManager;
+
+    // will be created lazily when using wall, see MinecraftClientMixin
+    @Nullable
     private final YggdrasilAuthenticationService yggdrasilAuthenticationService;
+    @Nullable
     private final MinecraftSessionService minecraftSessionService;
+    @Nullable
     private final GameProfileRepository gameProfileRepository;
-    @Nullable // UserCache will be null when using wall, see also MinecraftClientMixin#loadUserCache
+    @Nullable
     private final UserCache userCache;
 
     @Nullable
@@ -54,7 +59,7 @@ public class SeedQueueEntry {
      */
     public int mainPosition = -1;
 
-    public SeedQueueEntry(MinecraftServer server, LevelStorage.Session session, MinecraftClient.IntegratedResourceManager resourceManager, YggdrasilAuthenticationService yggdrasilAuthenticationService, MinecraftSessionService minecraftSessionService, GameProfileRepository gameProfileRepository, @Nullable UserCache userCache) {
+    public SeedQueueEntry(MinecraftServer server, LevelStorage.Session session, MinecraftClient.IntegratedResourceManager resourceManager, @Nullable YggdrasilAuthenticationService yggdrasilAuthenticationService, @Nullable MinecraftSessionService minecraftSessionService, @Nullable GameProfileRepository gameProfileRepository, @Nullable UserCache userCache) {
         this.server = server;
         this.session = session;
         this.resourceManager = resourceManager;
@@ -78,15 +83,15 @@ public class SeedQueueEntry {
         return this.resourceManager;
     }
 
-    public YggdrasilAuthenticationService getYggdrasilAuthenticationService() {
+    public @Nullable YggdrasilAuthenticationService getYggdrasilAuthenticationService() {
         return this.yggdrasilAuthenticationService;
     }
 
-    public MinecraftSessionService getMinecraftSessionService() {
+    public @Nullable MinecraftSessionService getMinecraftSessionService() {
         return this.minecraftSessionService;
     }
 
-    public GameProfileRepository getGameProfileRepository() {
+    public @Nullable GameProfileRepository getGameProfileRepository() {
         return this.gameProfileRepository;
     }
 
