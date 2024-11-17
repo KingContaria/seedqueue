@@ -624,8 +624,17 @@ public class SeedQueueWallScreen extends Screen {
 
     private void playInstance(SeedQueuePreview instance) {
         assert this.client != null;
-        if (instance.hasPreviewRendered() && this.canPlayInstance(instance.getSeedQueueEntry()) && this.removePreview(instance)) {
-            this.playEntry(instance.getSeedQueueEntry());
+        if (instance.hasPreviewRendered() && this.canPlayInstance(instance.getSeedQueueEntry())) {
+            if (this.removePreview(instance)) {
+                this.playEntry(instance.getSeedQueueEntry());
+                return;
+            }
+        } else {
+            this.lockInstance(instance);
+        }
+
+        if (SeedQueue.config.smartSwitch) {
+            this.playNextLock();
         }
     }
 
@@ -724,11 +733,8 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void focusReset(SeedQueuePreview instance) {
-        if (instance.getSeedQueueEntry().isReady()) {
-            this.playInstance(instance);
-        } else {
-            this.lockInstance(instance);
-        }
+        this.playInstance(instance);
+
         this.resetAllInstances();
     }
 
