@@ -89,6 +89,8 @@
   "speedrunapi.config.seedqueue.option.waitForPreviewSetup.description": "If enabled, seeds will only start being shown on the Wall Screen once they are ready to render their preview.\nYou can disable this option if you want to see chunkmaps while the preview is still being set up.",
   "speedrunapi.config.seedqueue.option.bypassWall": "Bypass Wall Screen",
   "speedrunapi.config.seedqueue.option.bypassWall.description": "Bypasses the Wall Screen and immediately puts you into the next locked seed if possible.",
+  "speedrunapi.config.seedqueue.option.smartSwitch": "Smart Switch",
+  "speedrunapi.config.seedqueue.option.smartSwitch.description": "Trying to play an instance that has not finished loading will instead play a previously locked instance if possible.",
   "speedrunapi.config.seedqueue.option.wallFPS": "Wall FPS",
   "speedrunapi.config.seedqueue.option.wallFPS.description": "The framerate limit used while on the Wall Screen.",
   "speedrunapi.config.seedqueue.option.wallFPS.value": "%s fps",

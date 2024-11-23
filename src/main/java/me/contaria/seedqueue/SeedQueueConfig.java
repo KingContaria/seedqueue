@@ -28,7 +28,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Config class based on SpeedrunAPI, initialized on prelaunch.
@@ -99,6 +98,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("wall")
     public boolean bypassWall = false;
+
+    @Config.Category("wall")
+    public boolean smartSwitch = false;
 
     @Config.Category("performance")
     @Config.Numbers.Whole.Bounds(min = 1, max = 255)
