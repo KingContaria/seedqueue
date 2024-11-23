@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 public class Layout {
     @NotNull
@@ -21,16 +22,18 @@ public class Layout {
     public final Group locked;
     public final Group[] preparing;
     public final boolean replaceLockedInstances;
+    public MainFillOrder mainFillOrder;
 
     private Layout(@NotNull Group main) {
-        this(main, null, new Group[0], true);
+        this(main, null, new Group[0], true, MainFillOrder.FORWARD);
     }
 
-    private Layout(@NotNull Group main, @Nullable Group locked, Group[] preparing, boolean replaceLockedInstances) {
+    private Layout(@NotNull Group main, @Nullable Group locked, Group[] preparing, boolean replaceLockedInstances, MainFillOrder mainFillOrder) {
         this.main = main;
         this.locked = locked;
         this.preparing = preparing;
         this.replaceLockedInstances = replaceLockedInstances;
+        this.mainFillOrder = mainFillOrder;
 
         if (this.main.cosmetic) {
             throw new IllegalArgumentException("Main Group may not be cosmetic!");
@@ -71,8 +74,8 @@ public class Layout {
                 Group.fromJson(jsonObject.getAsJsonObject("main"), SeedQueue.config.rows, SeedQueue.config.columns),
                 jsonObject.has("locked") ? Group.fromJson(jsonObject.getAsJsonObject("locked")) : null,
                 jsonObject.has("preparing") ? Group.fromJson(jsonObject.getAsJsonArray("preparing")) : new Group[0],
-                jsonObject.has("replaceLockedInstances") && jsonObject.get("replaceLockedInstances").getAsBoolean()
-        );
+                jsonObject.has("replaceLockedInstances") && jsonObject.get("replaceLockedInstances").getAsBoolean(),
+                jsonObject.has("mainFillOrder") ? MainFillOrder.valueOf(jsonObject.get("mainFillOrder").getAsString().toUpperCase(Locale.ROOT)) : MainFillOrder.FORWARD);
     }
 
     public static Layout createLayout() {
@@ -191,5 +194,11 @@ public class Layout {
                     getHeight(jsonObject)
             );
         }
+    }
+
+    public enum MainFillOrder {
+        FORWARD,
+        BACKWARD,
+        RANDOM
     }
 }
