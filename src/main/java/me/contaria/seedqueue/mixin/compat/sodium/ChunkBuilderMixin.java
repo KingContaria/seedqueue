@@ -34,18 +34,18 @@ public abstract class ChunkBuilderMixin {
     private AtomicBoolean running;
 
     @ModifyReturnValue(
-            method = "getOptimalThreadCount",
+            method = "getMaxThreadCount",
             at = @At("RETURN")
     )
-    private static int modifyChunkUpdateThreads(int optimalThreadCount) {
+    private static int modifyMaxThreads(int maxThreads) {
         if (SeedQueue.isOnWall()) {
             return SeedQueue.config.getChunkUpdateThreads();
         }
-        return optimalThreadCount;
+        return maxThreads;
     }
 
     @ModifyArg(
-            method = "startWorkers",
+            method = "createWorker",
             at = @At(
                     value = "INVOKE",
                     target = "Ljava/lang/Thread;setPriority(I)V"
@@ -85,7 +85,7 @@ public abstract class ChunkBuilderMixin {
     // mac sodium compat is very silly
     @Group(name = "loadCachedBuildBuffersOnWall")
     @WrapOperation(
-            method = "startWorkers",
+            method = "createWorker",
             at = @At(
                     value = "NEW",
                     target = "(Lme/jellysquid/mods/sodium/client/model/vertex/type/ChunkVertexType;Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;)Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers;"
@@ -101,7 +101,7 @@ public abstract class ChunkBuilderMixin {
     @Dynamic
     @Group(name = "loadCachedBuildBuffersOnWall")
     @WrapOperation(
-            method = "startWorkers",
+            method = "createWorker",
             at = @At(
                     value = "NEW",
                     target = "(Lme/jellysquid/mods/sodium/client/gl/attribute/GlVertexFormat;Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;)Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers;"
@@ -115,7 +115,7 @@ public abstract class ChunkBuilderMixin {
     }
 
     @WrapOperation(
-            method = "startWorkers",
+            method = "createWorker",
             at = @At(
                     value = "NEW",
                     target = "(Lnet/minecraft/client/MinecraftClient;Lnet/minecraft/world/World;)Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheLocal;",
@@ -132,7 +132,7 @@ public abstract class ChunkBuilderMixin {
 
     @SuppressWarnings("InvalidInjectorMethodSignature") // MCDev doesn't seem to like @Coerce on the return type
     @ModifyExpressionValue(
-            method = "startWorkers",
+            method = "createWorker",
             at = @At(
                     value = "NEW",
                     target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder$WorkerRunnable;"
