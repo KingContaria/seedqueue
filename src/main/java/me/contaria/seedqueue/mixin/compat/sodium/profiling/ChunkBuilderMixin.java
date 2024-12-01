@@ -2,6 +2,7 @@ package me.contaria.seedqueue.mixin.compat.sodium.profiling;
 
 import me.contaria.seedqueue.debug.SeedQueueProfiler;
 import me.jellysquid.mods.sodium.client.render.chunk.compile.ChunkBuilder;
+import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,57 +27,68 @@ public abstract class ChunkBuilderMixin {
         SeedQueueProfiler.push("start_workers");
     }
 
+    // most of the logic in startWorkers was extracted to createWorker in sodium 2.4.0
+    @Dynamic
     @Inject(
-            method = "startWorkers",
+            method = {"startWorkers", "createWorker"},
             at = @At(
                     value = "INVOKE",
                     target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers;<init>(Lme/jellysquid/mods/sodium/client/model/vertex/type/ChunkVertexType;Lme/jellysquid/mods/sodium/client/render/chunk/passes/BlockRenderPassManager;)V"
-            )
+            ),
+            require = 1, allow = 1
     )
     private void profileBuildBuffers(CallbackInfo ci) {
         SeedQueueProfiler.push("build_buffers");
     }
 
+    @Dynamic
     @Inject(
-            method = "startWorkers",
+            method = {"startWorkers", "createWorker"},
             at = @At(
                     value = "INVOKE",
                     target = "Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheLocal;<init>(Lnet/minecraft/client/MinecraftClient;Lnet/minecraft/world/World;)V",
                     remap = true
-            )
+            ),
+            require = 1, allow = 1
     )
     private void profileRenderCache(CallbackInfo ci) {
         SeedQueueProfiler.swap("render_cache");
     }
 
+    @Dynamic
     @Inject(
-            method = "startWorkers",
+            method = {"startWorkers", "createWorker"},
             at = @At(
                     value = "INVOKE",
                     target = "Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder$WorkerRunnable;<init>(Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuilder;Lme/jellysquid/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers;Lme/jellysquid/mods/sodium/client/render/pipeline/context/ChunkRenderCacheLocal;)V"
-            )
+            ),
+            require = 1, allow = 1
     )
     private void profileWorker(CallbackInfo ci) {
         SeedQueueProfiler.swap("worker");
     }
 
+    @Dynamic
     @Inject(
-            method = "startWorkers",
+            method = {"startWorkers", "createWorker"},
             at = @At(
                     value = "INVOKE",
                     target = "Ljava/lang/Thread;<init>(Ljava/lang/Runnable;Ljava/lang/String;)V"
-            )
+            ),
+            require = 1, allow = 1
     )
     private void profileThread(CallbackInfo ci) {
         SeedQueueProfiler.swap("thread");
     }
 
+    @Dynamic
     @Inject(
-            method = "startWorkers",
+            method = {"startWorkers", "createWorker"},
             at = @At(
                     value = "INVOKE",
                     target = "Ljava/util/List;add(Ljava/lang/Object;)Z"
-            )
+            ),
+            require = 1, allow = 1
     )
     private void profilePopPerWorker(CallbackInfo ci) {
         SeedQueueProfiler.pop();
