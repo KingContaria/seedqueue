@@ -99,7 +99,7 @@ public abstract class ChunkBuilderMixin {
     }
 
     @Dynamic
-    @Group(name = "loadCachedBuildBuffersOnWall")
+    @Group(name = "loadCachedBuildBuffersOnWall", min = 1, max = 1)
     @WrapOperation(
             method = "createWorker",
             at = @At(
