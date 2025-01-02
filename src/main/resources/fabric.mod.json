@@ -56,8 +56,8 @@
 		"fast_reset": "<2.0",
 		"state-output": "<1.2",
 		"speedrunigt": "<15.0",
-		"sodium": [ "v1", "v2", "<2.0.1" ],
-		"sodiummac": [ "v2", "v3" ],
+		"sodium": [ "v1", "v2", "<2.4.0" ],
+		"sodiummac": [ "v2", "v3", "<3.4.0" ],
 		"sleepbackground": "<4.0"
 	}
 }
