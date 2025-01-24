@@ -204,14 +204,13 @@ public class SeedQueueEntry {
      * <p>
      * Returns true if:
      * <p>
-     *  - the entry has finished world generation
+     * - the entry has finished world generation
      * <p>
-     *  - the entry has reached the {@link SeedQueueConfig#maxWorldGenerationPercentage} and is not locked
+     * - the entry has reached the {@link SeedQueueConfig#maxWorldGenerationPercentage} and is not locked
      * <p>
-     *  - the entry has been scheduled to pause by the {@link SeedQueueThread}
+     * - the entry has been scheduled to pause by the {@link SeedQueueThread}
      *
      * @return If this entry's {@link MinecraftServer} should pause in its current state.
-     *
      * @see SQMinecraftServer#seedQueue$shouldPause
      */
     public boolean shouldPause() {
@@ -220,7 +219,6 @@ public class SeedQueueEntry {
 
     /**
      * @return If the entry is currently paused.
-     *
      * @see SQMinecraftServer#seedQueue$isPaused
      * @see SeedQueueEntry#shouldPause
      */
@@ -230,7 +228,6 @@ public class SeedQueueEntry {
 
     /**
      * @return If the entry has been scheduled to pause by the {@link SeedQueueThread} but hasn't been paused yet.
-     *
      * @see SQMinecraftServer#seedQueue$isScheduledToPause
      * @see SeedQueueEntry#shouldPause
      */
@@ -278,7 +275,6 @@ public class SeedQueueEntry {
 
     /**
      * @return True if the entry was paused and has now been successfully unpaused.
-     *
      * @see SeedQueueEntry#unpause
      * @see SeedQueueEntry#canUnpause
      */

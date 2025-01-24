@@ -5,7 +5,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
-import me.contaria.seedqueue.debug.SeedQueueProfiler;
 import me.contaria.seedqueue.SeedQueueThread;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
@@ -13,6 +12,7 @@ import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.customization.AnimatedTexture;
 import me.contaria.seedqueue.customization.Layout;
 import me.contaria.seedqueue.customization.LockTexture;
+import me.contaria.seedqueue.debug.SeedQueueProfiler;
 import me.contaria.seedqueue.keybindings.SeedQueueKeyBindings;
 import me.contaria.seedqueue.mixin.accessor.DebugHudAccessor;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
@@ -425,7 +425,7 @@ public class SeedQueueWallScreen extends Screen {
 
     private List<SeedQueueEntry> getAvailableSeedQueueEntries() {
         List<SeedQueueEntry> entries = SeedQueue.getEntries();
-        for (SeedQueuePreview instance: this.getInstances()) {
+        for (SeedQueuePreview instance : this.getInstances()) {
             entries.remove(instance.getSeedQueueEntry());
         }
         entries.removeIf(entry -> entry.getWorldGenerationProgressTracker() == null);

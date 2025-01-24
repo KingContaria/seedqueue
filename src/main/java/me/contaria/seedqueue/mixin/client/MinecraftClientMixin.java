@@ -591,7 +591,7 @@ public abstract class MinecraftClientMixin {
             at = @At("TAIL")
     )
     private void logSystemInformation(CallbackInfo ci) {
-            SeedQueueSystemInfo.logSystemInformation();
+        SeedQueueSystemInfo.logSystemInformation();
     }
 
     @Inject(

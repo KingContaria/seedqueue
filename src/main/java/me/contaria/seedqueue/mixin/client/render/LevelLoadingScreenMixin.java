@@ -3,7 +3,6 @@ package me.contaria.seedqueue.mixin.client.render;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import me.contaria.seedqueue.SeedQueue;
-import me.contaria.seedqueue.SeedQueueConfig;
 import me.contaria.seedqueue.gui.wall.SeedQueuePreview;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.LevelLoadingScreen;

@@ -57,8 +57,8 @@ public class WorldPreviewProperties {
 
     /**
      * Sets {@link WorldPreview} properties to the values stored in this {@link WorldPreviewProperties}.
-     * 
-     * @see WorldPreview#set 
+     *
+     * @see WorldPreview#set
      */
     public void apply() {
         WorldPreview.set(this.world, this.player, this.interactionManager, this.camera, this.packetQueue);

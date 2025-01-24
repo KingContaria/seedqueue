@@ -159,7 +159,7 @@ public class SeedQueue implements ClientModInitializer {
      * @return If all {@link SeedQueueEntry} have reached the {@link SeedQueueConfig#maxWorldGenerationPercentage}.
      */
     public static boolean allMaxWorldGenerationReached() {
-        for (SeedQueueEntry entry: SEED_QUEUE) {
+        for (SeedQueueEntry entry : SEED_QUEUE) {
             if (!entry.isMaxWorldGenerationReached() && !entry.isLocked()) {
                 return false;
             }
@@ -171,7 +171,7 @@ public class SeedQueue implements ClientModInitializer {
      * @return If all currently generating {@link SeedQueueEntry} are not locked.
      */
     public static boolean noLockedRemaining() {
-        for (SeedQueueEntry entry: SEED_QUEUE) {
+        for (SeedQueueEntry entry : SEED_QUEUE) {
             if (entry.isLocked() && !entry.isReady()) {
                 return false;
             }
@@ -195,9 +195,9 @@ public class SeedQueue implements ClientModInitializer {
      * @see SeedQueue#allMaxWorldGenerationReached()
      */
     public static boolean shouldResumeAfterQueueFull() {
-       synchronized (LOCK) {
-           return config.resumeOnFilledQueue && isFull() && allMaxWorldGenerationReached();
-       }
+        synchronized (LOCK) {
+            return config.resumeOnFilledQueue && isFull() && allMaxWorldGenerationReached();
+        }
     }
 
 
@@ -223,14 +223,13 @@ public class SeedQueue implements ClientModInitializer {
      *
      * @param treatScheduledAsPaused If {@link SeedQueueEntry}'s that are scheduled to pause but haven't been paused yet should be added to the count.
      * @return The amount of currently generating / unpaused {@link SeedQueueEntry}'s in queue.
-     *
      * @see SeedQueueConfig#shouldUseWall
      */
     private static long getGeneratingCount(boolean treatScheduledAsPaused) {
         long count = 0;
-        for (SeedQueueEntry entry: SEED_QUEUE) {
+        for (SeedQueueEntry entry : SEED_QUEUE) {
             if (!(entry.isPaused() || (treatScheduledAsPaused && entry.isScheduledToPause()))) {
-                count ++;
+                count++;
             }
         }
 
@@ -244,7 +243,6 @@ public class SeedQueue implements ClientModInitializer {
 
     /**
      * @return The maximum number of {@link SeedQueueEntry}'s that should be generating concurrently.
-     *
      * @see SeedQueueConfig#maxConcurrently
      * @see SeedQueueConfig#maxConcurrently_onWall
      */

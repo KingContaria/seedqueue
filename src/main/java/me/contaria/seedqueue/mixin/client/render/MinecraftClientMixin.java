@@ -1,7 +1,6 @@
 package me.contaria.seedqueue.mixin.client.render;
 
 import me.contaria.seedqueue.SeedQueue;
-import me.contaria.seedqueue.SeedQueueConfig;
 import me.contaria.seedqueue.SeedQueueEntry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
