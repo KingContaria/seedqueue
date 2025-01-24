@@ -86,7 +86,12 @@ public abstract class MinecraftServerMixin extends ReentrantThreadExecutor<Serve
         if (SeedQueue.inQueue()) {
             thread.setPriority(SeedQueue.config.serverThreadPriority);
         }
-        thread.setName(thread.getName() + " - " + this.session.getDirectoryName());
+        String name = this.session.getDirectoryName();
+        if (name.startsWith("Random Speedrun #") || name.startsWith("Set Speedrun #")) {
+            thread.setName(thread.getName() + " " + name.substring(name.indexOf('#')));
+        } else {
+            thread.setName(thread.getName() + " - " + name);
+        }
         return thread;
     }
 
