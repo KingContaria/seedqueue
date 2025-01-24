@@ -38,26 +38,26 @@ public abstract class MinecraftClientMixin {
             )
     )
     private void drawSeedQueueChunkMaps(CallbackInfo ci) {
-        if (SeedQueue.isOnWall() || SeedQueue.config.chunkMapVisibility == SeedQueueConfig.ChunkMapVisibility.FALSE) {
+        if (SeedQueue.isOnWall() || !SeedQueue.config.showChunkMaps) {
             return;
         }
 
         int x = 3;
         int y = 3;
-        int scale = SeedQueue.config.chunkMapScale;
         for (SeedQueueEntry seedQueueEntry : SeedQueue.getEntries()) {
             if (seedQueueEntry.isPaused()) {
                 continue;
             }
             WorldGenerationProgressTracker tracker = seedQueueEntry.getWorldGenerationProgressTracker();
-            if (tracker != null) {
-                if (x + tracker.getSize() * scale > this.window.getScaledWidth() - 3) {
-                    x = 3;
-                    y += tracker.getSize() * scale + 3;
-                }
-                LevelLoadingScreen.drawChunkMap(new MatrixStack(), tracker, x + tracker.getSize() * scale / 2, y + tracker.getSize() * scale / 2, scale, 0);
-                x += tracker.getSize() * scale + 3;
+            if (tracker == null) {
+                continue;
             }
+            if (x + tracker.getSize() > this.window.getScaledWidth() - 3) {
+                x = 3;
+                y += tracker.getSize() + 3;
+            }
+            LevelLoadingScreen.drawChunkMap(new MatrixStack(), tracker, x + tracker.getSize() / 2, y + tracker.getSize() / 2, 1, 0);
+            x += tracker.getSize() + 3;
         }
     }
 }

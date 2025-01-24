@@ -947,10 +947,10 @@ public class SeedQueueWallScreen extends Screen {
     private static WorldRenderer getClearableWorldRenderer() {
         for (WorldRenderer worldRenderer : WORLD_RENDERERS) {
             ClientWorld worldRendererWorld = getWorld(worldRenderer);
-            if (!SeedQueue.getEntryMatching(entry -> {
+            if (!SeedQueue.hasEntryMatching(entry -> {
                 WorldPreviewProperties wpProperties = entry.getWorldPreviewProperties();
                 return wpProperties != null && wpProperties.getWorld() == worldRendererWorld;
-            }).isPresent()) {
+            })) {
                 return worldRenderer;
             }
         }

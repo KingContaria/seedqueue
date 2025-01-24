@@ -45,7 +45,6 @@
   "seedqueue.key.cancelBenchmark": "Stop Benchmark",
 
   "speedrunapi.config.seedqueue.category.queue": "Queue Settings",
-  "speedrunapi.config.seedqueue.category.chunkmap": "Chunkmap Settings",
   "speedrunapi.config.seedqueue.category.wall": "Wall Screen Settings",
   "speedrunapi.config.seedqueue.category.performance": "Performance Settings",
   "speedrunapi.config.seedqueue.category.misc": "Misc. Settings",
@@ -65,13 +64,6 @@
   "speedrunapi.config.seedqueue.option.maxWorldGenerationPercentage.value": "%s%%",
   "speedrunapi.config.seedqueue.option.resumeOnFilledQueue": "Resume On Filled Queue",
   "speedrunapi.config.seedqueue.option.resumeOnFilledQueue.description": "Whether to resume generating seeds after the queue is filled.\nThis overrides the Max World Generation % option after the queue capacity is filled.",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility": "SeedQueue Chunkmaps",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.description": "Renders an overlay with all the chunkmaps of currently generating seeds.",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.TRUE": "Show",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.TRANSPARENT": "Transparent",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.FALSE": "Hide",
-  "speedrunapi.config.seedqueue.option.chunkMapScale": "Chunkmap Scale",
-  "speedrunapi.config.seedqueue.option.chunkMapScale.description": "§6Chunkmap size will still be affected by GUI Scale!",
   "speedrunapi.config.seedqueue.option.chunkMapFreezing": "Chunkmap Freezing",
   "speedrunapi.config.seedqueue.option.chunkMapFreezing.description": "Freezes the chunkmap after the set milliseconds. Useful for the \"Village Resetting\" strategy. Only applies to worlds on the wall that aren't locked.",
   "speedrunapi.config.seedqueue.option.chunkMapFreezing.value": "%sms",
@@ -134,5 +126,7 @@
   "speedrunapi.config.seedqueue.option.showDebugMenu": "Show Debug Menu",
   "speedrunapi.config.seedqueue.option.showDebugMenu.description": "Renders an FPS Graph and a Profiler on top of the Wall Screen.\n§cUse this only for debugging, any runs played with this option enabled will be invalidated!",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "Benchmark Resets",
-  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "The default amount of resets done when starting a benchmark.\nYou can start a benchmark using the \"Start Benchmark\" keybind and cancel it before it reaches the configured amount of resets using the \"Stop Benchmark\" keybind."
+  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "The default amount of resets done when starting a benchmark.\nYou can start a benchmark using the \"Start Benchmark\" keybind and cancel it before it reaches the configured amount of resets using the \"Stop Benchmark\" keybind.",
+  "speedrunapi.config.seedqueue.option.showChunkMaps": "SeedQueue Chunkmaps",
+  "speedrunapi.config.seedqueue.option.showChunkMaps.description": "Renders an overlay with all the chunkmaps of currently generating seeds."
 }

@@ -98,6 +98,21 @@ public class SeedQueue implements ClientModInitializer {
     }
 
     /**
+     * Traverses the queue in order and returns {@code true} if a {@link SeedQueueEntry} matches the {@link Predicate}.
+     * This method will return after the first match and will not test any further entries.
+     *
+     * @return If a {@link SeedQueueEntry} matches the given predicate.
+     */
+    public static boolean hasEntryMatching(Predicate<SeedQueueEntry> predicate) {
+        for (SeedQueueEntry entry : SEED_QUEUE) {
+            if (predicate.test(entry)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Adds the given {@link SeedQueueEntry} to the queue.
      */
     public static void add(SeedQueueEntry entry) {

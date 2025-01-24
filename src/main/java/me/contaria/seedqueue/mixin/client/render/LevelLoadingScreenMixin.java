@@ -46,7 +46,7 @@ public abstract class LevelLoadingScreenMixin {
             at = @At("HEAD")
     )
     private static void setColorModifier(MatrixStack matrixStack, WorldGenerationProgressTracker tracker, int i, int j, int k, int l, CallbackInfo ci, @Share("colorModifier") LocalIntRef colorModifier) {
-        if (!SeedQueue.isOnWall() && SeedQueue.config.chunkMapVisibility == SeedQueueConfig.ChunkMapVisibility.TRANSPARENT && SeedQueue.getEntryMatching(entry -> tracker == entry.getWorldGenerationProgressTracker()).isPresent()) {
+        if (!SeedQueue.isOnWall() && SeedQueue.hasEntryMatching(entry -> tracker == entry.getWorldGenerationProgressTracker())) {
             colorModifier.set(TRANSPARENT_MODIFIER);
         } else {
             colorModifier.set(NO_MODIFIER);

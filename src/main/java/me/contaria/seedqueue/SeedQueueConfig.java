@@ -44,6 +44,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     private static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
 
     @Config.Ignored
+    private static final boolean CAN_USE_WALL = ModCompat.HAS_WORLDPREVIEW && ModCompat.HAS_STANDARDSETTINGS && ModCompat.HAS_SODIUM;
+
+    @Config.Ignored
     public SpeedrunConfigContainer<?> container;
 
     @Config.Category("queue")
@@ -64,16 +67,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
 
     @Config.Category("queue")
     public boolean resumeOnFilledQueue = false;
-
-    @Config.Category("chunkmap")
-    public ChunkMapVisibility chunkMapVisibility = ChunkMapVisibility.TRUE;
-
-    @Config.Category("chunkmap")
-    @Config.Numbers.Whole.Bounds(min = 1, max = 5)
-    public int chunkMapScale = 2;
-
-    @Config.Ignored
-    public final boolean canUseWall = ModCompat.HAS_WORLDPREVIEW && ModCompat.HAS_STANDARDSETTINGS && ModCompat.HAS_SODIUM;
 
     @Config.Category("wall")
     public boolean useWall = false;
@@ -173,6 +166,9 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Category("debug")
     public boolean useWatchdog = false;
 
+    @Config.Category("debug")
+    public boolean showChunkMaps = false;
+
     @Config.Category("wall")
     public final SeedQueueMultiKeyBinding[] keyBindings = new SeedQueueMultiKeyBinding[]{
             SeedQueueKeyBindings.play,
@@ -233,7 +229,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
     }
 
     public boolean shouldUseWall() {
-        return this.canUseWall && this.maxCapacity > 0 && this.useWall;
+        return CAN_USE_WALL && this.maxCapacity > 0 && this.useWall;
     }
 
     // see Window#calculateScaleFactor
@@ -253,7 +249,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
         if ("useWall".equals(field.getName())) {
             return new SpeedrunConfigAPI.CustomOption.Builder<Boolean>(config, this, field, idPrefix)
                     .createWidget((option, config_, configStorage, optionField) -> {
-                        if (!this.canUseWall) {
+                        if (!CAN_USE_WALL) {
                             ButtonWidget button = new ButtonWidget(0, 0, 150, 20, new TranslatableText("seedqueue.menu.config.useWall.notAvailable"), b -> {}, ((b, matrices, mouseX, mouseY) -> {
                                 List<StringRenderable> tooltip = new ArrayList<>(MinecraftClient.getInstance().textRenderer.wrapLines(new TranslatableText("seedqueue.menu.config.useWall.notAvailable.tooltip"), 200));
                                 for (int i = 1; i <= 3; i++) {
@@ -350,12 +346,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     @Override
     public boolean isAvailable() {
         return !SeedQueue.isActive();
-    }
-
-    public enum ChunkMapVisibility {
-        TRUE,
-        TRANSPARENT,
-        FALSE
     }
 
     public static class WindowSize {

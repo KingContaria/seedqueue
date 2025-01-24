@@ -42,7 +42,6 @@
   "seedqueue.key.cancelBenchmark": "Zastavit benchmark",
 
   "speedrunapi.config.seedqueue.category.queue": "Nastavení fronty",
-  "speedrunapi.config.seedqueue.category.chunkmap": "Nastavení chunkmaps",
   "speedrunapi.config.seedqueue.category.wall": "Nastavení wall obrazovky",
   "speedrunapi.config.seedqueue.category.performance": "Nastavení výkonu",
   "speedrunapi.config.seedqueue.category.misc": "Různá nastavení",
@@ -62,13 +61,6 @@
   "speedrunapi.config.seedqueue.option.maxWorldGenerationPercentage.value": "%s%%",
   "speedrunapi.config.seedqueue.option.resumeOnFilledQueue": "Pokračovat po naplnění fronty",
   "speedrunapi.config.seedqueue.option.resumeOnFilledQueue.description": "Možnost pokračovat v generování seedů po naplnění fronty.\nTato možnost má přednost před možností Max % generace světa po naplnění kapacity fronty.",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility": "SeedQueue chunkmaps",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.description": "Renderuje překrytí se všemi chunkmaps aktuálně generujících se seedů.",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.TRUE": "Ukázat",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.TRANSPARENT": "Transparentní",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.FALSE": "Skrýt",
-  "speedrunapi.config.seedqueue.option.chunkMapScale": "Škála chunkmap",
-  "speedrunapi.config.seedqueue.option.chunkMapScale.description": "§6Velikost Chunkmap bude stále ovlivněna GUI škálou!",
   "speedrunapi.config.seedqueue.option.chunkMapFreezing": "Chunkmap zmrazení",
   "speedrunapi.config.seedqueue.option.chunkMapFreezing.description": "Chunkmap bude zmražena po uběhnutí určených milisekund. Užitečné pro strategii \"Resetování vesnic\". Platí pouze pro světy na wall, které nejsou zamknuté.",
   "speedrunapi.config.seedqueue.option.chunkMapFreezing.value": "%sms",
@@ -129,5 +121,7 @@
   "speedrunapi.config.seedqueue.option.showDebugMenu": "Zobrazit debug menu",
   "speedrunapi.config.seedqueue.option.showDebugMenu.description": "Vykreslí FPS graf a profiler na wall obrazovce.\n§cTohle používej pouze pro debugging, jakékoliv runy s touto možností budou neplatné!",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "Benchmark resety",
-  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "Výchozí počet resetů pro benchmark.\nBenchmark můžeš začít pomocí klávesové zkratky \"Začít benchmark\" a zrušit jej, než dosáhne vybraného počtu resetů pomocí klávesové zkratky \"Zastavit benchmark\"."
+  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "Výchozí počet resetů pro benchmark.\nBenchmark můžeš začít pomocí klávesové zkratky \"Začít benchmark\" a zrušit jej, než dosáhne vybraného počtu resetů pomocí klávesové zkratky \"Zastavit benchmark\".",
+  "speedrunapi.config.seedqueue.option.showChunkMaps": "SeedQueue chunkmaps",
+  "speedrunapi.config.seedqueue.option.showChunkMaps.description": "Renderuje překrytí se všemi chunkmaps aktuálně generujících se seedů."
 }

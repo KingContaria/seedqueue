@@ -40,7 +40,6 @@
   "seedqueue.key.cancelBenchmark": "Zakończ Test Sprawności",
 
   "speedrunapi.config.seedqueue.category.queue": "Ustawnienia Kolejki",
-  "speedrunapi.config.seedqueue.category.chunkmap": "Ustawienia Chunkmap",
   "speedrunapi.config.seedqueue.category.wall": "Ustawienia Ekranu Ściany",
   "speedrunapi.config.seedqueue.category.performance": "Ustawnienia Wydajności",
   "speedrunapi.config.seedqueue.category.advanced": "Ustawienia Zaawansowane",
@@ -57,13 +56,6 @@
   "speedrunapi.config.seedqueue.option.maxWorldGenerationPercentage": "Maksymalny % Generowania Świata",
   "speedrunapi.config.seedqueue.option.maxWorldGenerationPercentage.description": "Zatrzymuje generowanie świata po osiągnięciu ustawionego procentu, chyba że jest na nim Kłódka.\nNależy pamiętać, że mimo to będzie czekać na skonfigurowanie „WorldPreview” przed zatrzymaniem generacji.",
   "speedrunapi.config.seedqueue.option.maxWorldGenerationPercentage.value": "%s%%",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility": "Chunkmapy SeedQueue",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.description": "Renderuje nakładkę z wszystkimi Chunkmapami aktualnie generowanych seedów.",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.TRUE": "Pokaż",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.TRANSPARENT": "Przezroczysty",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.FALSE": "Ukryj",
-  "speedrunapi.config.seedqueue.option.chunkMapScale": "Skala Chunkmapy",
-  "speedrunapi.config.seedqueue.option.chunkMapScale.description": "§6Skala GUI nadal będzie zmieniała rozmiar Chunkmapy!",
   "speedrunapi.config.seedqueue.option.useWall": "Użyj Ekranu Ściany",
   "speedrunapi.config.seedqueue.option.useWall.description": "Wyświetla ścianę wszystkich seedów pomiędzy resetami, gdzie można wybrać seedy do dołączenia lub resetowania.",
   "speedrunapi.config.seedqueue.option.rows": "Rzędy",
@@ -119,5 +111,7 @@
   "speedrunapi.config.seedqueue.option.showDebugMenu": "Pokaż Menu do Debugowania",
   "speedrunapi.config.seedqueue.option.showDebugMenu.description": "Renderuje wykres FPS i profiler na ekranie ściany.\n§cUżywaj tego tylko do debugowania, Jakikolwiek run z tą opcją nie będzie zweryfikowany!",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "Resety Benchmark",
-  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "Domyślna liczba resetów wykonywanych podczas uruchamiania benchmarku.\nMożesz rozpocząć benchmark, używając skrótu klawiaturowego \"Start Benchmark\", i anulować go przed osiągnięciem skonfigurowanej liczby resetów, używając skrótu klawiaturowego \"Stop Benchmark\"."
+  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "Domyślna liczba resetów wykonywanych podczas uruchamiania benchmarku.\nMożesz rozpocząć benchmark, używając skrótu klawiaturowego \"Start Benchmark\", i anulować go przed osiągnięciem skonfigurowanej liczby resetów, używając skrótu klawiaturowego \"Stop Benchmark\".",
+  "speedrunapi.config.seedqueue.option.showChunkMaps": "Chunkmapy SeedQueue",
+  "speedrunapi.config.seedqueue.option.showChunkMaps.description": "Renderuje nakładkę z wszystkimi Chunkmapami aktualnie generowanych seedów."
 }

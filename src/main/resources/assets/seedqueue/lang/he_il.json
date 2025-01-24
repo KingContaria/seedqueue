@@ -41,7 +41,6 @@
   "seedqueue.key.scheduleAll": "תזמון הכל",
 
   "speedrunapi.config.seedqueue.category.queue": "ההגדרות של התור",
-  "speedrunapi.config.seedqueue.category.chunkmap": "הגדרות המפה",
   "speedrunapi.config.seedqueue.category.wall": "הגדרות קיר האיפוסים",
   "speedrunapi.config.seedqueue.category.performance": "הגדרות של ביצוע מחשבי",
   "speedrunapi.config.seedqueue.category.misc": "הגדרות ללא קטגוריה.",
@@ -61,13 +60,6 @@
   "speedrunapi.config.seedqueue.option.maxWorldGenerationPercentage.value": "%s%%",
   "speedrunapi.config.seedqueue.option.resumeOnFilledQueue": "המשך כאשר התור מולא",
   "speedrunapi.config.seedqueue.option.resumeOnFilledQueue.description": "שהתמלא התור.\n המקסימום אחוז טעינה של עולמות, אחרי\n אפשרות זו עוקפת את אפשרות\n שהתמלא התור.\n האם להמשיך ליצור עולמות אחרי.",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility": "מפות עולם",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.description": "שנטענים מעל המשחק\nשם שכבה של מפות טעינה של העולמות",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.TRUE": "הצג",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.TRANSPARENT": "שקוף",
-  "speedrunapi.config.seedqueue.option.chunkMapVisibility.value.FALSE": "הסתר",
-  "speedrunapi.config.seedqueue.option.chunkMapScale": "גודל המפה",
-  "speedrunapi.config.seedqueue.option.chunkMapScale.description": "גודל המפה עדיין ישתנה לפי רמת הג'יואי6§",
   "speedrunapi.config.seedqueue.option.chunkMapFreezing": "קפיאת מפות עולם",
   "speedrunapi.config.seedqueue.option.chunkMapFreezing.description": "נעולות.\nרק מופעל על העולמות שבקיר שלא\nווילג'ים.\nשימושי בשביל אסטרטגית האיפוס\nאלפיות שניה.\nמקפיא את מפת העולם אחרי כמות",
   "speedrunapi.config.seedqueue.option.chunkMapFreezing.value": "%sms",
@@ -128,5 +120,7 @@
   "speedrunapi.config.seedqueue.option.showDebugMenu": "הראה טבלת Debug",
   "speedrunapi.config.seedqueue.option.showDebugMenu.description": "עם האפשרות הזאת פעילה יפסלc§!\nתשתמש בזה רק ל-debugging, כל ספידראןc§\nמסך הקיר.\nמציג גרף FPS ו-profiler  בחלק העליון של",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "מספר האיפוסים בבדיקת מהירות",
-  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "כפתור ה \"תפסיק בדיקת מהירות\" \nולעצור את הבדיקה לפני סיומה בעזרת\n\"תתחיל בדיקת מהירות\" \nאפשר להתחיל בדיקה עם כפתור ה\nמספר האיפסים שיעשו בבדיקת מהירות."
+  "speedrunapi.config.seedqueue.option.benchmarkResets.description": "כפתור ה \"תפסיק בדיקת מהירות\" \nולעצור את הבדיקה לפני סיומה בעזרת\n\"תתחיל בדיקת מהירות\" \nאפשר להתחיל בדיקה עם כפתור ה\nמספר האיפסים שיעשו בבדיקת מהירות.",
+  "speedrunapi.config.seedqueue.option.showChunkMaps": "מפות עולם",
+  "speedrunapi.config.seedqueue.option.showChunkMaps.description": "שנטענים מעל המשחק\nשם שכבה של מפות טעינה של העולמות"
 }
