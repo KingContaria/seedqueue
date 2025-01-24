@@ -73,7 +73,11 @@ public class Layout {
         return new Layout(
                 Group.fromJson(jsonObject.getAsJsonObject("main"), SeedQueue.config.rows, SeedQueue.config.columns),
                 jsonObject.has("locked") ? Group.fromJson(jsonObject.getAsJsonObject("locked")) : null,
-                jsonObject.has("preparing") ? Group.fromJson(jsonObject.getAsJsonArray("preparing")) : new Group[0],
+                jsonObject.has("preparing") ? (
+                        jsonObject.get("preparing").isJsonArray() ?
+                                Group.fromJson(jsonObject.getAsJsonArray("preparing")) :
+                                new Group[]{Group.fromJson(jsonObject.getAsJsonObject("preparing"))}
+                ) : new Group[0],
                 jsonObject.has("replaceLockedInstances") && jsonObject.get("replaceLockedInstances").getAsBoolean(),
                 jsonObject.has("mainFillOrder") ? MainFillOrder.valueOf(jsonObject.get("mainFillOrder").getAsString().toUpperCase(Locale.ROOT)) : MainFillOrder.FORWARD);
     }
