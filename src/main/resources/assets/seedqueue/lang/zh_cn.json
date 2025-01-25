@@ -112,8 +112,6 @@
   "speedrunapi.config.seedqueue.option.chunkUpdateThreads.value.0": "自动",
   "speedrunapi.config.seedqueue.option.chunkUpdateThreadPriority": "钠加载优先级",
   "speedrunapi.config.seedqueue.option.chunkUpdateThreadPriority.description": "设置墙界面每个预览中钠加载区块的优先级",
-  "speedrunapi.config.seedqueue.option.reduceSchedulingBudget": "平滑的区块加载",
-  "speedrunapi.config.seedqueue.option.reduceSchedulingBudget.description": "减少每帧中的钠计划对区块的重建量。这以较慢的区块加载为代价提高了帧率稳定性。",
   "speedrunapi.config.seedqueue.option.reduceLevelList": "减少世界列表",
   "speedrunapi.config.seedqueue.option.reduceLevelList.description": "从世界列表中隐藏在墙界面上被重置或在预览加载期间的世界, 以减少卡顿。",
   "speedrunapi.config.seedqueue.option.useWatchdog": "看门狗",

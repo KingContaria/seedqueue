@@ -111,9 +111,6 @@ public class SeedQueueConfig implements SpeedrunConfig {
     public boolean freezeLockedPreviews = false;
 
     @Config.Category("performance")
-    public boolean reduceSchedulingBudget = false;
-
-    @Config.Category("performance")
     public boolean reduceLevelList = true;
 
     @Config.Category("misc")

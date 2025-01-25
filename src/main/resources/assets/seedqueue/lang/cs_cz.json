@@ -112,8 +112,6 @@
   "speedrunapi.config.seedqueue.option.chunkUpdateThreads.value.0": "Automaticky",
   "speedrunapi.config.seedqueue.option.chunkUpdateThreadPriority": "Priorita pro Sodium aktualizování",
   "speedrunapi.config.seedqueue.option.chunkUpdateThreadPriority.description": "Nastaví prioritu vláken pro Sodium chunk aktualizaci na wall obrazovce.",
-  "speedrunapi.config.seedqueue.option.reduceSchedulingBudget": "Hladké stavění chunků",
-  "speedrunapi.config.seedqueue.option.reduceSchedulingBudget.description": "Snižuje množství Sodium chunk obnovení náplanovaných na jednotlivý snímek. Toto zlepšuje frametime stabilitu za cenu pomaleji se načítajících chunků.",
   "speedrunapi.config.seedqueue.option.reduceLevelList": "Redukovat seznam světů",
   "speedrunapi.config.seedqueue.option.reduceLevelList.description": "Světy které byly resetovány na wall obrazovce nebo během náhledu budou skryty ze seznamu světů, aby se předešlo lagu.",
   "speedrunapi.config.seedqueue.option.useWatchdog": "Hlídací pes",

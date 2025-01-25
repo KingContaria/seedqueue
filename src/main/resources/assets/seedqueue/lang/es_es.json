@@ -116,8 +116,6 @@
   "speedrunapi.config.seedqueue.option.chunkUpdateThreadPriority": "Prioridad de Sodium",
   "speedrunapi.config.seedqueue.option.chunkUpdateThreadPriority.description": "Cambia la prioridad de los hilos de actualizaciones de sodium (5 es la mayor).",
 
-  "speedrunapi.config.seedqueue.option.reduceSchedulingBudget": "Creación de Chunks Suave",
-  "speedrunapi.config.seedqueue.option.reduceSchedulingBudget.description": "Reduce la cantidad de reconstrucciones de los chunks por Sodium programadas por fotograma. Aumenta la estabilidad de los fotogramas a cambio de una generación mas lenta de chunks.",
   "speedrunapi.config.seedqueue.option.reduceLevelList": "Reducir Lista de Mundos",
   "speedrunapi.config.seedqueue.option.reduceLevelList.description": "Oculta mundos que han sido reseteados en la ventana de la Wall o durante la preview de la lista de mundos para evitar lag.",
   "speedrunapi.config.seedqueue.option.useWatchdog": "Vísor de Errores",

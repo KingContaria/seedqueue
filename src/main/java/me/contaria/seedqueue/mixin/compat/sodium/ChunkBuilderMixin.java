@@ -174,7 +174,7 @@ public abstract class ChunkBuilderMixin {
                     args = "intValue=2")
     )
     private int reduceSchedulingBudgetOnWall(int TASK_QUEUE_LIMIT_PER_WORKER) {
-        if (SeedQueue.isOnWall() && SeedQueue.config.reduceSchedulingBudget) {
+        if (SeedQueue.isOnWall()) {
             return 1;
         }
         return TASK_QUEUE_LIMIT_PER_WORKER;
