@@ -125,6 +125,6 @@
   "speedrunapi.config.seedqueue.option.showDebugMenu.description": "Renders an FPS Graph and a Profiler on top of the Wall Screen.\n§cUse this only for debugging, any runs played with this option enabled will be invalidated!",
   "speedrunapi.config.seedqueue.option.benchmarkResets": "Benchmark Resets",
   "speedrunapi.config.seedqueue.option.benchmarkResets.description": "The default amount of resets done when starting a benchmark.\nYou can start a benchmark using the \"Start Benchmark\" keybind and cancel it before it reaches the configured amount of resets using the \"Stop Benchmark\" keybind.",
-  "speedrunapi.config.seedqueue.option.showChunkMaps": "SeedQueue Chunkmaps",
+  "speedrunapi.config.seedqueue.option.showChunkMaps": "Chunkmap Overlay",
   "speedrunapi.config.seedqueue.option.showChunkMaps.description": "Renders an overlay with all the chunkmaps of currently generating seeds."
 }
