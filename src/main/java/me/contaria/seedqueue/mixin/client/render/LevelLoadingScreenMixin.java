@@ -3,7 +3,6 @@ package me.contaria.seedqueue.mixin.client.render;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import me.contaria.seedqueue.SeedQueue;
-import me.contaria.seedqueue.gui.wall.SeedQueuePreview;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.LevelLoadingScreen;
 import net.minecraft.client.util.math.MatrixStack;
@@ -23,22 +22,6 @@ public abstract class LevelLoadingScreenMixin {
 
     @Unique
     private static final int TRANSPARENT_MODIFIER = new Color(255, 255, 255, 150).getRGB();
-
-    @Inject(
-            method = "render",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/client/gui/screen/LevelLoadingScreen;renderBackground(Lnet/minecraft/client/util/math/MatrixStack;)V",
-                    shift = At.Shift.AFTER
-            ),
-            cancellable = true
-    )
-    private void doNotRenderChunkMapOnWallScreen(CallbackInfo ci) {
-        //noinspection ConstantValue
-        if ((Object) this instanceof SeedQueuePreview && ((SeedQueuePreview) (Object) this).getSeedQueueEntry().isReady()) {
-            ci.cancel();
-        }
-    }
 
     @Inject(
             method = "drawChunkMap",

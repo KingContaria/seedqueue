@@ -4,9 +4,9 @@ import com.mojang.authlib.GameProfileRepository;
 import com.mojang.authlib.minecraft.MinecraftSessionService;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import me.contaria.seedqueue.compat.ModCompat;
+import me.contaria.seedqueue.compat.SeedQueuePreviewFrameBuffer;
+import me.contaria.seedqueue.compat.SeedQueuePreviewProperties;
 import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
-import me.contaria.seedqueue.compat.WorldPreviewFrameBuffer;
-import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.debug.SeedQueueProfiler;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
 import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressTracker;
@@ -40,9 +40,9 @@ public class SeedQueueEntry {
     @Nullable
     private WorldGenerationProgressTracker worldGenerationProgressTracker;
     @Nullable
-    private WorldPreviewProperties worldPreviewProperties;
+    private SeedQueuePreviewProperties previewProperties;
     @Nullable
-    private WorldPreviewFrameBuffer frameBuffer;
+    private SeedQueuePreviewFrameBuffer frameBuffer;
 
     @Nullable
     private SeedQueueSettingsCache settingsCache;
@@ -107,28 +107,21 @@ public class SeedQueueEntry {
         this.worldGenerationProgressTracker = worldGenerationProgressTracker;
     }
 
-    public @Nullable WorldPreviewProperties getWorldPreviewProperties() {
-        return this.worldPreviewProperties;
+    public @Nullable SeedQueuePreviewProperties getPreviewProperties() {
+        return this.previewProperties;
     }
 
-    public synchronized void setWorldPreviewProperties(@Nullable WorldPreviewProperties worldPreviewProperties) {
-        this.worldPreviewProperties = worldPreviewProperties;
+    public synchronized void setPreviewProperties(@Nullable SeedQueuePreviewProperties previewProperties) {
+        this.previewProperties = previewProperties;
     }
 
-    public WorldPreviewFrameBuffer getFrameBuffer() {
-        return this.getFrameBuffer(false);
-    }
-
-    /**
-     * @param create Whether the {@link WorldPreviewFrameBuffer} should be created if it's null.
-     */
-    public WorldPreviewFrameBuffer getFrameBuffer(boolean create) {
+    public SeedQueuePreviewFrameBuffer getFrameBuffer() {
         if (!MinecraftClient.getInstance().isOnThread()) {
             throw new IllegalStateException("Tried to get WorldPreviewFrameBuffer off-thread!");
         }
-        if (create && this.frameBuffer == null) {
+        if (this.frameBuffer == null) {
             SeedQueueProfiler.push("create_framebuffer");
-            this.frameBuffer = new WorldPreviewFrameBuffer();
+            this.frameBuffer = new SeedQueuePreviewFrameBuffer();
             SeedQueueProfiler.pop();
         }
         return this.frameBuffer;
@@ -141,7 +134,7 @@ public class SeedQueueEntry {
     /**
      * Deletes and removes this entry's framebuffer.
      *
-     * @see WorldPreviewFrameBuffer#discard
+     * @see SeedQueuePreviewFrameBuffer#discard
      */
     public void discardFrameBuffer() {
         if (!MinecraftClient.getInstance().isOnThread()) {
@@ -154,10 +147,10 @@ public class SeedQueueEntry {
     }
 
     /**
-     * @return True if this entry has either {@link WorldPreviewProperties} or a {@link WorldPreviewFrameBuffer}.
+     * @return True if this entry has either {@link SeedQueuePreviewProperties} or a {@link SeedQueuePreviewFrameBuffer}.
      */
     public boolean hasWorldPreview() {
-        return this.worldPreviewProperties != null || this.frameBuffer != null;
+        return this.previewProperties != null || this.frameBuffer != null;
     }
 
     public @Nullable SeedQueueSettingsCache getSettingsCache() {
@@ -167,15 +160,15 @@ public class SeedQueueEntry {
     /**
      * Sets the settings cache to be loaded when loading this entry.
      *
-     * @throws IllegalStateException If this method is called but {@link SeedQueueEntry#worldPreviewProperties} is null.
+     * @throws IllegalStateException If this method is called but {@link SeedQueueEntry#previewProperties} is null.
      */
     public void setSettingsCache(SeedQueueSettingsCache settingsCache) {
-        if (this.worldPreviewProperties == null) {
-            throw new IllegalStateException("Tried to set SettingsCache but WorldPreviewProperties is null!");
+        if (this.previewProperties == null) {
+            throw new IllegalStateException("Tried to set SettingsCache but SeedQueuePreviewProperties is null!");
         }
         this.settingsCache = settingsCache;
-        this.settingsCache.loadPlayerModelParts(this.worldPreviewProperties.getPlayer());
-        this.perspective = this.worldPreviewProperties.getPerspective();
+        this.settingsCache.loadPlayerModelParts(this.previewProperties.player);
+        this.perspective = this.previewProperties.getPerspective();
     }
 
     /**
@@ -186,7 +179,7 @@ public class SeedQueueEntry {
     public boolean loadSettingsCache() {
         if (this.settingsCache != null) {
             this.settingsCache.load();
-            MinecraftClient.getInstance().options.perspective = perspective;
+            MinecraftClient.getInstance().options.perspective = this.getPerspective();
             return true;
         }
         return false;

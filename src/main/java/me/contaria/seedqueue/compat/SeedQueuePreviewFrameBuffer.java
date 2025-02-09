@@ -11,13 +11,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Wrapper for Minecrafts {@link Framebuffer} storing a previews last drawn image.
  * <p>
- * Stores {@link WorldPreviewFrameBuffer#lastRenderData} as to only redraw the preview if it has changed.
+ * Stores {@link SeedQueuePreviewFrameBuffer#lastRenderData} as to only redraw the preview if it has changed.
  */
-public class WorldPreviewFrameBuffer {
+public class SeedQueuePreviewFrameBuffer {
     private static final List<Framebuffer> FRAMEBUFFER_POOL = new ArrayList<>();
 
     private final Framebuffer framebuffer;
@@ -26,7 +27,7 @@ public class WorldPreviewFrameBuffer {
     @Nullable
     private String lastRenderData;
 
-    public WorldPreviewFrameBuffer() {
+    public SeedQueuePreviewFrameBuffer() {
         if (FRAMEBUFFER_POOL.isEmpty()) {
             this.framebuffer = new Framebuffer(
                     SeedQueue.config.simulatedWindowSize.width(),
@@ -39,11 +40,7 @@ public class WorldPreviewFrameBuffer {
         }
     }
 
-    /**
-     * @param renderData A string unique to the previews current state, sensitive to changes in entities and chunks. See LevelLoadingScreenMixin#beginFrame.
-     */
-    public void beginWrite(String renderData) {
-        this.lastRenderData = renderData;
+    public void beginWrite() {
         this.framebuffer.beginWrite(true);
     }
 
@@ -52,18 +49,11 @@ public class WorldPreviewFrameBuffer {
     }
 
     /**
-     * @return True if this buffer hasn't been drawn to before.
+     * @param renderData A string unique to the previews current state, sensitive to changes in entities and chunks. See LevelLoadingScreenMixin#beginFrame.
+     * @return True if the given newRenderData is different from the stored {@link SeedQueuePreviewFrameBuffer#lastRenderData}.
      */
-    public boolean isEmpty() {
-        return this.lastRenderData == null;
-    }
-
-    /**
-     * @param newRenderData A string unique to the previews current state, sensitive to changes in entities and chunks. See LevelLoadingScreenMixin#beginFrame.
-     * @return True if the given newRenderData is different from the stored {@link WorldPreviewFrameBuffer#lastRenderData}.
-     */
-    public boolean isDirty(String newRenderData) {
-        return !newRenderData.equals(this.lastRenderData);
+    public boolean updateRenderData(String renderData) {
+        return !Objects.equals(this.lastRenderData, this.lastRenderData = renderData);
     }
 
     /**

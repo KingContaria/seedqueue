@@ -4,21 +4,16 @@ import com.bawnorton.mixinsquared.TargetHandler;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
-import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
+import me.voidxwalker.worldpreview.WorldPreviewProperties;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.options.Option;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.network.Packet;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.server.world.ThreadedAnvilChunkStorage;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.Optional;
-import java.util.Queue;
 
 @Mixin(value = ThreadedAnvilChunkStorage.class, priority = 1500)
 public abstract class ThreadedAnvilChunkStorageMixin {
@@ -36,60 +31,12 @@ public abstract class ThreadedAnvilChunkStorageMixin {
             method = "@MixinSquared:Handler",
             at = @At(
                     value = "FIELD",
-                    target = "Lme/voidxwalker/worldpreview/WorldPreview;world:Lnet/minecraft/client/world/ClientWorld;"
+                    target = "Lme/voidxwalker/worldpreview/WorldPreview;properties:Lme/voidxwalker/worldpreview/WorldPreviewProperties;",
+                    remap = false
             )
     )
-    private ClientWorld sendChunksToCorrectWorldPreview_inQueue(ClientWorld world) {
-        return this.getWorldPreviewProperties().map(WorldPreviewProperties::getWorld).orElse(this.isActiveServer() ? world : null);
-    }
-
-    @Dynamic
-    @TargetHandler(
-            mixin = "me.voidxwalker.worldpreview.mixin.server.ThreadedAnvilChunkStorageMixin",
-            name = "worldpreview$sendData"
-    )
-    @ModifyExpressionValue(
-            method = "@MixinSquared:Handler",
-            at = @At(
-                    value = "FIELD",
-                    target = "Lme/voidxwalker/worldpreview/WorldPreview;player:Lnet/minecraft/client/network/ClientPlayerEntity;"
-            )
-    )
-    private ClientPlayerEntity sendChunksToCorrectWorldPreview_inQueue(ClientPlayerEntity player) {
-        return this.getWorldPreviewProperties().map(WorldPreviewProperties::getPlayer).orElse(this.isActiveServer() ? player : null);
-    }
-
-    @Dynamic
-    @TargetHandler(
-            mixin = "me.voidxwalker.worldpreview.mixin.server.ThreadedAnvilChunkStorageMixin",
-            name = "worldpreview$sendData"
-    )
-    @ModifyExpressionValue(
-            method = "@MixinSquared:Handler",
-            at = @At(
-                    value = "FIELD",
-                    target = "Lme/voidxwalker/worldpreview/WorldPreview;camera:Lnet/minecraft/client/render/Camera;"
-            )
-    )
-    private Camera sendChunksToCorrectWorldPreview_inQueue(Camera camera) {
-        return this.getWorldPreviewProperties().map(WorldPreviewProperties::getCamera).orElse(this.isActiveServer() ? camera : null);
-    }
-
-    @Dynamic
-    @TargetHandler(
-            mixin = "me.voidxwalker.worldpreview.mixin.server.ThreadedAnvilChunkStorageMixin",
-            name = "worldpreview$sendData"
-    )
-    @ModifyExpressionValue(
-            method = "@MixinSquared:Handler",
-            at = @At(
-                    value = "FIELD",
-                    target = "Lme/voidxwalker/worldpreview/WorldPreview;packetQueue:Ljava/util/Queue;"
-            ),
-            remap = false
-    )
-    private Queue<Packet<?>> sendChunksToCorrectWorldPreview_inQueue(Queue<Packet<?>> packetQueue) {
-        return this.getWorldPreviewProperties().map(WorldPreviewProperties::getPacketQueue).orElse(this.isActiveServer() ? packetQueue : null);
+    private WorldPreviewProperties sendChunksToCorrectWorldPreview_inQueue(WorldPreviewProperties properties) {
+        return this.getWorldPreviewProperties().orElse(this.isActiveServer() ? properties : null);
     }
 
     @Dynamic
@@ -153,7 +100,7 @@ public abstract class ThreadedAnvilChunkStorageMixin {
 
     @Unique
     private Optional<WorldPreviewProperties> getWorldPreviewProperties() {
-        return ((SQMinecraftServer) this.world.getServer()).seedQueue$getEntry().filter(entry -> !(SeedQueue.config.freezeLockedPreviews && entry.isLocked())).map(SeedQueueEntry::getWorldPreviewProperties);
+        return ((SQMinecraftServer) this.world.getServer()).seedQueue$getEntry().filter(entry -> !(SeedQueue.config.freezeLockedPreviews && entry.isLocked())).map(SeedQueueEntry::getPreviewProperties);
     }
 
     @Unique

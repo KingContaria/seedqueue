@@ -49,7 +49,7 @@
 		"atum": ">=2.3"
 	},
 	"breaks": {
-		"worldpreview": "<6.2.0",
+		"worldpreview": "<6.3.0",
 		"antiresourcereload": "<5.0.0",
 		"chunkcacher": "<1.4.0",
 		"standardsettings": "<2.0",

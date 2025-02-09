@@ -45,7 +45,6 @@
     "compat.worldpreview.WorldPreviewMixin",
     "compat.worldpreview.render.ClientWorldMixin",
     "compat.worldpreview.render.InGameHudMixin",
-    "compat.worldpreview.render.LevelLoadingScreenMixin",
     "compat.worldpreview.render.WindowMixin",
     "compat.worldpreview.render.WorldRendererMixin",
     "server.IntegratedServerMixin",

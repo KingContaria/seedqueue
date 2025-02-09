@@ -83,7 +83,7 @@ public class ModCompat {
 
     public static void worldpreview$clearFramebufferPool() {
         if (HAS_WORLDPREVIEW) {
-            WorldPreviewFrameBuffer.clearFramebufferPool();
+            SeedQueuePreviewFrameBuffer.clearFramebufferPool();
         }
     }
 }

@@ -7,8 +7,8 @@ import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.SeedQueueThread;
 import me.contaria.seedqueue.compat.ModCompat;
+import me.contaria.seedqueue.compat.SeedQueuePreviewProperties;
 import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
-import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.customization.AnimatedTexture;
 import me.contaria.seedqueue.customization.Layout;
 import me.contaria.seedqueue.customization.LockTexture;
@@ -52,6 +52,8 @@ public class SeedQueueWallScreen extends Screen {
     @Nullable
     private final DebugHud debugHud;
 
+    private final Random random;
+
     protected final SeedQueueSettingsCache settingsCache;
     private SeedQueueSettingsCache lastSettingsCache;
 
@@ -92,6 +94,7 @@ public class SeedQueueWallScreen extends Screen {
         super(LiteralText.EMPTY);
         this.createWorldScreen = createWorldScreen;
         this.debugHud = SeedQueue.config.showDebugMenu ? new DebugHud(MinecraftClient.getInstance()) : null;
+        this.random = new Random();
         this.preparingPreviews = new ArrayList<>();
         this.lastSettingsCache = this.settingsCache = SeedQueueSettingsCache.create();
     }
@@ -109,8 +112,8 @@ public class SeedQueueWallScreen extends Screen {
         this.instanceBackground = AnimatedTexture.of(INSTANCE_BACKGROUND);
     }
 
-    protected LockTexture getLockTexture() {
-        return this.lockTextures.get(new Random().nextInt(this.lockTextures.size()));
+    protected LockTexture getRandomLockTexture() {
+        return this.lockTextures.get(this.random.nextInt(this.lockTextures.size()));
     }
 
     @Override
@@ -132,12 +135,12 @@ public class SeedQueueWallScreen extends Screen {
 
         SeedQueueProfiler.swap("render_main");
         for (int i = 0; i < this.layout.main.size(); i++) {
-            this.renderInstance(this.mainPreviews[i], this.layout.main, this.layout.main.getPos(i), matrices, delta);
+            this.renderInstance(this.mainPreviews[i], this.layout.main, this.layout.main.getPos(i), matrices);
         }
         if (this.layout.locked != null && this.lockedPreviews != null) {
             SeedQueueProfiler.swap("render_locked");
             for (int i = 0; i < this.layout.locked.size(); i++) {
-                this.renderInstance(i < this.lockedPreviews.size() ? this.lockedPreviews.get(i) : null, this.layout.locked, this.layout.locked.getPos(i), matrices, delta);
+                this.renderInstance(i < this.lockedPreviews.size() ? this.lockedPreviews.get(i) : null, this.layout.locked, this.layout.locked.getPos(i), matrices);
             }
         }
         int i = 0;
@@ -145,7 +148,7 @@ public class SeedQueueWallScreen extends Screen {
         for (Layout.Group group : this.layout.preparing) {
             int offset = i;
             for (; i < group.size(); i++) {
-                this.renderInstance(i < this.preparingPreviews.size() ? this.preparingPreviews.get(i) : null, group, group.getPos(i - offset), matrices, delta);
+                this.renderInstance(i < this.preparingPreviews.size() ? this.preparingPreviews.get(i) : null, group, group.getPos(i - offset), matrices);
             }
         }
 
@@ -175,7 +178,7 @@ public class SeedQueueWallScreen extends Screen {
         SeedQueueProfiler.pop();
     }
 
-    private void renderInstance(SeedQueuePreview instance, Layout.Group group, Layout.Pos pos, MatrixStack matrices, float delta) {
+    private void renderInstance(SeedQueuePreview instance, Layout.Group group, Layout.Pos pos, MatrixStack matrices) {
         assert this.client != null;
         if (pos == null) {
             return;
@@ -202,7 +205,7 @@ public class SeedQueueWallScreen extends Screen {
             SeedQueueProfiler.swap("load_settings");
             this.loadPreviewSettings(instance);
             SeedQueueProfiler.swap("render_preview");
-            instance.render(matrices, 0, 0, delta);
+            instance.render(matrices);
         } finally {
             SeedQueueProfiler.swap("reset_viewport");
             this.resetViewport();
@@ -681,10 +684,10 @@ public class SeedQueueWallScreen extends Screen {
                 }
             }
             if (SeedQueue.config.freezeLockedPreviews) {
-                // clearing WorldPreviewProperties frees the previews WorldRenderer, allowing resources to be cleared
+                // clearing SeedQueuePreviewProperties frees the previews WorldRenderer, allowing resources to be cleared
                 // it also means the amount of WorldRenderers does not exceed Rows * Columns + Background Previews
                 // when a custom layout with a locked group is used
-                instance.getSeedQueueEntry().setWorldPreviewProperties(null);
+                instance.getSeedQueueEntry().setPreviewProperties(null);
             }
             this.playSound(SeedQueueSounds.LOCK_INSTANCE);
         }
@@ -948,8 +951,8 @@ public class SeedQueueWallScreen extends Screen {
         for (WorldRenderer worldRenderer : WORLD_RENDERERS) {
             ClientWorld worldRendererWorld = getWorld(worldRenderer);
             if (!SeedQueue.hasEntryMatching(entry -> {
-                WorldPreviewProperties wpProperties = entry.getWorldPreviewProperties();
-                return wpProperties != null && wpProperties.getWorld() == worldRendererWorld;
+                SeedQueuePreviewProperties previewProperties = entry.getPreviewProperties();
+                return previewProperties != null && previewProperties.world == worldRendererWorld;
             })) {
                 return worldRenderer;
             }

@@ -22,7 +22,7 @@ public class SeedQueueSettingsCache extends StandardSettingsCache {
     // a set of all setting id's that affect preview rendering on wall
     // while language and forceUnicodeFont also affect previews, they require reloading of some resources which is not feasible
     // does not include perspective since it is special cased
-    // see WorldPreviewProperties#getPerspective
+    // see SeedQueuePreviewProperties#getPerspective
     private static final Set<String> PREVIEW_SETTINGS = new HashSet<>(Arrays.asList(
             "biomeBlendRadius",
             "graphicsMode",
@@ -56,7 +56,7 @@ public class SeedQueueSettingsCache extends StandardSettingsCache {
 
         this.cache.removeIf(entry -> IGNORED_SETTINGS.contains(entry.setting.getID()));
 
-        this.previewSettings = new HashSet<>();
+        this.previewSettings = new HashSet<>(PREVIEW_SETTINGS.size());
         for (Entry<?> entry : this.cache) {
             if (PREVIEW_SETTINGS.contains(entry.setting.getID())) {
                 this.previewSettings.add(entry);
@@ -70,9 +70,7 @@ public class SeedQueueSettingsCache extends StandardSettingsCache {
      * @see SeedQueueSettingsCache#PREVIEW_SETTINGS
      */
     public void loadPreview() {
-        for (Entry<?> entry : this.previewSettings) {
-            entry.load();
-        }
+        this.previewSettings.forEach(Entry::load);
     }
 
     /**

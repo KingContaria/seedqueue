@@ -15,20 +15,18 @@ import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.SeedQueueException;
 import me.contaria.seedqueue.SeedQueueExecutorWrapper;
 import me.contaria.seedqueue.compat.ModCompat;
-import me.contaria.seedqueue.compat.WorldPreviewProperties;
+import me.contaria.seedqueue.compat.SeedQueuePreviewProperties;
 import me.contaria.seedqueue.debug.SeedQueueSystemInfo;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
 import me.contaria.seedqueue.interfaces.SQSoundManager;
 import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressLogger;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
-import me.contaria.seedqueue.mixin.accessor.PlayerEntityAccessor;
 import me.contaria.seedqueue.mixin.accessor.WorldGenerationProgressTrackerAccessor;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.render.entity.PlayerModelPart;
 import net.minecraft.client.sound.MusicTracker;
 import net.minecraft.client.sound.SoundManager;
 import net.minecraft.nbt.CompoundTag;
@@ -474,21 +472,20 @@ public abstract class MinecraftClientMixin {
                     target = "Lnet/minecraft/client/MinecraftClient;render(Z)V"
             )
     )
-    private void applyWorldPreviewProperties(CallbackInfo ci) {
-        WorldPreviewProperties wpProperties;
-        if (!ModCompat.worldpreview$inPreview() && SeedQueue.currentEntry != null && (wpProperties = SeedQueue.currentEntry.getWorldPreviewProperties()) != null) {
-            wpProperties.apply();
-            // player model configuration is suppressed in WorldPreviewMixin#doNotSetPlayerModelParts_inQueue for SeedQueue worlds
-            // when using wall, player model will be configured in SeedQueueEntry#setSettingsCache
-            if (SeedQueue.currentEntry.getSettingsCache() == null) {
-                // see WorldPreview#configure
-                int playerModelPartsBitMask = 0;
-                for (PlayerModelPart playerModelPart : MinecraftClient.getInstance().options.getEnabledPlayerModelParts()) {
-                    playerModelPartsBitMask |= playerModelPart.getBitFlag();
-                }
-                wpProperties.getPlayer().getDataTracker().set(PlayerEntityAccessor.seedQueue$getPLAYER_MODEL_PARTS(), (byte) playerModelPartsBitMask);
-            }
+    private void loadPreviewProperties(CallbackInfo ci) {
+        if (ModCompat.worldpreview$inPreview() || SeedQueue.currentEntry == null) {
+            return;
         }
+        SeedQueuePreviewProperties previewProperties = SeedQueue.currentEntry.getPreviewProperties();
+        if (previewProperties == null) {
+            return;
+        }
+        // player model configuration is suppressed in WorldPreviewMixin#doNotSetPlayerModelParts_inQueue for SeedQueue worlds
+        // when using wall, player model will be configured in SeedQueueEntry#setSettingsCache
+        if (SeedQueue.currentEntry.getSettingsCache() == null) {
+            previewProperties.loadPlayerModelParts();
+        }
+        previewProperties.load();
     }
 
     @ModifyExpressionValue(

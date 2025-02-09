@@ -26,12 +26,12 @@ dependencies {
 	implementation(annotationProcessor "com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.1.1")
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/atum-rewrite
-	modImplementation ("com.github.KingContaria:atum-rewrite:75ad5523cb") {
+	modImplementation ("com.github.KingContaria:atum-rewrite:d8969c985f") {
 		transitive = false
 	}
 
 	// check for the latest versions at https://jitpack.io/#kingcontaria/mcsr-worldpreview-1.16.1
-	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:6c1253a841") {
+	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:f7e4294051") {
 		transitive = false
 	}
 
@@ -50,6 +50,9 @@ dependencies {
 
 	// check for latest versions at https://jitpack.io/#dev.tildejustin/state-output
 	modCompileOnly "dev.tildejustin.state-output:state-output-common:v1.2.0"
+
+	// MixinExtras
+	include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.5.0-beta.5")))
 }
 
 processResources {
