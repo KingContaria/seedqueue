@@ -38,7 +38,7 @@ public abstract class SoundSystemMixin implements SQSoundSystem {
     )
     private CompletableFuture<AudioStream> crashBrokenSeedQueueSoundFiles(CompletableFuture<AudioStream> audio, SoundInstance soundInstance) {
         if (soundInstance.getId().getNamespace().equals("seedqueue") && audio.isCompletedExceptionally()) {
-            throw new RuntimeException("Tried to play a broken sound file from a SeedQueue customization pack! If you are using empty sound files to mute sounds on the wall screen, use short silent ones instead.");
+            throw new RuntimeException("Tried to play a broken sound file from a SeedQueue customization pack (\"" + soundInstance.getId() + "\")! If you are using empty sound files to mute sounds on the wall screen, use short silent ones instead.");
         }
         return audio;
     }
