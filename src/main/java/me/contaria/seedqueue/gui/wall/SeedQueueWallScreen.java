@@ -18,6 +18,8 @@ import me.contaria.seedqueue.mixin.accessor.DebugHudAccessor;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
+import me.contaria.speedrunapi.util.IdentifierUtil;
+import me.contaria.speedrunapi.util.TextUtil;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
@@ -30,7 +32,6 @@ import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.sound.SoundEvent;
-import net.minecraft.text.LiteralText;
 import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
@@ -42,10 +43,10 @@ import java.util.stream.IntStream;
 public class SeedQueueWallScreen extends Screen {
     private static final Set<WorldRenderer> WORLD_RENDERERS = new HashSet<>();
 
-    public static final Identifier CUSTOM_LAYOUT = new Identifier("seedqueue", "wall/custom_layout.json");
-    private static final Identifier WALL_BACKGROUND = new Identifier("seedqueue", "textures/gui/wall/background.png");
-    private static final Identifier WALL_OVERLAY = new Identifier("seedqueue", "textures/gui/wall/overlay.png");
-    private static final Identifier INSTANCE_BACKGROUND = new Identifier("seedqueue", "textures/gui/wall/instance_background.png");
+    public static final Identifier CUSTOM_LAYOUT = IdentifierUtil.of("seedqueue", "wall/custom_layout.json");
+    private static final Identifier WALL_BACKGROUND = IdentifierUtil.of("seedqueue", "textures/gui/wall/background.png");
+    private static final Identifier WALL_OVERLAY = IdentifierUtil.of("seedqueue", "textures/gui/wall/overlay.png");
+    private static final Identifier INSTANCE_BACKGROUND = IdentifierUtil.of("seedqueue", "textures/gui/wall/instance_background.png");
 
     private final Screen createWorldScreen;
 
@@ -91,7 +92,7 @@ public class SeedQueueWallScreen extends Screen {
     protected boolean showFinishedBenchmarkResults;
 
     public SeedQueueWallScreen(Screen createWorldScreen) {
-        super(LiteralText.EMPTY);
+        super(TextUtil.empty());
         this.createWorldScreen = createWorldScreen;
         this.debugHud = SeedQueue.config.showDebugMenu ? new DebugHud(MinecraftClient.getInstance()) : null;
         this.random = new Random();

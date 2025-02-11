@@ -21,7 +21,7 @@ public abstract class CreateWorldScreenMixin {
     @Dynamic
     @TargetHandler(
             mixin = "me.voidxwalker.autoreset.mixin.config.CreateWorldScreenMixin",
-            name = "modifyAtumCreateWorldScreen"
+            name = "getSeed"
     )
     @WrapOperation(
             method = "@MixinSquared:Handler",
@@ -42,7 +42,7 @@ public abstract class CreateWorldScreenMixin {
     @Dynamic
     @TargetHandler(
             mixin = "me.voidxwalker.autoreset.mixin.config.CreateWorldScreenMixin",
-            name = "modifyAtumCreateWorldScreen"
+            name = "createWorld"
     )
     @WrapOperation(
             method = "@MixinSquared:Handler",
@@ -78,7 +78,7 @@ public abstract class CreateWorldScreenMixin {
     @Dynamic
     @TargetHandler(
             mixin = "me.voidxwalker.autoreset.mixin.config.CreateWorldScreenMixin",
-            name = "modifyAtumCreateWorldScreen"
+            name = "createWorld"
     )
     @ModifyArg(
             method = "@MixinSquared:Handler",

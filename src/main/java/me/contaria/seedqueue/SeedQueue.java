@@ -7,6 +7,7 @@ import me.contaria.seedqueue.debug.SeedQueueWatchdog;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
+import me.contaria.speedrunapi.util.TextUtil;
 import me.voidxwalker.autoreset.AttemptTracker;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -16,7 +17,6 @@ import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.SaveLevelScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.TranslatableText;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -329,7 +329,7 @@ public class SeedQueue implements ClientModInitializer {
         LOGGER.info("Clearing SeedQueue...");
 
         Screen screen = MinecraftClient.getInstance().currentScreen;
-        MinecraftClient.getInstance().setScreenAndRender(new SaveLevelScreen(new TranslatableText("seedqueue.menu.clearing")));
+        MinecraftClient.getInstance().setScreenAndRender(new SaveLevelScreen(TextUtil.translatable("seedqueue.menu.clearing")));
 
         synchronized (LOCK) {
             if (currentEntry != null && !currentEntry.isLoaded()) {

@@ -1,13 +1,13 @@
 package me.contaria.seedqueue.gui.config;
 
 import me.contaria.seedqueue.SeedQueueConfig;
+import me.contaria.speedrunapi.util.TextUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.ParentElement;
 import net.minecraft.client.gui.widget.AbstractButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralText;
 import net.minecraft.text.StringRenderable;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,9 +27,9 @@ public class SeedQueueWindowSizeWidget extends AbstractButtonWidget implements P
     private boolean isDragging;
 
     public SeedQueueWindowSizeWidget(SeedQueueConfig.WindowSize windowSize) {
-        super(0, 0, 150, 20, new LiteralText("Window Size"));
+        super(0, 0, 150, 20, TextUtil.empty());
         this.windowSize = windowSize;
-        this.widthWidget = new TextFieldWidget(MinecraftClient.getInstance().textRenderer, 0, 0, 65, 20, LiteralText.EMPTY);
+        this.widthWidget = new TextFieldWidget(MinecraftClient.getInstance().textRenderer, 0, 0, 65, 20, TextUtil.empty());
         this.widthWidget.setText(String.valueOf(this.windowSize.width()));
         this.widthWidget.setChangedListener(text -> {
             if (text.isEmpty()) {
@@ -50,7 +50,7 @@ public class SeedQueueWindowSizeWidget extends AbstractButtonWidget implements P
                 return false;
             }
         });
-        this.heightWidget = new TextFieldWidget(MinecraftClient.getInstance().textRenderer, 0, 0, 65, 20, LiteralText.EMPTY);
+        this.heightWidget = new TextFieldWidget(MinecraftClient.getInstance().textRenderer, 0, 0, 65, 20, TextUtil.empty());
         this.heightWidget.setText(String.valueOf(this.windowSize.height()));
         this.heightWidget.setChangedListener(text -> {
             if (text.isEmpty()) {

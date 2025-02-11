@@ -8,20 +8,19 @@ import me.contaria.seedqueue.gui.config.SeedQueueKeybindingsScreen;
 import me.contaria.seedqueue.gui.config.SeedQueueWindowSizeWidget;
 import me.contaria.seedqueue.keybindings.SeedQueueKeyBindings;
 import me.contaria.seedqueue.keybindings.SeedQueueMultiKeyBinding;
+import me.contaria.speedrunapi.config.SpeedrunConfigAPI;
+import me.contaria.speedrunapi.config.SpeedrunConfigContainer;
+import me.contaria.speedrunapi.config.api.SpeedrunConfig;
+import me.contaria.speedrunapi.config.api.SpeedrunOption;
+import me.contaria.speedrunapi.config.api.annotations.Config;
+import me.contaria.speedrunapi.util.TextUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ConfirmScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ScreenTexts;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.StringRenderable;
-import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.Nullable;
-import org.mcsr.speedrunapi.config.SpeedrunConfigAPI;
-import org.mcsr.speedrunapi.config.SpeedrunConfigContainer;
-import org.mcsr.speedrunapi.config.api.SpeedrunConfig;
-import org.mcsr.speedrunapi.config.api.SpeedrunOption;
-import org.mcsr.speedrunapi.config.api.annotations.Config;
-import org.mcsr.speedrunapi.config.api.annotations.InitializeOn;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -35,7 +34,7 @@ import java.util.Objects;
  * When implementing new options, make sure no Minecraft classes are loaded during initialization!
  */
 @SuppressWarnings("FieldMayBeFinal")
-@InitializeOn(InitializeOn.InitPoint.PRELAUNCH)
+@Config(init = Config.InitPoint.PRELAUNCH)
 public class SeedQueueConfig implements SpeedrunConfig {
     @Config.Ignored
     static final int AUTO = 0;
@@ -247,10 +246,10 @@ public class SeedQueueConfig implements SpeedrunConfig {
             return new SpeedrunConfigAPI.CustomOption.Builder<Boolean>(config, this, field, idPrefix)
                     .createWidget((option, config_, configStorage, optionField) -> {
                         if (!CAN_USE_WALL) {
-                            ButtonWidget button = new ButtonWidget(0, 0, 150, 20, new TranslatableText("seedqueue.menu.config.useWall.notAvailable"), b -> {}, ((b, matrices, mouseX, mouseY) -> {
-                                List<StringRenderable> tooltip = new ArrayList<>(MinecraftClient.getInstance().textRenderer.wrapLines(new TranslatableText("seedqueue.menu.config.useWall.notAvailable.tooltip"), 200));
+                            ButtonWidget button = new ButtonWidget(0, 0, 150, 20, TextUtil.translatable("seedqueue.menu.config.useWall.notAvailable"), b -> {}, ((b, matrices, mouseX, mouseY) -> {
+                                List<StringRenderable> tooltip = new ArrayList<>(MinecraftClient.getInstance().textRenderer.wrapLines(TextUtil.translatable("seedqueue.menu.config.useWall.notAvailable.tooltip"), 200));
                                 for (int i = 1; i <= 3; i++) {
-                                    tooltip.add(new TranslatableText("seedqueue.menu.config.useWall.notAvailable.tooltip." + i));
+                                    tooltip.add(TextUtil.translatable("seedqueue.menu.config.useWall.notAvailable.tooltip." + i));
                                 }
                                 Objects.requireNonNull(MinecraftClient.getInstance().currentScreen).renderTooltip(matrices, tooltip, mouseX, mouseY);
                             }));
@@ -272,7 +271,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
                             MinecraftClient.getInstance().openScreen(new ConfirmScreen(confirm -> {
                                 option.set(confirm);
                                 MinecraftClient.getInstance().openScreen(configScreen);
-                            }, new TranslatableText("seedqueue.menu.config.showAdvancedSettings.confirm.title"), new TranslatableText("seedqueue.menu.config.showAdvancedSettings.confirm.message"), ScreenTexts.YES, ScreenTexts.CANCEL));
+                            }, TextUtil.translatable("seedqueue.menu.config.showAdvancedSettings.confirm.title"), TextUtil.translatable("seedqueue.menu.config.showAdvancedSettings.confirm.message"), ScreenTexts.YES, ScreenTexts.CANCEL));
                         } else {
                             option.set(false);
                             MinecraftClient.getInstance().openScreen(MinecraftClient.getInstance().currentScreen);
@@ -307,7 +306,7 @@ public class SeedQueueConfig implements SpeedrunConfig {
                     .setter((option, config_, configStorage, optionField, value) -> {
                         throw new UnsupportedOperationException();
                     })
-                    .createWidget((option, config_, configStorage, optionField) -> new ButtonWidget(0, 0, 150, 20, new TranslatableText("seedqueue.menu.keys.configure"), button -> MinecraftClient.getInstance().openScreen(new SeedQueueKeybindingsScreen(MinecraftClient.getInstance().currentScreen, this.keyBindings))))
+                    .createWidget((option, config_, configStorage, optionField) -> new ButtonWidget(0, 0, 150, 20, TextUtil.translatable("seedqueue.menu.keys.configure"), button -> MinecraftClient.getInstance().openScreen(new SeedQueueKeybindingsScreen(MinecraftClient.getInstance().currentScreen, this.keyBindings))))
                     .build();
         }
         return SpeedrunConfig.super.parseField(field, config, idPrefix);

@@ -1,8 +1,8 @@
 package me.contaria.seedqueue;
 
 import com.bawnorton.mixinsquared.api.MixinCanceller;
+import me.contaria.speedrunapi.mixin_plugin.SpeedrunMixinConfigPlugin;
 import net.fabricmc.loader.api.FabricLoader;
-import org.mcsr.speedrunapi.mixin_plugin.SpeedrunMixinConfigPlugin;
 
 import java.util.List;
 

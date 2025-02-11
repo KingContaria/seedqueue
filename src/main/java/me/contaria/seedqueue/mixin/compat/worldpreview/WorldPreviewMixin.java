@@ -7,6 +7,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.compat.SeedQueuePreviewProperties;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
+import me.contaria.speedrunapi.config.SpeedrunConfigAPI;
 import me.voidxwalker.worldpreview.WorldPreview;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
@@ -16,7 +17,6 @@ import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.network.Packet;
 import net.minecraft.server.world.ServerWorld;
-import org.mcsr.speedrunapi.config.SpeedrunConfigAPI;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 

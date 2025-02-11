@@ -1,9 +1,9 @@
 package me.contaria.seedqueue;
 
 import me.contaria.seedqueue.gui.SeedQueueCrashToast;
+import me.contaria.speedrunapi.util.TextUtil;
 import me.voidxwalker.autoreset.AtumCreateWorldScreen;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.TranslatableText;
 
 import java.util.List;
 import java.util.Optional;
@@ -64,8 +64,8 @@ public class SeedQueueThread extends Thread {
             } catch (Exception e) {
                 SeedQueue.LOGGER.error("Shutting down SeedQueue Thread...", e);
                 SeedQueue.scheduleTaskOnClientThread(() -> MinecraftClient.getInstance().getToastManager().add(new SeedQueueCrashToast(
-                        new TranslatableText("seedqueue.menu.crash.title"),
-                        new TranslatableText("seedqueue.menu.crash.description", e.getClass().getSimpleName())
+                        TextUtil.translatable("seedqueue.menu.crash.title"),
+                        TextUtil.translatable("seedqueue.menu.crash.description", e.getClass().getSimpleName())
                 )));
                 this.stopQueue();
             }

@@ -7,6 +7,7 @@ import me.contaria.seedqueue.compat.SeedQueuePreviewProperties;
 import me.contaria.seedqueue.customization.LockTexture;
 import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressTracker;
 import me.contaria.seedqueue.mixin.accessor.WorldRendererAccessor;
+import me.contaria.speedrunapi.config.SpeedrunConfigAPI;
 import me.voidxwalker.autoreset.Atum;
 import me.voidxwalker.autoreset.interfaces.ISeedStringHolder;
 import me.voidxwalker.worldpreview.WorldPreview;
@@ -19,7 +20,6 @@ import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.MathHelper;
-import org.mcsr.speedrunapi.config.SpeedrunConfigAPI;
 
 import java.util.Arrays;
 import java.util.List;

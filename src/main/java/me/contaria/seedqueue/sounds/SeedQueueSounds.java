@@ -1,5 +1,6 @@
 package me.contaria.seedqueue.sounds;
 
+import me.contaria.speedrunapi.util.IdentifierUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.sound.SoundInstance;
@@ -27,7 +28,7 @@ public class SeedQueueSounds {
     }
 
     private static SoundEvent register(String id) {
-        return register(new Identifier("seedqueue", id));
+        return register(IdentifierUtil.of("seedqueue", id));
     }
 
     private static SoundEvent register(Identifier id) {

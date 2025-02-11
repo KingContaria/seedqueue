@@ -1,10 +1,10 @@
 package me.contaria.seedqueue.gui.config;
 
+import me.contaria.speedrunapi.util.TextUtil;
 import net.minecraft.client.gui.widget.AbstractPressableButtonWidget;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 
 public class SeedQueueKeyButtonWidget extends AbstractPressableButtonWidget {
     private static final Text UNKNOWN_KEY = InputUtil.UNKNOWN_KEY.getLocalizedText();
@@ -28,8 +28,8 @@ public class SeedQueueKeyButtonWidget extends AbstractPressableButtonWidget {
     @Override
     protected MutableText getNarrationMessage() {
         if (UNKNOWN_KEY.equals(this.getMessage())) {
-            return new TranslatableText("narrator.controls.unbound", this.entry.title);
+            return TextUtil.translatable("narrator.controls.unbound", this.entry.title);
         }
-        return new TranslatableText("narrator.controls.bound", this.entry.title, this.getMessage());
+        return TextUtil.translatable("narrator.controls.bound", this.entry.title, this.getMessage());
     }
 }

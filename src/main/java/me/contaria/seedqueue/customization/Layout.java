@@ -4,8 +4,8 @@ import com.google.gson.*;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.gui.SeedQueueCrashToast;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
+import me.contaria.speedrunapi.util.TextUtil;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,7 +89,7 @@ public class Layout {
                 return Layout.fromJson(new JsonParser().parse(reader).getAsJsonObject());
             } catch (Exception e) {
                 SeedQueue.LOGGER.warn("Failed to parse custom wall layout!", e);
-                MinecraftClient.getInstance().getToastManager().add(new SeedQueueCrashToast(new TranslatableText("seedqueue.menu.layout_exception.title"), new TranslatableText("seedqueue.menu.layout_exception.description", e.getClass().getSimpleName())));
+                MinecraftClient.getInstance().getToastManager().add(new SeedQueueCrashToast(TextUtil.translatable("seedqueue.menu.layout_exception.title"), TextUtil.translatable("seedqueue.menu.layout_exception.description", e.getClass().getSimpleName())));
             }
         }
         return Layout.grid(SeedQueue.config.rows, SeedQueue.config.columns, client.getWindow().getFramebufferWidth(), client.getWindow().getFramebufferHeight());

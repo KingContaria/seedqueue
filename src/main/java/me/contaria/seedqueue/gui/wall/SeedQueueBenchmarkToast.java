@@ -1,10 +1,10 @@
 package me.contaria.seedqueue.gui.wall;
 
+import me.contaria.speedrunapi.util.TextUtil;
 import net.minecraft.client.toast.Toast;
 import net.minecraft.client.toast.ToastManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
 
 public class SeedQueueBenchmarkToast implements Toast {
     private final SeedQueueWallScreen wall;
@@ -15,7 +15,7 @@ public class SeedQueueBenchmarkToast implements Toast {
 
     public SeedQueueBenchmarkToast(SeedQueueWallScreen wall) {
         this.wall = wall;
-        this.title = new TranslatableText("seedqueue.menu.benchmark.title");
+        this.title = TextUtil.translatable("seedqueue.menu.benchmark.title");
     }
 
     @Override
@@ -32,7 +32,7 @@ public class SeedQueueBenchmarkToast implements Toast {
 
         double time = (this.finished ? this.wall.benchmarkFinish : System.currentTimeMillis()) - this.wall.benchmarkStart;
         double rps = Math.round(this.wall.benchmarkedSeeds / (time / 10000.0)) / 10.0;
-        manager.getGame().textRenderer.draw(matrices, new TranslatableText("seedqueue.menu.benchmark.result", this.wall.benchmarkedSeeds, Math.round(time / 1000.0), rps), 7.0f, 18.0f, -1);
+        manager.getGame().textRenderer.draw(matrices, TextUtil.translatable("seedqueue.menu.benchmark.result", this.wall.benchmarkedSeeds, Math.round(time / 1000.0), rps), 7.0f, 18.0f, -1);
 
         return this.fadeOut ? Visibility.HIDE : Visibility.SHOW;
     }

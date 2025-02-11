@@ -1,12 +1,12 @@
 package me.contaria.seedqueue.gui.config;
 
 import me.contaria.seedqueue.keybindings.SeedQueueMultiKeyBinding;
+import me.contaria.speedrunapi.util.TextUtil;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ScreenTexts;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.TranslatableText;
 import org.lwjgl.glfw.GLFW;
 
 public class SeedQueueKeybindingsScreen extends Screen {
@@ -16,7 +16,7 @@ public class SeedQueueKeybindingsScreen extends Screen {
     private SeedQueueKeybindingsListWidget keyBindingListWidget;
 
     public SeedQueueKeybindingsScreen(Screen parent, SeedQueueMultiKeyBinding... keyBindings) {
-        super(new TranslatableText("seedqueue.menu.keys"));
+        super(TextUtil.translatable("seedqueue.menu.keys"));
         this.parent = parent;
         this.keyBindings = keyBindings;
     }
