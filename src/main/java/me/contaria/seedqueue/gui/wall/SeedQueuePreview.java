@@ -101,38 +101,53 @@ public class SeedQueuePreview extends DrawableHelper {
             }
             this.wall.renderBackground(matrices);
         } else {
-            SeedQueuePreviewFrameBuffer frameBuffer = this.seedQueueEntry.getFrameBuffer();
-            if (this.previewProperties != null) {
-                if (this.shouldRedrawPreview() && frameBuffer.updateRenderData(this.worldRenderer.getChunksDebugString() + "\n" + this.worldRenderer.getEntitiesDebugString())) {
-                    frameBuffer.beginWrite();
-                    // related to WorldRendererMixin#doNotClearOnWallScreen
-                    // the suppressed call usually renders a light blue overlay over the entire screen,
-                    // instead we draw it onto the preview ourselves
-                    DrawableHelper.fill(matrices, 0, 0, this.wall.width, this.wall.height, -5323025);
-                    this.run(properties -> properties.render(matrices, 0, 0, 0.0f, this.buttons, this.width, this.height, this.showMenu));
-                    frameBuffer.endWrite();
-
-                    this.client.getFramebuffer().beginWrite(true);
-                    this.wall.refreshViewport();
-                    this.lastPreviewFrame = this.wall.frame;
-                } else {
-                    this.run(p -> this.buildChunks());
-                }
-            }
-            frameBuffer.draw(this.width, this.height);
-            this.previewRendered = true;
+            this.renderPreview(matrices);
         }
 
         if (!this.seedQueueEntry.isReady()) {
-            // see LevelLoadingScreen#render
-            int x = 45;
-            int y = this.height - 75;
-            WorldGenerationProgressTracker tracker = this.seedQueueEntry.isLocked() ? this.tracker : ((SQWorldGenerationProgressTracker) this.tracker).seedQueue$getFrozenCopy().orElse(this.tracker);
-            LevelLoadingScreen.drawChunkMap(matrices, tracker, x, y + 30, 2, 0);
-
-            this.drawCenteredString(matrices, this.client.textRenderer, MathHelper.clamp(this.tracker.getProgressPercentage(), 0, 100) + "%", x, y - 9 / 2 - 30, 16777215);
-            this.drawCenteredString(matrices, this.client.textRenderer, this.seedString, x, y - 9 / 2 - 50, 16777215);
+            this.renderLoading(matrices);
+        } else if (SeedQueue.config.chunkMapFreezing != -1 && !this.seedQueueEntry.isLocked()) {
+            this.renderChunkmap(matrices);
         }
+    }
+
+    private void renderPreview(MatrixStack matrices) {
+        SeedQueuePreviewFrameBuffer frameBuffer = this.seedQueueEntry.getFrameBuffer();
+        if (this.previewProperties != null) {
+            if (this.shouldRedrawPreview() && frameBuffer.updateRenderData(this.worldRenderer.getChunksDebugString() + "\n" + this.worldRenderer.getEntitiesDebugString())) {
+                this.redrawPreview(matrices, frameBuffer);
+            } else {
+                this.run(p -> this.buildChunks());
+            }
+        }
+        frameBuffer.draw(this.width, this.height);
+        this.previewRendered = true;
+    }
+
+    private void redrawPreview(MatrixStack matrices, SeedQueuePreviewFrameBuffer frameBuffer) {
+        frameBuffer.beginWrite();
+        // related to WorldRendererMixin#doNotClearOnWallScreen
+        // the suppressed call usually renders a light blue overlay over the entire screen,
+        // instead we draw it onto the preview ourselves
+        DrawableHelper.fill(matrices, 0, 0, this.wall.width, this.wall.height, -5323025);
+        this.run(properties -> properties.render(matrices, 0, 0, 0.0f, this.buttons, this.width, this.height, this.showMenu));
+        frameBuffer.endWrite();
+
+        this.client.getFramebuffer().beginWrite(true);
+        this.wall.refreshViewport();
+        this.lastPreviewFrame = this.wall.frame;
+    }
+
+    private void renderLoading(MatrixStack matrices) {
+        // see LevelLoadingScreen#render
+        this.renderChunkmap(matrices);
+        this.drawCenteredString(matrices, this.client.textRenderer, MathHelper.clamp(this.tracker.getProgressPercentage(), 0, 100) + "%", 45, this.height - 75 - 9 / 2 - 30, 16777215);
+        this.drawCenteredString(matrices, this.client.textRenderer, this.seedString, 45, this.height - 75 - 9 / 2 - 50, 16777215);
+    }
+
+    private void renderChunkmap(MatrixStack matrices) {
+        WorldGenerationProgressTracker tracker = this.seedQueueEntry.isLocked() ? this.tracker : ((SQWorldGenerationProgressTracker) this.tracker).seedQueue$getFrozenCopy().orElse(this.tracker);
+        LevelLoadingScreen.drawChunkMap(matrices, tracker, 45, this.height - 75 + 30, 2, 0);
     }
 
     public void build() {
