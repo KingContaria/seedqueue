@@ -190,7 +190,7 @@ public class SeedQueuePreview extends DrawableHelper {
                 SeedQueue.config.simulatedWindowSize.width() <= 90 &&
                 SeedQueue.config.simulatedWindowSize.height() <= 90 &&
                 !SeedQueue.config.waitForPreviewSetup &&
-                !this.seedQueueEntry.isLocked() || this.canDrawOnlyChunkmapIfLocked();
+                (!this.seedQueueEntry.isLocked() || this.canDrawOnlyChunkmapIfLocked());
     }
 
     private boolean canDrawOnlyChunkmapIfLocked() {
