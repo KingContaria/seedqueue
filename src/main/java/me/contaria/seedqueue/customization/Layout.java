@@ -66,7 +66,7 @@ public class Layout {
     }
 
     private static Layout grid(int rows, int columns, int width, int height) {
-        return new Layout(Group.grid(rows, columns, 0, 0, width, height, 0, false, true));
+        return new Layout(Group.grid(rows, columns, 0, 0, width, height, 0, false, true, true));
     }
 
     private static Layout fromJson(JsonObject jsonObject) throws JsonParseException {
@@ -98,12 +98,14 @@ public class Layout {
     public static class Group {
         private final Pos[] positions;
         public final boolean cosmetic;
-        public final boolean instance_background;
+        public final boolean instanceBackground;
+        public final boolean instanceOverlay;
 
-        private Group(Pos[] positions, boolean cosmetic, boolean instance_background) {
+        private Group(Pos[] positions, boolean cosmetic, boolean instanceBackground, boolean instanceOverlay) {
             this.positions = positions;
             this.cosmetic = cosmetic;
-            this.instance_background = instance_background;
+            this.instanceBackground = instanceBackground;
+            this.instanceOverlay = instanceOverlay;
         }
 
         public Pos getPos(int index) {
@@ -125,7 +127,7 @@ public class Layout {
             return sum;
         }
 
-        private static Group grid(int rows, int columns, int x, int y, int width, int height, int padding, boolean cosmetic, boolean instance_background) {
+        private static Group grid(int rows, int columns, int x, int y, int width, int height, int padding, boolean cosmetic, boolean instance_background, boolean instance_overlay) {
             Pos[] positions = new Pos[rows * columns];
             int columnWidth = (width - padding * (columns - 1)) / columns;
             int rowHeight = (height - padding * (rows - 1)) / rows;
@@ -139,7 +141,7 @@ public class Layout {
                     );
                 }
             }
-            return new Group(positions, cosmetic, instance_background);
+            return new Group(positions, cosmetic, instance_background, instance_overlay);
         }
 
         private static Group[] fromJson(JsonArray jsonArray) throws JsonParseException {
@@ -157,13 +159,14 @@ public class Layout {
         private static Group fromJson(JsonObject jsonObject, Integer defaultRows, Integer defaultColumns) throws JsonParseException {
             boolean cosmetic = jsonObject.has("cosmetic") && jsonObject.get("cosmetic").getAsBoolean();
             boolean instance_background = !jsonObject.has("instance_background") || jsonObject.get("instance_background").getAsBoolean();
+            boolean instance_overlay = !jsonObject.has("instance_overlay") || jsonObject.get("instance_overlay").getAsBoolean();
             if (jsonObject.has("positions")) {
                 JsonArray positionsArray = jsonObject.get("positions").getAsJsonArray();
                 Pos[] positions = new Pos[positionsArray.size()];
                 for (int i = 0; i < positionsArray.size(); i++) {
                     positions[i] = Pos.fromJson(positionsArray.get(i).getAsJsonObject());
                 }
-                return new Group(positions, cosmetic, instance_background);
+                return new Group(positions, cosmetic, instance_background, instance_overlay);
             }
             return Group.grid(
                     jsonObject.has("rows") || defaultRows == null ? jsonObject.get("rows").getAsInt() : defaultRows,
@@ -172,7 +175,10 @@ public class Layout {
                     getY(jsonObject),
                     getWidth(jsonObject),
                     getHeight(jsonObject),
-                    jsonObject.has("padding") ? jsonObject.get("padding").getAsInt() : 0, cosmetic, instance_background
+                    jsonObject.has("padding") ? jsonObject.get("padding").getAsInt() : 0,
+                    cosmetic,
+                    instance_background,
+                    instance_overlay
             );
         }
     }

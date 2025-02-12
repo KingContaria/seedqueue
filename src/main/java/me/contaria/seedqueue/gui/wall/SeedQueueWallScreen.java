@@ -47,6 +47,7 @@ public class SeedQueueWallScreen extends Screen {
     private static final Identifier WALL_BACKGROUND = IdentifierUtil.of("seedqueue", "textures/gui/wall/background.png");
     private static final Identifier WALL_OVERLAY = IdentifierUtil.of("seedqueue", "textures/gui/wall/overlay.png");
     private static final Identifier INSTANCE_BACKGROUND = IdentifierUtil.of("seedqueue", "textures/gui/wall/instance_background.png");
+    private static final Identifier INSTANCE_OVERLAY = IdentifierUtil.of("seedqueue", "textures/gui/wall/instance_overlay.png");
 
     private static boolean renderingPreview;
 
@@ -78,6 +79,8 @@ public class SeedQueueWallScreen extends Screen {
     private AnimatedTexture overlay;
     @Nullable
     private AnimatedTexture instanceBackground;
+    @Nullable
+    private AnimatedTexture instanceOverlay;
 
     private int ticks;
 
@@ -113,6 +116,7 @@ public class SeedQueueWallScreen extends Screen {
         this.background = AnimatedTexture.of(WALL_BACKGROUND);
         this.overlay = AnimatedTexture.of(WALL_OVERLAY);
         this.instanceBackground = AnimatedTexture.of(INSTANCE_BACKGROUND);
+        this.instanceOverlay = AnimatedTexture.of(INSTANCE_OVERLAY);
     }
 
     protected LockTexture getRandomLockTexture() {
@@ -209,6 +213,9 @@ public class SeedQueueWallScreen extends Screen {
         instance.render(matrices);
         SeedQueueWallScreen.stopRenderingPreview();
 
+        SeedQueueProfiler.swap("instance_overlay");
+        this.renderInstanceOverlay(group, matrices);
+
         SeedQueueProfiler.swap("reset_viewport");
         this.resetViewport();
 
@@ -220,13 +227,20 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void renderInstanceBackground(Layout.Group group, MatrixStack matrices) {
-        if (!group.instance_background) {
+        if (!group.instanceBackground) {
             return;
         }
         if (!SeedQueue.config.waitForPreviewSetup && this.layout.main == group) {
             this.renderBackground(matrices);
+            this.renderInstanceOverlay(group, matrices);
         } else if (this.instanceBackground != null) {
             this.drawAnimatedTexture(this.instanceBackground, matrices, 0, 0, this.width, this.height);
+        }
+    }
+
+    private void renderInstanceOverlay(Layout.Group group, MatrixStack matrices) {
+        if (group.instanceOverlay && this.instanceOverlay != null) {
+            this.drawAnimatedTexture(this.instanceOverlay, matrices, 0, 0, this.width, this.height);
         }
     }
 
