@@ -79,6 +79,9 @@ public class SeedQueuePreview extends DrawableHelper {
     }
 
     private void updatePreviewProperties() {
+        if (this.isOnlyDrawingChunkmap()) {
+            return;
+        }
         if (this.previewProperties == (this.previewProperties = this.seedQueueEntry.getPreviewProperties())) {
             return;
         }
@@ -95,33 +98,37 @@ public class SeedQueuePreview extends DrawableHelper {
     public void render(MatrixStack matrices) {
         this.updatePreviewProperties();
 
-        if (!this.isPreviewReady()) {
-            if (this.previewProperties != null) {
-                this.run(p -> this.buildChunks());
-            }
+        if (this.isOnlyDrawingChunkmap()) {
+            this.previewRendered = true;
+        } else if (!this.isPreviewReady()) {
             this.wall.renderBackground(matrices);
+            if (this.previewProperties != null) {
+                this.buildChunks();
+            }
         } else {
             this.renderPreview(matrices);
+            this.previewRendered = true;
         }
 
+        this.wall.setOrtho(this.width, this.height);
         if (!this.seedQueueEntry.isReady()) {
             this.renderLoading(matrices);
-        } else if (SeedQueue.config.chunkMapFreezing != -1 && !this.seedQueueEntry.isLocked()) {
+        } else if ((SeedQueue.config.chunkMapFreezing != -1 && !this.seedQueueEntry.isLocked()) || this.isOnlyDrawingChunkmap()) {
             this.renderChunkmap(matrices);
         }
+        this.wall.resetOrtho();
     }
 
     private void renderPreview(MatrixStack matrices) {
         SeedQueuePreviewFrameBuffer frameBuffer = this.seedQueueEntry.getFrameBuffer();
         if (this.previewProperties != null) {
-            if (this.shouldRedrawPreview() && frameBuffer.updateRenderData(this.worldRenderer.getChunksDebugString() + "\n" + this.worldRenderer.getEntitiesDebugString())) {
+            if (this.shouldRedrawPreview() && frameBuffer.updateRenderData(this.worldRenderer)) {
                 this.redrawPreview(matrices, frameBuffer);
             } else {
-                this.run(p -> this.buildChunks());
+                this.buildChunks();
             }
         }
         frameBuffer.draw(this.width, this.height);
-        this.previewRendered = true;
     }
 
     private void redrawPreview(MatrixStack matrices, SeedQueuePreviewFrameBuffer frameBuffer) {
@@ -133,7 +140,7 @@ public class SeedQueuePreview extends DrawableHelper {
         this.run(properties -> properties.render(matrices, 0, 0, 0.0f, this.buttons, this.width, this.height, this.showMenu));
         frameBuffer.endWrite();
 
-        this.client.getFramebuffer().beginWrite(true);
+        this.client.getFramebuffer().beginWrite(false);
         this.wall.refreshViewport();
         this.lastPreviewFrame = this.wall.frame;
     }
@@ -153,14 +160,16 @@ public class SeedQueuePreview extends DrawableHelper {
     public void build() {
         this.updatePreviewProperties();
         if (this.previewProperties != null) {
-            this.run(p -> this.buildChunks());
+            this.buildChunks();
         }
     }
 
     private void buildChunks() {
-        this.previewProperties.tickPackets();
-        this.previewProperties.tickEntities();
-        this.previewProperties.buildChunks();
+        this.run(properties -> {
+            properties.tickPackets();
+            properties.tickEntities();
+            ((SeedQueuePreviewProperties) properties).buildChunks();
+        });
     }
 
     private void run(Consumer<WorldPreviewProperties> consumer) {
@@ -174,6 +183,18 @@ public class SeedQueuePreview extends DrawableHelper {
             WorldPreview.worldRenderer = worldRenderer;
             WorldPreview.properties = properties;
         }
+    }
+
+    private boolean isOnlyDrawingChunkmap() {
+        return SeedQueue.config.chunkMapFreezing != -1 &&
+                SeedQueue.config.simulatedWindowSize.width() <= 90 &&
+                SeedQueue.config.simulatedWindowSize.height() <= 90 &&
+                !SeedQueue.config.waitForPreviewSetup &&
+                !this.seedQueueEntry.isLocked() || this.canDrawOnlyChunkmapIfLocked();
+    }
+
+    private boolean canDrawOnlyChunkmapIfLocked() {
+        return SeedQueue.config.freezeLockedPreviews || (this.wall.layout.locked != null && this.wall.layout.locked.size() == 0);
     }
 
     private boolean shouldRedrawPreview() {

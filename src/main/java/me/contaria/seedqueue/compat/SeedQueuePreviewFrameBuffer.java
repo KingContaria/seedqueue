@@ -7,6 +7,7 @@ import net.minecraft.client.gl.Framebuffer;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.render.WorldRenderer;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -48,12 +49,8 @@ public class SeedQueuePreviewFrameBuffer {
         this.framebuffer.endWrite();
     }
 
-    /**
-     * @param renderData A string unique to the previews current state, sensitive to changes in entities and chunks. See LevelLoadingScreenMixin#beginFrame.
-     * @return True if the given newRenderData is different from the stored {@link SeedQueuePreviewFrameBuffer#lastRenderData}.
-     */
-    public boolean updateRenderData(String renderData) {
-        return !Objects.equals(this.lastRenderData, this.lastRenderData = renderData);
+    public boolean updateRenderData(WorldRenderer worldRenderer) {
+        return !Objects.equals(this.lastRenderData, this.lastRenderData = worldRenderer.getChunksDebugString() + "\n" + worldRenderer.getEntitiesDebugString());
     }
 
     /**
