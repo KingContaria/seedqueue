@@ -5,6 +5,7 @@ import net.minecraft.client.toast.Toast;
 import net.minecraft.client.toast.ToastManager;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
+import net.minecraft.util.Util;
 
 public class SeedQueueBenchmarkToast implements Toast {
     private final SeedQueueWallScreen wall;
@@ -30,7 +31,7 @@ public class SeedQueueBenchmarkToast implements Toast {
             this.fadeOut = true;
         }
 
-        double time = (this.finished ? this.wall.benchmarkFinish : System.currentTimeMillis()) - this.wall.benchmarkStart;
+        double time = (this.finished ? this.wall.benchmarkFinish : Util.getMeasuringTimeMs()) - this.wall.benchmarkStart;
         double rps = Math.round(this.wall.benchmarkedSeeds / (time / 10000.0)) / 10.0;
         manager.getGame().textRenderer.draw(matrices, TextUtil.translatable("seedqueue.menu.benchmark.result", this.wall.benchmarkedSeeds, Math.round(time / 1000.0), rps), 7.0f, 18.0f, -1);
 

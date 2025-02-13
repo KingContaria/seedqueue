@@ -33,6 +33,7 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Util;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -856,7 +857,7 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     public void populateResetCooldowns() {
-        long cooldownStart = System.currentTimeMillis();
+        long cooldownStart = Util.getMeasuringTimeMs();
         for (SeedQueuePreview instance : this.getInstances()) {
             instance.populateCooldownStart(cooldownStart);
         }
@@ -865,7 +866,7 @@ public class SeedQueueWallScreen extends Screen {
     private void startBenchmark() {
         this.clearSeedQueueForBenchmark();
         this.benchmarkGoal = SeedQueue.config.benchmarkResets;
-        this.benchmarkStart = System.currentTimeMillis();
+        this.benchmarkStart = Util.getMeasuringTimeMs();
         this.benchmarkedSeeds = 0;
         SeedQueue.LOGGER.info("BENCHMARK | Starting benchmark with a goal of {} resets.", this.benchmarkGoal);
         this.client.getToastManager().clear();
@@ -894,7 +895,7 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void finishBenchmark() {
-        this.benchmarkFinish = System.currentTimeMillis();
+        this.benchmarkFinish = Util.getMeasuringTimeMs();
         SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds.", this.benchmarkedSeeds, Math.round((this.benchmarkFinish - this.benchmarkStart) / 10.0) / 100.0);
         this.playSound(SeedQueueSounds.FINISH_BENCHMARK);
         this.showFinishedBenchmarkResults = true;
@@ -915,7 +916,7 @@ public class SeedQueueWallScreen extends Screen {
                     break;
                 }
                 if (this.benchmarkedSeeds % 100 == 0) {
-                    SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds...", this.benchmarkedSeeds, Math.round((System.currentTimeMillis() - this.benchmarkStart) / 10.0) / 100.0);
+                    SeedQueue.LOGGER.info("BENCHMARK | Reset {} seeds in {} seconds...", this.benchmarkedSeeds, Math.round((Util.getMeasuringTimeMs() - this.benchmarkStart) / 10.0) / 100.0);
                 }
             }
         }

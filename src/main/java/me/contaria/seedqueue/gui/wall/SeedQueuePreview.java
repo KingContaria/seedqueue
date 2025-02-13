@@ -19,6 +19,7 @@ import net.minecraft.client.gui.screen.LevelLoadingScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.Arrays;
@@ -224,7 +225,7 @@ public class SeedQueuePreview extends DrawableHelper {
     }
 
     private boolean isCooldownReady() {
-        return System.currentTimeMillis() - this.cooldownStart >= SeedQueue.config.resetCooldown;
+        return Util.getMeasuringTimeMs() - this.cooldownStart >= SeedQueue.config.resetCooldown;
     }
 
     public void printDebug() {
