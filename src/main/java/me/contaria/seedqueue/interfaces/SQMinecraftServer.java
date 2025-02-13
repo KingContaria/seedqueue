@@ -25,6 +25,8 @@ public interface SQMinecraftServer {
 
     void seedQueue$unpause();
 
+    boolean seedQueue$isDiscarded();
+
     void seedQueue$setExecutor(Executor executor);
 
     void seedQueue$resetExecutor();
