@@ -70,7 +70,7 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
             )
     )
     private void onSetChunkStatus(CallbackInfo ci) {
-        if (this.frozenCopy == null && this.isPastFreezingTime()) {
+        if (this.frozenCopy == null && this.seedQueue$shouldFreeze()) {
             this.makeFrozenCopy();
         }
     }
@@ -102,11 +102,6 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     }
 
     @Unique
-    private boolean isPastFreezingTime() {
-        return this.freezeTime != -1 && Util.getMeasuringTimeMs() > this.freezeTime;
-    }
-
-    @Unique
     private void makeFrozenCopyAfter(long millis) {
         this.freezeTime = Util.getMeasuringTimeMs() + millis;
     }
@@ -115,6 +110,11 @@ public abstract class WorldGenerationProgressTrackerMixin implements SQWorldGene
     private void setAsFrozenCopy(Long2ObjectOpenHashMap<ChunkStatus> chunkStatuses, ChunkPos spawnPos) {
         this.chunkStatuses.putAll(chunkStatuses);
         this.spawnPos = spawnPos;
+    }
+
+    @Override
+    public boolean seedQueue$shouldFreeze() {
+        return this.freezeTime != -1 && Util.getMeasuringTimeMs() >= this.freezeTime;
     }
 
     @Override

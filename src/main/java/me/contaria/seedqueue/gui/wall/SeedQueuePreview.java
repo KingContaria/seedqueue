@@ -99,7 +99,7 @@ public class SeedQueuePreview extends DrawableHelper {
         this.updatePreviewProperties();
 
         if (this.isOnlyDrawingChunkmap()) {
-            this.previewRendered = true;
+            this.previewRendered = ((SQWorldGenerationProgressTracker) this.tracker).seedQueue$shouldFreeze();
         } else if (!this.isPreviewReady()) {
             this.wall.renderBackground(matrices);
             if (this.previewProperties != null) {

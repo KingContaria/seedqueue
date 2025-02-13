@@ -8,6 +8,10 @@ public interface SQWorldGenerationProgressTracker {
     /**
      * @return a copy of the WorldGenerationProgressTracker which was made after the milliseconds provided by seedQueue$makeCopyAfter
      */
+    boolean seedQueue$shouldFreeze();
+    /**
+     * @return a copy of the WorldGenerationProgressTracker which was made after the milliseconds provided by seedQueue$makeCopyAfter
+     */
     Optional<WorldGenerationProgressTracker> seedQueue$getFrozenCopy();
 
     /**
