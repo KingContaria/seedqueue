@@ -240,6 +240,12 @@ public class SeedQueueConfig implements SpeedrunConfig {
         return scaleFactor;
     }
 
+    public boolean isChunkmapResetting() {
+        return this.chunkMapFreezing != -1 &&
+                this.simulatedWindowSize.width() <= 90 &&
+                this.simulatedWindowSize.height() <= 90;
+    }
+
     @Override
     public @Nullable SpeedrunOption<?> parseField(Field field, SpeedrunConfig config, String... idPrefix) {
         if ("useWall".equals(field.getName())) {

@@ -193,7 +193,7 @@ public class SeedQueueWallScreen extends Screen {
         SeedQueueProfiler.push("set_viewport");
         this.setViewport(pos);
 
-        if (instance == null || (SeedQueue.config.waitForPreviewSetup && !instance.isPreviewReady())) {
+        if (instance == null || (SeedQueue.config.waitForPreviewSetup && !instance.isRenderingReady())) {
             SeedQueueProfiler.swap("instance_background");
             this.renderInstanceBackground(group, matrices);
             if (instance != null) {
@@ -393,7 +393,7 @@ public class SeedQueueWallScreen extends Screen {
             }
         }
 
-        this.preparingPreviews.sort(Comparator.comparing(SeedQueuePreview::isPreviewReady, Comparator.reverseOrder()));
+        this.preparingPreviews.sort(Comparator.comparing(SeedQueuePreview::isRenderingReady, Comparator.reverseOrder()));
 
         IntArrayList previewsOrder = IntStream.range(0, this.mainPreviews.length).collect(IntArrayList::new, IntList::add, IntList::addAll);
         if (this.layout.mainFillOrder == Layout.MainFillOrder.RANDOM) {
@@ -403,7 +403,7 @@ public class SeedQueueWallScreen extends Screen {
         }
 
         for (int i : previewsOrder) {
-            if (this.preparingPreviews.isEmpty() || SeedQueue.config.waitForPreviewSetup && !this.preparingPreviews.get(0).isPreviewReady()) {
+            if (this.preparingPreviews.isEmpty() || SeedQueue.config.waitForPreviewSetup && !this.preparingPreviews.get(0).isRenderingReady()) {
                 break;
             }
 
@@ -461,7 +461,7 @@ public class SeedQueueWallScreen extends Screen {
             entries.remove(instance.getSeedQueueEntry());
         }
         entries.removeIf(entry -> entry.getWorldGenerationProgressTracker() == null);
-        if (SeedQueue.config.waitForPreviewSetup) {
+        if (SeedQueue.config.waitForPreviewSetup && !SeedQueue.config.isChunkmapResetting()) {
             entries.removeIf(entry -> !entry.hasWorldPreview());
         }
         return entries;
@@ -662,7 +662,7 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void playInstance(SeedQueuePreview instance) {
-        if (instance.hasPreviewRendered() && this.canPlayInstance(instance.getSeedQueueEntry())) {
+        if (instance.hasRendered() && this.canPlayInstance(instance.getSeedQueueEntry())) {
             if (this.removePreview(instance)) {
                 this.playEntry(instance.getSeedQueueEntry());
                 return;
@@ -694,7 +694,7 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void lockInstance(SeedQueuePreview instance) {
-        if (instance.hasPreviewRendered() && instance.getSeedQueueEntry().lock()) {
+        if (instance.hasRendered() && instance.getSeedQueueEntry().lock()) {
             if (this.lockedPreviews != null) {
                 int index;
                 if (!this.layout.replaceLockedInstances && (index = ArrayUtils.indexOf(this.mainPreviews, instance)) != -1) {
@@ -813,7 +813,7 @@ public class SeedQueueWallScreen extends Screen {
     }
 
     private void scheduleJoin(SeedQueuePreview instance) {
-        if (instance.hasPreviewRendered()) {
+        if (instance.hasRendered()) {
             this.lockInstance(instance);
             if (this.scheduleJoin(instance.getSeedQueueEntry())) {
                 this.playSound(SeedQueueSounds.SCHEDULE_JOIN);
