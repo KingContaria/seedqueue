@@ -1,5 +1,6 @@
 package me.contaria.seedqueue.gui.wall;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.compat.SeedQueuePreviewFrameBuffer;
@@ -17,6 +18,9 @@ import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.LevelLoadingScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Util;
@@ -99,10 +103,11 @@ public class SeedQueuePreview extends DrawableHelper {
     public void render(MatrixStack matrices) {
         this.updatePreviewProperties();
 
+        this.wall.setOrtho(this.width, this.height);
         if (this.isOnlyDrawingChunkmap()) {
             this.rendered = this.isChunkmapReady();
         } else if (!this.isPreviewReady()) {
-            this.wall.renderBackground(matrices);
+            SeedQueuePreview.renderBackground(this.width, this.height);
             if (this.previewProperties != null) {
                 this.buildChunks();
             }
@@ -111,7 +116,6 @@ public class SeedQueuePreview extends DrawableHelper {
             this.rendered = true;
         }
 
-        this.wall.setOrtho(this.width, this.height);
         if (!this.seedQueueEntry.isReady()) {
             this.renderLoading(matrices);
         } else if ((SeedQueue.config.chunkMapFreezing != -1 && !this.seedQueueEntry.isLocked()) || this.isOnlyDrawingChunkmap()) {
@@ -137,12 +141,13 @@ public class SeedQueuePreview extends DrawableHelper {
         // related to WorldRendererMixin#doNotClearOnWallScreen
         // the suppressed call usually renders a light blue overlay over the entire screen,
         // instead we draw it onto the preview ourselves
-        DrawableHelper.fill(matrices, 0, 0, this.wall.width, this.wall.height, -5323025);
+        DrawableHelper.fill(matrices, 0, 0, this.width, this.height, -5323025);
         this.run(properties -> properties.render(matrices, 0, 0, 0.0f, this.buttons, this.width, this.height, this.showMenu));
         frameBuffer.endWrite();
 
         this.client.getFramebuffer().beginWrite(false);
         this.wall.refreshViewport();
+        this.wall.setOrtho(this.width, this.height);
         this.lastPreviewFrame = this.wall.frame;
     }
 
@@ -250,5 +255,20 @@ public class SeedQueuePreview extends DrawableHelper {
 
     public LockTexture getLockTexture() {
         return this.lockTexture;
+    }
+
+    // see Screen#renderBackground
+    @SuppressWarnings("deprecation")
+    public static void renderBackground(int width, int height) {
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.getBuffer();
+        MinecraftClient.getInstance().getTextureManager().bindTexture(BACKGROUND_TEXTURE);
+        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+        buffer.begin(7, VertexFormats.POSITION_TEXTURE_COLOR);
+        buffer.vertex(0.0, height, 0.0).texture(0.0F, height / 32.0F).color(64, 64, 64, 255).next();
+        buffer.vertex(width, height, 0.0).texture(width / 32.0F, height / 32.0F).color(64, 64, 64, 255).next();
+        buffer.vertex(width, 0.0, 0.0).texture(width / 32.0F, 0.0F).color(64, 64, 64, 255).next();
+        buffer.vertex(0.0, 0.0, 0.0).texture(0.0F, 0.0F).color(64, 64, 64, 255).next();
+        tessellator.draw();
     }
 }

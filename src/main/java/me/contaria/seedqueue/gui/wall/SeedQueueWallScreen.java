@@ -232,11 +232,22 @@ public class SeedQueueWallScreen extends Screen {
             return;
         }
         if (!SeedQueue.config.waitForPreviewSetup && this.layout.main == group) {
-            this.renderBackground(matrices);
+            this.renderPreviewBackground();
             this.renderInstanceOverlay(group, matrices);
         } else if (this.instanceBackground != null) {
             this.drawAnimatedTexture(this.instanceBackground, matrices, 0, 0, this.width, this.height);
         }
+    }
+
+    private void renderPreviewBackground() {
+        int scale = SeedQueue.config.calculateSimulatedScaleFactor(
+                this.client.options.guiScale,
+                this.client.options.forceUnicodeFont
+        );
+        SeedQueuePreview.renderBackground(
+                SeedQueue.config.simulatedWindowSize.width() / scale,
+                SeedQueue.config.simulatedWindowSize.height() / scale
+        );
     }
 
     private void renderInstanceOverlay(Layout.Group group, MatrixStack matrices) {
