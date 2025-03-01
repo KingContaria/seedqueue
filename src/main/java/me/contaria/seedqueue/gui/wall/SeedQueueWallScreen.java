@@ -3,6 +3,8 @@ package me.contaria.seedqueue.gui.wall;
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import me.contaria.seedqueue.SeedQueue;
 import me.contaria.seedqueue.SeedQueueEntry;
 import me.contaria.seedqueue.SeedQueueThread;
@@ -68,7 +70,7 @@ public class SeedQueueWallScreen extends Screen {
     private List<SeedQueuePreview> lockedPreviews;
     private List<SeedQueuePreview> preparingPreviews;
 
-    private final Set<Integer> blockedMainPositions = new HashSet<>();
+    private final IntSet blockedMainPositions = new IntOpenHashSet();
 
     private final Set<SeedQueueEntry> scheduledEntries = new HashSet<>();
     private boolean playedScheduledEnterWarning;
@@ -142,12 +144,12 @@ public class SeedQueueWallScreen extends Screen {
 
         SeedQueueProfiler.swap("render_main");
         for (int i = 0; i < this.layout.main.size(); i++) {
-            this.renderInstance(this.mainPreviews[i], this.layout.main, this.layout.main.getPos(i), matrices);
+            this.renderInstance(this.mainPreviews[i], this.layout.main, i, matrices);
         }
         if (this.layout.locked != null && this.lockedPreviews != null) {
             SeedQueueProfiler.swap("render_locked");
             for (int i = 0; i < this.layout.locked.size(); i++) {
-                this.renderInstance(i < this.lockedPreviews.size() ? this.lockedPreviews.get(i) : null, this.layout.locked, this.layout.locked.getPos(i), matrices);
+                this.renderInstance(i < this.lockedPreviews.size() ? this.lockedPreviews.get(i) : null, this.layout.locked, i, matrices);
             }
         }
         int i = 0;
@@ -155,7 +157,7 @@ public class SeedQueueWallScreen extends Screen {
         for (Layout.Group group : this.layout.preparing) {
             int offset = i;
             for (; i < group.size(); i++) {
-                this.renderInstance(i < this.preparingPreviews.size() ? this.preparingPreviews.get(i) : null, group, group.getPos(i - offset), matrices);
+                this.renderInstance(i < this.preparingPreviews.size() ? this.preparingPreviews.get(i) : null, group, i - offset, matrices);
             }
         }
 
@@ -185,7 +187,8 @@ public class SeedQueueWallScreen extends Screen {
         SeedQueueProfiler.pop();
     }
 
-    private void renderInstance(SeedQueuePreview instance, Layout.Group group, Layout.Pos pos, MatrixStack matrices) {
+    private void renderInstance(SeedQueuePreview instance, Layout.Group group, int index, MatrixStack matrices) {
+        Layout.Pos pos = group.getPos(index);
         if (pos == null) {
             return;
         }
@@ -195,7 +198,7 @@ public class SeedQueueWallScreen extends Screen {
 
         if (instance == null || (SeedQueue.config.waitForPreviewSetup && !instance.isRenderingReady())) {
             SeedQueueProfiler.swap("instance_background");
-            this.renderInstanceBackground(group, matrices);
+            this.renderInstanceBackground(group, index, matrices);
             if (instance != null) {
                 SeedQueueProfiler.swap("build_chunks");
                 instance.build();
@@ -227,11 +230,11 @@ public class SeedQueueWallScreen extends Screen {
         SeedQueueProfiler.pop();
     }
 
-    private void renderInstanceBackground(Layout.Group group, MatrixStack matrices) {
+    private void renderInstanceBackground(Layout.Group group, int index, MatrixStack matrices) {
         if (!group.instanceBackground) {
             return;
         }
-        if (!SeedQueue.config.waitForPreviewSetup && this.layout.main == group) {
+        if (!SeedQueue.config.waitForPreviewSetup && this.layout.main == group && !this.blockedMainPositions.contains(index)) {
             this.renderPreviewBackground();
             this.renderInstanceOverlay(group, matrices);
         } else if (this.instanceBackground != null) {
