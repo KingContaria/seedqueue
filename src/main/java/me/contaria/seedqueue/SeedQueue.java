@@ -6,6 +6,7 @@ import me.contaria.seedqueue.debug.SeedQueueSystemInfo;
 import me.contaria.seedqueue.debug.SeedQueueWatchdog;
 import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.mixin.accessor.MinecraftClientAccessor;
+import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
 import me.contaria.speedrunapi.util.TextUtil;
 import me.voidxwalker.autoreset.AttemptTracker;
@@ -19,6 +20,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.server.MinecraftServer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.*;
@@ -41,7 +43,6 @@ public class SeedQueue implements ClientModInitializer {
 
     public static final ThreadLocal<SeedQueueEntry> LOCAL_ENTRY = new ThreadLocal<>();
     public static SeedQueueEntry currentEntry;
-    public static SeedQueueEntry selectedEntry;
 
     @Override
     public void onInitializeClient() {
@@ -49,37 +50,59 @@ public class SeedQueue implements ClientModInitializer {
     }
 
     /**
-     * Polls a new {@link SeedQueueEntry} from the queue.
-     * If {@link SeedQueue#selectedEntry} is not null, it will pull that entry from the queue.
+     * Polls a new {@link SeedQueueEntry} from the queue and plays it.
      *
      * @return True if a new {@link SeedQueueEntry} was successfully loaded.
      */
-    public static boolean loadEntry() {
+    public static boolean playEntry() {
         if (!MinecraftClient.getInstance().isOnThread()) {
             throw new RuntimeException("Tried to load a SeedQueueEntry off-thread!");
         }
         synchronized (LOCK) {
-            if (selectedEntry != null) {
-                currentEntry = selectedEntry;
-                if (!SEED_QUEUE.remove(selectedEntry)) {
-                    throw new IllegalStateException("SeedQueue selectedEntry is not part of the queue!");
-                }
-                selectedEntry = null;
-            } else {
-                currentEntry = SEED_QUEUE.poll();
-            }
+            currentEntry = SEED_QUEUE.poll();
+        }
+        if (currentEntry == null) {
+            return false;
         }
         ping();
-        return currentEntry != null;
+        play();
+        return true;
     }
 
     /**
-     * Clears {@link SeedQueue#currentEntry}.
+     * Removes the given {@link SeedQueueEntry} from the queue and plays it.
      */
-    public static void clearCurrentEntry() {
-        synchronized (LOCK) {
-            currentEntry = null;
+    public static void playEntry(@NotNull SeedQueueEntry entry) {
+        if (!MinecraftClient.getInstance().isOnThread()) {
+            throw new RuntimeException("Tried to load a SeedQueueEntry off-thread!");
         }
+        synchronized (LOCK) {
+            if (!SEED_QUEUE.remove(entry)) {
+                throw new IllegalStateException("SeedQueue selectedEntry is not part of the queue!");
+            }
+            currentEntry = entry;
+        }
+        ping();
+        play();
+    }
+
+    /**
+     * Plays the {@link SeedQueue#currentEntry} and sets it back to {@code null} after.
+     */
+    private static void play() {
+        if (!MinecraftClient.getInstance().isOnThread()) {
+            throw new RuntimeException("Tried to play a SeedQueueEntry off-thread!");
+        }
+        if (currentEntry == null) {
+            throw new IllegalStateException("Tried to play a SeedQueueEntry but currentEntry is null!");
+        }
+        MinecraftClient.getInstance().createWorld(
+                currentEntry.getSession().getDirectoryName(),
+                currentEntry.getServer().getSaveProperties().getLevelInfo(),
+                ((MinecraftServerAccessor) currentEntry.getServer()).seedQueue$getDimensionTracker(),
+                currentEntry.getServer().getSaveProperties().getGeneratorOptions()
+        );
+        currentEntry = null;
     }
 
     /**
@@ -336,7 +359,6 @@ public class SeedQueue implements ClientModInitializer {
                 currentEntry.discard();
             }
             currentEntry = null;
-            selectedEntry = null;
         }
 
         SEED_QUEUE.forEach(SeedQueueEntry::discard);

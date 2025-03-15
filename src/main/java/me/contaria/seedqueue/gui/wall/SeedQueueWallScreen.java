@@ -54,8 +54,6 @@ public class SeedQueueWallScreen extends Screen {
 
     private static boolean renderingPreview;
 
-    private final Screen createWorldScreen;
-
     private final MinecraftClient client;
     @Nullable
     private final DebugHud debugHud;
@@ -99,9 +97,8 @@ public class SeedQueueWallScreen extends Screen {
     protected long benchmarkFinish;
     protected boolean showFinishedBenchmarkResults;
 
-    public SeedQueueWallScreen(Screen createWorldScreen) {
+    public SeedQueueWallScreen() {
         super(TextUtil.empty());
-        this.createWorldScreen = createWorldScreen;
         this.client = MinecraftClient.getInstance();
         this.debugHud = SeedQueue.config.showDebugMenu ? new DebugHud(MinecraftClient.getInstance()) : null;
         this.random = new Random();
@@ -699,12 +696,11 @@ public class SeedQueueWallScreen extends Screen {
 
     private void playEntry(SeedQueueEntry entry) {
         this.playSound(SeedQueueSounds.PLAY_INSTANCE);
-        SeedQueue.selectedEntry = entry;
-        this.client.openScreen(this.createWorldScreen);
+        SeedQueue.playEntry(entry);
     }
 
     private boolean canPlayInstance(SeedQueueEntry entry) {
-        return this.client.currentScreen == this && !this.client.isIntegratedServerRunning() && SeedQueue.selectedEntry == null && entry.isReady();
+        return this.client.currentScreen == this && !this.client.isIntegratedServerRunning() && entry.isReady();
     }
 
     private void lockInstance(SeedQueuePreview instance) {

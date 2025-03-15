@@ -532,16 +532,6 @@ public abstract class MinecraftClientMixin {
             method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
             at = @At("TAIL")
     )
-    private void clearCurrentSeedQueueEntry(CallbackInfo ci) {
-        if (!SeedQueue.inQueue()) {
-            SeedQueue.clearCurrentEntry();
-        }
-    }
-
-    @Inject(
-            method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
-            at = @At("TAIL")
-    )
     private void pingSeedQueueThreadOnLoadingWorld(CallbackInfo ci) {
         if (!SeedQueue.inQueue()) {
             SeedQueue.ping();

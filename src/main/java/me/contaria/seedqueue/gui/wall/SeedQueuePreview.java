@@ -220,7 +220,7 @@ public class SeedQueuePreview extends DrawableHelper {
     }
 
     protected boolean canReset(boolean ignoreLock, boolean ignoreResetCooldown) {
-        return this.rendered && (!this.seedQueueEntry.isLocked() || ignoreLock) && (this.isCooldownReady() || ignoreResetCooldown) && SeedQueue.selectedEntry != this.seedQueueEntry;
+        return this.rendered && (!this.seedQueueEntry.isLocked() || ignoreLock) && (this.isCooldownReady() || ignoreResetCooldown) && !this.seedQueueEntry.isLoaded();
     }
 
     protected void resetCooldown() {
