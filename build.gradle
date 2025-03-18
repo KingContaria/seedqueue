@@ -36,7 +36,7 @@ dependencies {
 	}
 
 	// check for the latest versions at https://jitpack.io/#Minecraft-Java-Edition-Speedrunning/sodium
-	modCompileOnly "com.github.Minecraft-Java-Edition-Speedrunning:sodium:d488d3a782"
+	modCompileOnly "com.github.Minecraft-Java-Edition-Speedrunning:sodium:0dd4b2d65a"
 
 	// check for the latest versions at https://jitpack.io/#contariaa/fastreset
 	modCompileOnly ("com.github.contariaa:fastreset:3e395069aa") {
