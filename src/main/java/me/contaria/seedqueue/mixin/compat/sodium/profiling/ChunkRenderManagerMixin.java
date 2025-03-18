@@ -245,19 +245,6 @@ public abstract class ChunkRenderManagerMixin {
             method = "update",
             at = @At(
                     value = "INVOKE",
-                    target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;unloadPending()V",
-                    remap = false
-            ),
-            remap = true
-    )
-    private void profileUnloadPending(CallbackInfo ci) {
-        SeedQueueProfiler.swap("unload_pending");
-    }
-
-    @Inject(
-            method = "update",
-            at = @At(
-                    value = "INVOKE",
                     target = "Lme/jellysquid/mods/sodium/client/render/chunk/ChunkRenderManager;setup(Lnet/minecraft/client/render/Camera;)V"
             ),
             remap = true
