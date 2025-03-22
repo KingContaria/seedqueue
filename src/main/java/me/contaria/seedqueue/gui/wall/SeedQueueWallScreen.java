@@ -244,10 +244,12 @@ public class SeedQueueWallScreen extends Screen {
                 this.client.options.guiScale,
                 this.client.options.forceUnicodeFont
         );
-        SeedQueuePreview.renderBackground(
-                SeedQueue.config.simulatedWindowSize.width() / scale,
-                SeedQueue.config.simulatedWindowSize.height() / scale
-        );
+        int width = SeedQueue.config.simulatedWindowSize.width() / scale;
+        int height = SeedQueue.config.simulatedWindowSize.height() / scale;
+
+        this.setOrtho(width, height);
+        SeedQueuePreview.renderBackground(width, height);
+        this.resetOrtho();
     }
 
     private void renderInstanceOverlay(Layout.Group group, MatrixStack matrices) {
