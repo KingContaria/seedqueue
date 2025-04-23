@@ -9,6 +9,7 @@ import me.contaria.seedqueue.gui.wall.SeedQueueWallScreen;
 import me.contaria.seedqueue.sounds.SeedQueueSounds;
 import me.voidxwalker.autoreset.Atum;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ProgressScreen;
 import net.minecraft.client.gui.screen.Screen;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -42,11 +43,14 @@ public abstract class AtumMixin {
                     return;
                 }
             }
+            // standardsettings can cause the current screen to be re-initialized,
+            // so we open an intermission screen to avoid atum reset logic being called twice
+            client.openScreen(new ProgressScreen());
             ModCompat.standardsettings$cache();
             ModCompat.standardsettings$reset();
             ModCompat.stateoutput$setWallState();
             SeedQueueSounds.play(SeedQueueSounds.OPEN_WALL);
-            original.call(client, new SeedQueueWallScreen());
+            client.openScreen(new SeedQueueWallScreen());
             return;
         }
         if (!SeedQueue.playEntry()) {
