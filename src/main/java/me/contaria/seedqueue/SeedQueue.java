@@ -15,6 +15,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.Version;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.WorldGenerationProgressTracker;
+import net.minecraft.client.gui.screen.ProgressScreen;
 import net.minecraft.client.gui.screen.SaveLevelScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.server.MinecraftServer;
@@ -96,6 +97,9 @@ public class SeedQueue implements ClientModInitializer {
         if (currentEntry == null) {
             throw new IllegalStateException("Tried to play a SeedQueueEntry but currentEntry is null!");
         }
+        // standardsettings can cause the current screen to be re-initialized,
+        // so we open an intermission screen to avoid atum reset logic being called twice
+        MinecraftClient.getInstance().openScreen(new ProgressScreen());
         MinecraftClient.getInstance().createWorld(
                 currentEntry.getSession().getDirectoryName(),
                 currentEntry.getServer().getSaveProperties().getLevelInfo(),
