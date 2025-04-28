@@ -60,7 +60,7 @@ public abstract class AtumMixin {
 
     @Inject(
             method = "stopRunning",
-            at = @At("HEAD")
+            at = @At("TAIL")
     )
     private static void stopSeedQueueOnAtumStop(CallbackInfo ci) {
         SeedQueue.stop();
