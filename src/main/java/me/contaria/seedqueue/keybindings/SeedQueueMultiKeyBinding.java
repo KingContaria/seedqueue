@@ -154,6 +154,9 @@ public class SeedQueueMultiKeyBinding {
             return;
         }
 
+        this.secondaryKeys.clear();
+        this.blockingKeys.clear();
+
         if (!jsonElement.isJsonObject()) {
             this.setPrimaryKey(InputUtil.fromTranslationKey(jsonElement.getAsString()));
             return;
@@ -162,13 +165,9 @@ public class SeedQueueMultiKeyBinding {
         JsonObject jsonObject = jsonElement.getAsJsonObject();
 
         this.setPrimaryKey(InputUtil.fromTranslationKey(jsonObject.get("primary").getAsString()));
-
-        this.secondaryKeys.clear();
         for (JsonElement key : jsonObject.getAsJsonArray("secondary")) {
             this.addSecondaryKey(InputUtil.fromTranslationKey(key.getAsString()));
         }
-
-        this.blockingKeys.clear();
         for (JsonElement key : jsonObject.getAsJsonArray("blocking")) {
             this.addBlockingKey(InputUtil.fromTranslationKey(key.getAsString()));
         }
