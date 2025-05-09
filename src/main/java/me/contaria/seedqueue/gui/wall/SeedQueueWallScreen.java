@@ -1,3 +1,4 @@
+
 package me.contaria.seedqueue.gui.wall;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -261,16 +262,32 @@ public class SeedQueueWallScreen extends Screen {
     private void drawLock(MatrixStack matrices, Layout.Pos pos, LockTexture lock) {
         this.setOrtho(this.client.getWindow().getFramebufferWidth(), this.client.getWindow().getFramebufferHeight());
         this.client.getTextureManager().bindTexture(lock.getId());
+
+        int x = pos.x;
+        int y = pos.y;
+        int width = pos.width;
+        int height = pos.height;
+
+        if (lock.posX != 0 || lock.posY != 0 || lock.specifiedWidth != lock.width || lock.specifiedHeight != lock.height) {
+            x += (int) (lock.posX * width);
+            y += (int) (lock.posY * height);
+            width = (int) (lock.specifiedWidth * width);
+            height = (int) (lock.specifiedHeight * height);
+        } else {
+            width = Math.min(width, (int) (height * lock.getAspectRatio()));
+            height = (int) (width / lock.getAspectRatio());
+        }
+
         DrawableHelper.drawTexture(
                 matrices,
-                pos.x,
-                pos.y,
+                x,
+                y,
                 0.0f,
-                lock.getFrameIndex(this.ticks) * pos.height,
-                (int) Math.min(pos.width, pos.height * lock.getAspectRatio()),
-                pos.height,
-                (int) (pos.height * lock.getAspectRatio()),
-                pos.height * lock.getIndividualFrameCount()
+                lock.getFrameIndex(this.ticks) * lock.height,
+                width,
+                height,
+                width,
+                lock.height
         );
         this.resetOrtho();
     }
