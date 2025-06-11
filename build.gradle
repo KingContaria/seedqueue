@@ -21,30 +21,30 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// SpeedrunAPI
-	// check for the latest versions at https://jitpack.io/#kingcontaria/speedrunapi
-	modImplementation "com.github.KingContaria:SpeedrunAPI:8497ae7479"
+	// check for the latest versions at https://jitpack.io/#contariaa/speedrunapi
+	modImplementation "com.github.contariaa:SpeedrunAPI:96811e85e8"
 	annotationProcessor "com.github.bawnorton.mixinsquared:mixinsquared-fabric:0.1.1"
 
-	// check for the latest versions at https://jitpack.io/#kingcontaria/atum-rewrite
-	modImplementation ("com.github.KingContaria:atum-rewrite:d0ac2178f8") {
+	// check for the latest versions at https://jitpack.io/#contariaa/atum
+	modImplementation ("com.github.contariaa:atum:fe1f979836") {
 		transitive = false
 	}
 
-	// check for the latest versions at https://jitpack.io/#kingcontaria/mcsr-worldpreview-1.16.1
-	modCompileOnly ("com.github.KingContaria:mcsr-worldpreview-1.16.1:649212d145") {
+	// check for the latest versions at https://jitpack.io/#contariaa/worldpreview
+	modCompileOnly ("com.github.contariaa:worldpreview:96e37bc1cd") {
 		transitive = false
 	}
 
 	// check for the latest versions at https://jitpack.io/#Minecraft-Java-Edition-Speedrunning/sodium
 	modCompileOnly "com.github.Minecraft-Java-Edition-Speedrunning:sodium:d488d3a782"
 
-	// check for the latest versions at https://jitpack.io/#kingcontaria/fastreset
-	modCompileOnly ("com.github.KingContaria:fastreset:7da3236482") {
+	// check for the latest versions at https://jitpack.io/#contariaa/fastreset
+	modCompileOnly ("com.github.contariaa:fastreset:3e395069aa") {
 		transitive = false
 	}
 
-	// check for the latest versions at https://jitpack.io/#kingcontaria/standardsettings
-	modCompileOnly ("com.github.KingContaria:standardsettings:a22107e94e") {
+	// check for the latest versions at https://jitpack.io/#contariaa/standardsettings
+	modCompileOnly ("com.github.contariaa:standardsettings:2461224798") {
 		transitive = false
 	}
 

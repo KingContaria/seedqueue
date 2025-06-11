@@ -36,13 +36,10 @@ import java.util.Objects;
 @SuppressWarnings("FieldMayBeFinal")
 @Config(init = Config.InitPoint.PRELAUNCH)
 public class SeedQueueConfig implements SpeedrunConfig {
-    @Config.Ignored
     static final int AUTO = 0;
 
-    @Config.Ignored
     private static final int PROCESSORS = Runtime.getRuntime().availableProcessors();
 
-    @Config.Ignored
     private static final boolean CAN_USE_WALL = ModCompat.HAS_WORLDPREVIEW && ModCompat.HAS_STANDARDSETTINGS && ModCompat.HAS_SODIUM;
 
     @Config.Ignored

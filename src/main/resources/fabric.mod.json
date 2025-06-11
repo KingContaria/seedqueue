@@ -8,7 +8,7 @@
 		{
 			"name": "contaria",
 			"contact": {
-				"homepage": "https://github.com/KingContaria/"
+				"homepage": "https://github.com/contariaa/"
 			}
 		}
 	],
@@ -23,8 +23,8 @@
 		"luvvlyjude"
 	],
 	"contact": {
-		"sources": "https://github.com/KingContaria/seedqueue",
-		"issues": "https://github.com/KingContaria/seedqueue/issues"
+		"sources": "https://github.com/contariaa/seedqueue",
+		"issues": "https://github.com/contariaa/seedqueue/issues"
 	},
 	"license": "MIT",
 	"icon": "assets/seedqueue/icon.png",
@@ -46,15 +46,15 @@
 		"fabricloader": ">=0.16.0",
 		"minecraft": "1.16.1",
 		"speedrunapi": ">=2.0-beta.1",
-		"atum": ">=2.3"
+		"atum": ">=2.6"
 	},
 	"breaks": {
 		"worldpreview": "<6.3.0",
 		"antiresourcereload": "<5.0.0",
 		"chunkcacher": "<1.4.0",
-		"standardsettings": "<2.0",
+		"standardsettings": "<2.3",
 		"setspawnmod": "<4.0.0",
-		"fast_reset": "<2.0",
+		"fast_reset": "<2.3",
 		"state-output": "<1.2",
 		"speedrunigt": "<15.0",
 		"sodium": [ "v1", "v2", "<2.4.0" ],
