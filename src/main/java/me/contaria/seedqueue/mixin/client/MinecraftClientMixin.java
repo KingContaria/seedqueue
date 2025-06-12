@@ -29,15 +29,12 @@ import net.minecraft.client.gui.WorldGenerationProgressTracker;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.sound.MusicTracker;
 import net.minecraft.client.sound.SoundManager;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtIo;
 import net.minecraft.resource.DataPackSettings;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.resource.ServerResourceManager;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.util.UserCache;
-import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.registry.RegistryTracker;
 import net.minecraft.world.SaveProperties;
 import net.minecraft.world.level.storage.LevelStorage;
@@ -56,8 +53,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.File;
 import java.net.Proxy;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
@@ -366,35 +361,15 @@ public abstract class MinecraftClientMixin {
         return !SeedQueue.inQueue();
     }
 
-    @WrapOperation(
+    @WrapWithCondition(
             method = "startIntegratedServer(Ljava/lang/String;Lnet/minecraft/util/registry/RegistryTracker$Modifiable;Ljava/util/function/Function;Lcom/mojang/datafixers/util/Function4;ZLnet/minecraft/client/MinecraftClient$WorldLoadAction;)V",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/level/storage/LevelStorage$Session;backupLevelDataFile(Lnet/minecraft/util/registry/RegistryTracker;Lnet/minecraft/world/SaveProperties;)V"
             )
     )
-    private void cancelSessionLevelDatInit(LevelStorage.Session session, RegistryTracker tracker, SaveProperties properties, Operation<Void> original) {
-        if (SeedQueue.inQueue()) {
-            // since this world is guaranteed to be new,
-            // we can optimize level.dat creation by saving the file
-            // without backing up the old file (which doesn't exist)
-            Path path = session.getDirectory(WorldSavePath.LEVEL_DAT);
-            CompoundTag data = properties.cloneWorldTag(tracker, null);
-            CompoundTag tag = new CompoundTag();
-            tag.put("Data", data);
-
-            try {
-                NbtIo.writeCompressed(tag, Files.newOutputStream(path));
-            } catch (Exception e) {
-                SeedQueue.LOGGER.error("Failed to save level {}", path, e);
-            }
-            return;
-        }
-        if (SeedQueue.currentEntry != null) {
-            // already saved level.dat on SeedQueueThread
-            return;
-        }
-        original.call(session, tracker, properties);
+    private boolean cancelSessionLevelDatInit(LevelStorage.Session instance, RegistryTracker registryTracker, SaveProperties saveProperties) {
+        return SeedQueue.inQueue() || SeedQueue.currentEntry == null;
     }
 
     @WrapWithCondition(
