@@ -57,5 +57,11 @@
     "server.synchronization.ScheduledTickMixin",
     "server.synchronization.WeightedBlockStateProviderMixin"
   ],
-  "plugin": "me.contaria.seedqueue.SeedQueueMixinConfigPlugin"
+  "plugin": "me.contaria.seedqueue.SeedQueueMixinConfigPlugin",
+  "mixins": [
+    "server.optimization.FileResourcePackProviderMixin",
+    "server.optimization.LevelStorageSessionMixin",
+    "server.optimization.ServerChunkManagerMixin",
+    "server.optimization.WorldSaveHandlerMixin"
+  ]
 }

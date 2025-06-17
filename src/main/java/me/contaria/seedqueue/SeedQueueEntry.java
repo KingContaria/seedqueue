@@ -8,6 +8,7 @@ import me.contaria.seedqueue.compat.SeedQueueSettingsCache;
 import me.contaria.seedqueue.compat.WorldPreviewFrameBuffer;
 import me.contaria.seedqueue.compat.WorldPreviewProperties;
 import me.contaria.seedqueue.debug.SeedQueueProfiler;
+import me.contaria.seedqueue.interfaces.SQLevelStorageSession;
 import me.contaria.seedqueue.interfaces.SQMinecraftServer;
 import me.contaria.seedqueue.interfaces.SQWorldGenerationProgressTracker;
 import me.contaria.seedqueue.mixin.accessor.MinecraftServerAccessor;
@@ -17,6 +18,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.UserCache;
 import net.minecraft.world.level.storage.LevelStorage;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.util.List;
 
 /**
  * Stores the {@link MinecraftServer} and any other resources related to a seed in the queue.
@@ -46,6 +50,7 @@ public class SeedQueueEntry {
 
     @Nullable
     private SeedQueueSettingsCache settingsCache;
+
     private int perspective;
 
     private volatile boolean locked;
@@ -59,7 +64,7 @@ public class SeedQueueEntry {
      */
     public int mainPosition = -1;
 
-    public SeedQueueEntry(MinecraftServer server, LevelStorage.Session session, MinecraftClient.IntegratedResourceManager resourceManager, @Nullable YggdrasilAuthenticationService yggdrasilAuthenticationService, @Nullable MinecraftSessionService minecraftSessionService, @Nullable GameProfileRepository gameProfileRepository, @Nullable UserCache userCache) {
+    public SeedQueueEntry(MinecraftServer server, LevelStorage.Session session, MinecraftClient.IntegratedResourceManager resourceManager, @Nullable YggdrasilAuthenticationService yggdrasilAuthenticationService, @Nullable MinecraftSessionService minecraftSessionService, @Nullable GameProfileRepository gameProfileRepository, @Nullable UserCache userCache, @Nullable WorldGenerationProgressTracker worldGenerationProgressTracker) {
         this.server = server;
         this.session = session;
         this.resourceManager = resourceManager;
@@ -350,6 +355,13 @@ public class SeedQueueEntry {
             if (this.discarded) {
                 throw new IllegalStateException("Tried to load \"" + this.session.getDirectoryName() + "\" but it has already been discarded!");
             }
+            try {
+                ((SQLevelStorageSession) this.session).seedQueue$createLock();
+            } catch (Exception e) {
+                SeedQueue.LOGGER.error("Failed to create session lock for \"{}\"!", this.session.getDirectoryName(), e);
+                return;
+            }
+
 
             this.loaded = true;
 
@@ -407,4 +419,5 @@ public class SeedQueueEntry {
         }
         return ((SQWorldGenerationProgressTracker) this.worldGenerationProgressTracker).seedQueue$getProgressPercentage();
     }
+
 }

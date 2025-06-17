@@ -1,6 +1,7 @@
 package me.contaria.seedqueue;
 
 import com.google.gson.JsonParseException;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import me.contaria.seedqueue.compat.ModCompat;
 import me.contaria.seedqueue.debug.SeedQueueSystemInfo;
 import me.contaria.seedqueue.debug.SeedQueueWatchdog;
@@ -20,6 +21,7 @@ import net.minecraft.text.TranslatableText;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -42,6 +44,13 @@ public class SeedQueue implements ClientModInitializer {
     public static final ThreadLocal<SeedQueueEntry> LOCAL_ENTRY = new ThreadLocal<>();
     public static SeedQueueEntry currentEntry;
     public static SeedQueueEntry selectedEntry;
+
+    public static boolean cancelDirectoryCreate(File instance, Operation<Boolean> original) {
+        if (config.delayFileCreation && inQueue()) {
+            return true;
+        }
+        return original.call(instance);
+    }
 
     @Override
     public void onInitializeClient() {
