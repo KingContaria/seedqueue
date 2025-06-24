@@ -64,8 +64,8 @@ public class SeedQueuePreview extends DrawableHelper {
                 this.seedQueueEntry.getSettingsCache() != null ? (int) this.seedQueueEntry.getSettingsCache().getValue("guiScale") : MinecraftClient.getInstance().options.guiScale,
                 MinecraftClient.getInstance().options.forceUnicodeFont
         );
-        this.width = SeedQueue.config.simulatedWindowSize.width() / scale;
-        this.height = SeedQueue.config.simulatedWindowSize.height() / scale;
+        this.width = (int) Math.ceil((double) SeedQueue.config.simulatedWindowSize.width() / scale);
+        this.height = (int) Math.ceil((double) SeedQueue.config.simulatedWindowSize.height() / scale);
 
         this.buttons = WorldPreviewProperties.createMenu(this.width, this.height, () -> {}, () -> {});
         this.showMenu = !Boolean.TRUE.equals(SpeedrunConfigAPI.getConfigValue("standardsettings", "autoF3Esc"));
@@ -133,6 +133,7 @@ public class SeedQueuePreview extends DrawableHelper {
                 this.buildChunks();
             }
         }
+        this.wall.setOrtho(this.width, this.height);
         frameBuffer.draw(this.width, this.height);
     }
 
@@ -147,7 +148,6 @@ public class SeedQueuePreview extends DrawableHelper {
 
         this.client.getFramebuffer().beginWrite(false);
         this.wall.refreshViewport();
-        this.wall.setOrtho(this.width, this.height);
         this.lastPreviewFrame = this.wall.frame;
     }
 
