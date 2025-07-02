@@ -30,6 +30,7 @@
     "compat.atum.AtumMixin",
     "compat.atum.CreateWorldScreenMixin",
     "compat.atum.KeyboardMixin",
+    "compat.atum.OptionsScreenMixin",
     "compat.sodium.ChunkBuilder$WorkerRunnableMixin",
     "compat.sodium.ChunkBuilder$WorkerRunnableMixin2",
     "compat.sodium.ChunkBuilderMixin",
