@@ -34,6 +34,7 @@ public abstract class AtumMixin {
             original.call(client, screen);
             return;
         }
+        ModCompat.standardsettings$cache();
         if (SeedQueue.config.shouldUseWall()) {
             if (SeedQueue.config.bypassWall) {
                 Optional<SeedQueueEntry> nextSeedQueueEntry = SeedQueue.getEntryMatching(entry -> entry.isReady() && entry.isLocked());
@@ -46,7 +47,6 @@ public abstract class AtumMixin {
             // standardsettings can cause the current screen to be re-initialized,
             // so we open an intermission screen to avoid atum reset logic being called twice
             client.openScreen(new ProgressScreen());
-            ModCompat.standardsettings$cache();
             ModCompat.standardsettings$reset();
             ModCompat.stateoutput$setWallState();
             SeedQueueSounds.play(SeedQueueSounds.OPEN_WALL);
